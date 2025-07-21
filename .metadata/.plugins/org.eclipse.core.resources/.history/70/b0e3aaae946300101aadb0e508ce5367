@@ -1,0 +1,12 @@
+<!-- src/main/resources/static/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Yonsei Dairy</title>
+</head>
+<body>
+    <h1>Welcome to Dealer Territory Site</h1>
+    <p>This is the main index page.</p>
+</body>
+</html>

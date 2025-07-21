@@ -1,0 +1,7 @@
+<mapper namespace="com.yonseidairy.site.mapper.HomeMapper">
+
+    <select id="selectAllRegions" resultType="com.yonseidairy.site.dao.RegionDao">
+        SELECT * FROM cd_matcode
+    </select>
+
+</mapper>

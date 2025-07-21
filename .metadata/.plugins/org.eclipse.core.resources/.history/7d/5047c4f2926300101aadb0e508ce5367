@@ -1,0 +1,20 @@
+<mapper namespace="com.yonseidairy.site.mapper.HomeMapper">
+
+    <select id="selectAllRegions" resultType="com.yonseidairy.site.dao.RegionDao">
+        SELECT
+		    A.custno as custno,
+		    A.CUSTNAME,
+		    A.POLYGON_COORDS,
+		    A.
+		    B.ADDR,
+		    B.ADDR_1,
+		    B.PHONE_MOBILE1
+		FROM
+		    REGION_LOCATION A,
+		    CD_CUSTOMER B
+		WHERE 1 = 1
+		    AND B.OFFICE_ID = 'YSM'
+		    AND A.CUSTNO = B.CUSTNO
+    </select>
+
+</mapper>

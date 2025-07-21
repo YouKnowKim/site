@@ -1,0 +1,16 @@
+package com.yonseidairy.site.mapper;
+
+import java.util.ArrayList;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import com.yonseidairy.site.dao.RegionDao;
+
+@Mapper
+@Repository
+public interface HomeMapper {
+	
+	ArrayList<RegionDao> selectAllRegions();
+
+}

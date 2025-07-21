@@ -1,0 +1,38 @@
+package com.yonseidairy.site.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.yonseidairy.site.dao.RegionDao;
+import com.yonseidairy.site.service.RegionService;
+
+@Controller
+public class RegionController {
+	
+	@Autowired
+    private RegionService regionService;
+	
+	@GetMapping("/")
+	public String index() {
+        // return "/index.html"; ← 이건 static 디렉토리일 때
+        return "/index.html"; // templates/index.html (Thymeleaf/JSP) 또는 static/index.html 로 자동 매핑
+    }
+	
+	@GetMapping("/api/getAllRegions")
+	@ResponseBody
+	public List<RegionDao> getAllRegions() {
+		return regionService.selectAllRegions();
+    }
+	
+	@GetMapping("/api/getAllRegions")
+	@ResponseBody
+	public String test() {
+        return "proxy test success";
+    }
+
+}

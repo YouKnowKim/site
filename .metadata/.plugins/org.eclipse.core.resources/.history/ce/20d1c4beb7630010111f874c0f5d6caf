@@ -1,0 +1,54 @@
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+function App() {
+    const [regions, setRegions] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/getAllRegions')
+            .then(response => {
+                setRegions(response.data);
+            })
+            .catch(err => {
+                console.error('Error fetching regions:', err);
+                setError('데이터를 불러오는 데 실패했습니다.');
+            });
+    }, []);
+
+    return (
+        <div>
+            <h1>Dealer Regions</h1>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Type</th>
+                        <th>Tel</th>
+                        <th>Polygon Points</th>
+                        <th>polygon_coords</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {regions.map((region, index) => (
+                        <tr key={index}>
+                            <td>{region.code}</td>
+                            <td>{region.name}</td>
+                            <td>{region.addr}</td>
+                            <td>{region.gubun || '-'}</td>
+                            <td>{region.tel}</td>
+                            <td>{region.polygon ? JSON.stringify(region.polygon) : '-'}</td>
+                            <td>{region.polygon_coords}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+export default App;
