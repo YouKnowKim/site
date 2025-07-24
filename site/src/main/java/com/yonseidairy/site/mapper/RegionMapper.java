@@ -11,6 +11,14 @@ import com.yonseidairy.site.dao.RegionDao;
 @Repository
 public interface RegionMapper {
 	
-	List<RegionDao> selectAllRegions();
+	List<RegionDao> selectAllRegions(RegionDao inRegionDao);
+	
+	List<RegionDao> selectRegions(RegionDao inRegionDao);
+	
+	List<RegionDao> selectAddressCategories(RegionDao inRegionDao);
+	
+	List<RegionDao> selectAllRegionsForAddress(RegionDao inRegionDao);
+	
+	RegionDao selectCheckSabun(RegionDao inRegionDao);
 
 }

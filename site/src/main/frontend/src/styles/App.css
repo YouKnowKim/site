@@ -1,0 +1,11 @@
+/* App.css */
+.app {
+  padding-top: 85px;        /* Header 높이만큼 패딩 */
+  padding-bottom: 40px;     /* Footer 높이만큼 패딩 */
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+.content {
+  padding: 20px;
+}

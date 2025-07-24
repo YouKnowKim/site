@@ -1,0 +1,25 @@
+package com.yonseidairy.site.service;
+
+import java.util.HashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yonseidairy.site.dao.AddressDao;
+import com.yonseidairy.site.mapper.AddressMapper;
+
+@Service
+public class AddressService {
+	private static final String KAKAO_REST_API_KEY = "KakaoAK 70f55076ab1f80b4e69e90f9ec18c1b5";
+	
+	@Autowired
+	AddressMapper addressMapper;
+	
+	public HashMap<String, String> getRegionByAddress(AddressDao inAddressDao){
+		
+		HashMap<String, String> result = new HashMap<>();
+		
+		return result;
+	}
+
+}

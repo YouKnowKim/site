@@ -1,41 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import Header from './layout/header.js';
+import Footer from './layout/footer.js';
+import Home from './pages/Home.js';
+import Login from './pages/Login.js';
+import Map from './pages/Map.js';
+import MapEdit from './pages/MapEdit.js';
+import ProtectedRoute from './components/ProtectedRoute';
+// import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
+// import logo from './logo.svg';
+import './styles/App.css';
 
 function App() {
-  const [message, setMessage] = useState('');
-  const API_BASE = process.env.REACT_APP_API_URL;
-  console.log('[환경변수]', API_BASE);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/api/test`) // 프록시가 /api로 시작하는 요청을 백엔드로 전달
-      .then(res => res.text())
-      .then(data => {
-        setMessage(data); // 응답을 상태에 저장
-      })
-      .catch(err => {
-        console.error('API 호출 오류:', err);
-        setMessage('API 호출 실패');
-      });
-  }, [API_BASE]);
+  const [path] = useState(false);
+  const location = useLocation();
+  const showHeader = location.pathname !== '/login';
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <p>{message}</p> {/* API 응답 출력 */}
-      </header>
+    <div className="app">
+      {showHeader && <Header />}
+      <main className="content">
+        <Routes>
+          <Route path="/Login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><Map /></ProtectedRoute>} />
+          <Route path="/Map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
+          <Route path="/MapEdit" element={<ProtectedRoute><MapEdit /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      {path === true ? <Footer /> : null}
     </div>
   );
 }

@@ -1,0 +1,96 @@
+package com.yonseidairy.site.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.yonseidairy.site.dao.RegionDao;
+import com.yonseidairy.site.mapper.RegionMapper;
+
+@Service
+public class RegionService {
+
+	@Autowired
+	private RegionMapper regionMapper;
+
+	// 모든 거래처 위치 정보 가져오기
+	public List<RegionDao> selectAllRegions(RegionDao inRegionDao) {
+		List<RegionDao> result = new ArrayList<>();
+		List<RegionDao> rawList = regionMapper.selectAllRegions(inRegionDao);
+
+		for (RegionDao raw : rawList) {
+			raw.setPolygon(parsePolygon(raw.getPolygon_coords()));
+
+			result.add(raw);
+		}
+
+		return result;
+	};
+
+	// 유통 구분에 따른 위치 정보 가져오기
+	public List<RegionDao> selectRegions(RegionDao inRegionDao) {
+
+		List<RegionDao> result = new ArrayList<>();
+		List<RegionDao> rawList = regionMapper.selectRegions(inRegionDao);
+
+		for (RegionDao raw : rawList) {
+			raw.setPolygon(parsePolygon(raw.getPolygon_coords()));
+
+			result.add(raw);
+		}
+
+		return result;
+	}
+
+	// 주소 카테고리 가져오기
+	public Map<String, Set<String>> selectAddressCategories(RegionDao inRegionDao) {
+
+		List<RegionDao> result = new ArrayList<>();
+		List<RegionDao> rawList = regionMapper.selectAddressCategories(inRegionDao);
+		
+		// 지역대분류 → 중분류 리스트 저장 구조
+        Map<String, Set<String>> categoryMap = new LinkedHashMap<>();
+
+		for (RegionDao raw : rawList) {
+			String cat1 = raw.getCategory1();
+			String cat2 = raw.getCategory2();
+			
+			categoryMap.computeIfAbsent(cat1, k -> new HashSet<>()).add(cat2);
+		}
+
+		return categoryMap;
+	}
+	
+	public HashMap<String, String> getRegionByAddress(RegionDao inRegionDao){
+		
+		HashMap<String, String> result = new HashMap<>();
+		
+		return result;
+	}
+
+	// String 위치 정보를 JsonArray로 변경하는 메소드
+	private List<double[]> parsePolygon(String json) {
+		List<double[]> list = new ArrayList<>();
+		JsonArray array = JsonParser.parseString(json).getAsJsonArray();
+
+		for (JsonElement elem : array) {
+			JsonArray pair = elem.getAsJsonArray();
+			double lat = pair.get(0).getAsDouble();
+			double lng = pair.get(1).getAsDouble();
+			list.add(new double[] { lat, lng });
+		}
+
+		return list;
+	}
+
+}

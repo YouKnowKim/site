@@ -1,0 +1,14 @@
+{
+    "telemetry.machineId": "c54de5defa00cc773d0b79d2a36a7a72a9d153d32171ff9515759b22e1216c2e",
+    "openedPathsList": {
+        "workspaces3": [
+            {
+                "id": "19c1419f3eb56b33ba9b6a069c08e3da",
+                "configURIPath": "file:///c%3A/spring/.metadata/codemix.code-workspace"
+            }
+        ],
+        "files2": []
+    },
+    "theme": "vs-dark",
+    "themeBackground": "#221a0f"
+}

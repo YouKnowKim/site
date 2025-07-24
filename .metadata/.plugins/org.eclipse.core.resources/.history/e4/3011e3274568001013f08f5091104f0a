@@ -1,0 +1,5 @@
+package com.yonseidairy.site.service;
+
+public class AddressService {
+
+}

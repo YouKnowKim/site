@@ -1,0 +1,36 @@
+package com.yonseidairy.site.dao;
+
+import java.util.List;
+
+import lombok.Data;
+
+@Data
+public class RegionDao {
+	private String code;
+    private String name;
+    private String addr;
+    private String gubun;
+    private String tel;
+    private String gubunType;
+    private String polygon_coords; // CLOB → String 으로 읽을 경우
+    private List<double[]> polygon;  // [lat, lng] 쌍의 리스트
+    
+    private String id;
+    private String custName;
+    private String custNo;
+    private Double latitude;
+    private Double lat;
+    private Double longitude;
+    private Double lng;
+    private String polygonCoords;
+    private String salesMan;
+    private String deptName;
+    private String category1;
+    private String category2;
+    private String phoneMobile1;
+    private String phoneMobile2;
+    private String mobileNbr;
+    private String openTime;
+    
+    private String address;
+}

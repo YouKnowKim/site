@@ -1,0 +1,14 @@
+package com.yonseidairy.site.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yonseidairy.site.mapper.AddressMapper;
+
+@Service
+public class AddressService {
+	
+	@Autowired
+	AddressMapper addressMapper;
+
+}

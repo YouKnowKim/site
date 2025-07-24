@@ -8,6 +8,14 @@
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
 		<list key="findhistory">
+			<item value="cnt"/>
+			<item value="sabun"/>
+			<item value="RegionService"/>
+			<item value="salesMan"/>
+			<item value="lat"/>
+			<item value="custNo"/>
+			<item value="custName"/>
+			<item value="manifest"/>
 			<item value="allowedHosts"/>
 			<item value="getAllRegions"/>
 			<item value="HomeMapper"/>

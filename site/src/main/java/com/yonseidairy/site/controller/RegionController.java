@@ -1,45 +1,55 @@
 package com.yonseidairy.site.controller;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.yonseidairy.site.dao.AddressDao;
 import com.yonseidairy.site.dao.RegionDao;
 import com.yonseidairy.site.service.RegionService;
 
-@Controller
+@RestController
+@RequestMapping("/api/region")
 public class RegionController {
-	
+
 	@Autowired
-    private RegionService regionService;
+	private RegionService regionService;
+
+	@GetMapping("/getAllRegions")
+	public List<RegionDao> getAllRegions(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectAllRegions(inRegionDao);
+	}
+
+	@GetMapping("/getRegions")
+	public List<RegionDao> getRegions(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectRegions(inRegionDao);
+	}
+
+	@GetMapping("/getAddressCategories")
+	public Map<String, Set<String>> getAddressCategories(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectAddressCategories(inRegionDao);
+	}
+
+	// 주소 기반 대리점 정보 조회 API
+	@GetMapping("/getRegionByAddress")
+	public HashMap<String, String> getRegionByAddress(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.getRegionByAddress(inRegionDao);
+	}
 	
-	@GetMapping("/")
-	public String index() {
-        // return "/index.html"; ← 이건 static 디렉토리일 때
-        return "/index.html"; // templates/index.html (Thymeleaf/JSP) 또는 static/index.html 로 자동 매핑
-    }
-	
-	@GetMapping("/api/getAllRegions")
-	@ResponseBody
-	public List<RegionDao> getAllRegions() {
-		return regionService.selectAllRegions();
-    }
-	
-	@GetMapping("/api/test")
-	@ResponseBody
-	public String test() {
-        return "proxy test success";
-    }
-	
-	@GetMapping("hello")
-	@ResponseBody
-    public List<String> hello() {
-        return Arrays.asList("안녕하세요", "Hello");
-    }
+	// 사번 존재 여부 확인
+	@GetMapping("/checkSabun")
+	public HashMap<String, Boolean> checkSabun(@ModelAttribute RegionDao inRegionDao){
+		return regionService.checkSabun(inRegionDao);
+	}
 
 }
