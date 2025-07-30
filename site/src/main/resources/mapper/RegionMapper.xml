@@ -76,5 +76,104 @@
           FROM APPS.PF_EMPLOYEE 
          WHERE EMP_CODE = #{sabun, jdbcType=VARCHAR}
     </select>
+    
+    <select id="selectRegionSaveStatus" parameterType="RegionDao" resultType="RegionDao">
+	  SELECT A.CUSTNO as custno,
+	         A.CUSTNAME as custname,
+	         CASE WHEN NVL(B.CUSTNO, 'N') = 'N' THEN 'N' ELSE 'Y' END AS saveYn,
+	         NVL(F_GET_EMP_NAME('YSM', F_GET_SALES_MAN('YSM', A.CUSTNO)), ' ') AS salesMan
+	  FROM APPS.CD_CUSTOMER A
+	  LEFT JOIN (
+	    SELECT DISTINCT CUSTNO
+	    FROM APPS.REGION_LOCATION
+	    WHERE GUBUN_TYPE = #{gubunType}
+	  ) B
+	    ON A.CUSTNO = B.CUSTNO
+	  WHERE
+	    A.OFFICE_ID = 'YSM'
+	    AND NVL(A.HANDLE, '0') = #{gubunType}
+	    AND NVL(A.USE_YNO, 'N') = 'Y'
+	    <if test="gubunType == '10'">
+	      AND A.CUSTNO LIKE 'A10%'
+	    </if>
+	  ORDER BY
+	    NVL(F_GET_EMP_NAME('YSM', F_GET_SALES_MAN('YSM', A.CUSTNO)), ' '),
+	    CASE WHEN NVL(B.CUSTNO, 'N') = 'N' THEN 'N' ELSE 'Y' END
+	</select>
+	
+	<insert id="insertRegion" parameterType="RegionDao">
+	  INSERT INTO region_location 
+	  (CUSTNO
+	  , CUSTNAME
+	  , latitude
+	  , longitude
+	  , POLYGON_COORDS
+	  , GUBUN_TYPE) VALUES 
+	  (#{custNo}
+	  , #{custName}
+	  , #{centerLat}
+	  , #{centerLng}
+	  , #{polygonCoords},
+	    #{gubunType})
+	</insert>
+	
+	<update id="updateRegion" parameterType="RegionDao">
+	  UPDATE region_location
+	  SET CUSTNO = #{custNo}
+	    , CUSTNAME = #{custName}
+	    , LATITUDE = #{centerLat}
+	    , LONGITUDE = #{centerLng}
+	    , POLYGON_COORDS = #{polygonCoords}
+	  WHERE ID = #{regionId}
+	  AND GUBUN_TYPE = #{gubunType}
+	</update>
+	
+	<!-- <update id="updateRegion" parameterType="RegionDao">
+	  UPDATE region_location
+	  SET POLYGON_COORDS = #{polygonCoords}
+	  WHERE ID = #{regionId}
+	  AND GUBUN_TYPE = #{gubunType}
+	</update> -->
+	
+	<select id="selectForDelete" parameterType="RegionDao" resultType="RegionDao">
+	  SELECT CUSTNO as custNo
+		   , CUSTNAME as custName
+		   , LATITUDE as latitude
+		   , LONGITUDE AS longitude
+		   , POLYGON_COORDS as polygonCoords
+	   	FROM REGION_LOCATION
+	   WHERE ID = #{regionId}
+	     AND GUBUN_TYPE = #{gubunType}
+	</select>
+	
+	<delete id="deleteRegion" parameterType="RegionDao">
+	  DELETE FROM REGION_LOCATION 
+	   WHERE ID = #{regionId} 
+	     AND GUBUN_TYPE = #{gubunType}
+	</delete>
+	
+	<insert id="insertLog" parameterType="RegionDao">
+	  INSERT INTO APPS.REGION_LOCATION_LOG
+	  (UPDATE_DATE,
+	   TYPE,
+	   SABUN,
+	   ID,
+	   CUSTNO,
+	   CUSTNAME,
+	   LATITUDE,
+	   LONGITUDE,
+	   POLYGON_COORDS,
+	   GUBUN_TYPE)
+	  VALUES (SYSDATE,
+	  		  #{gubunType, jdbcType=VARCHAR},
+	  		  #{type, jdbcType=VARCHAR},
+	  		  #{sabun, jdbcType=VARCHAR},
+	  		  #{regionIdInt, jdbcType=INTEGER},
+	  		  #{custNo, jdbcType=VARCHAR},
+	  		  #{custName, jdbcType=VARCHAR},
+	  		  #{latitude, jdbcType=DOUBLE},
+	  		  #{longitude, jdbcType=DOUBLE},
+	  		  #{polygonCoords}) 
+	</insert>
 
 </mapper>

@@ -1,5 +1,0 @@
-package com.yonseidairy.site.mapper;
-
-public interface HomeMapper {
-
-}

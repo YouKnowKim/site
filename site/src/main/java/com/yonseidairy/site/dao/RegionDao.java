@@ -12,6 +12,7 @@ public class RegionDao {
     private String gubun;
     private String tel;
     private String gubunType;
+    private String type;
     private String polygon_coords; // CLOB → String 으로 읽을 경우
     private List<double[]> polygon;  // [lat, lng] 쌍의 리스트
     
@@ -36,4 +37,13 @@ public class RegionDao {
     
     private String sabun;
     private Integer cnt;
+    
+    private String saveYn;
+    
+    private String regionId;
+    private Integer regionIdInt;
+    
+    private double centerLat;
+    private double centerLng;
+    private List<double[]> polygonCoordsArray;
 }

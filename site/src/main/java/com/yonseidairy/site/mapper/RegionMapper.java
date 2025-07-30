@@ -20,5 +20,18 @@ public interface RegionMapper {
 	List<RegionDao> selectAllRegionsForAddress(RegionDao inRegionDao);
 	
 	RegionDao selectCheckSabun(RegionDao inRegionDao);
-
+	
+	List<RegionDao> selectRegionSaveStatus(RegionDao inRegionDao);
+	
+	Integer insertRegion(RegionDao inRegionDao);
+	
+	Integer updateRegion(RegionDao inRegionDao);
+	
+//	Integer updateRegionCust(RegionDao inRegionDao);
+	
+	Integer deleteRegion(RegionDao inRegionDao);
+	
+	RegionDao selectForDelete(RegionDao inRegionDao);
+	
+	Integer insertLog(RegionDao inRegionDao);
 }

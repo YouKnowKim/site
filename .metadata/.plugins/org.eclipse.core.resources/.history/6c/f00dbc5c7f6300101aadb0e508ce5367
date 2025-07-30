@@ -1,3 +1,0 @@
-spring.application.name=site
-spring.devtools.restart.enabled=true
-spring.devtools.livereload.enabled=true

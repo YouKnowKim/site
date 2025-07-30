@@ -303,9 +303,9 @@ const Map = () => {
 
       // 6. 상세 오버레이 content
       let label;
-      if (sessionStorage.getItem('username') === 'superadmin') {
+      if (sessionStorage.getItem('username')?.includes('superadmin')) {
         label = `
-          <div style="background:white;padding:5px;border:1px solid black;border-radius:5px;font-size:12px;">
+          <div style="background:white;padding:8px;border:1px solid #aaa;border-radius:8px;font-size:12px;line-height:1.4;min-width:100px;">
             ${region.custNo} ${region.custName}<br/>
             ${region.tel}<br/>
             대리점 핸드폰1 : ${region.phoneMobile1 || '-'}<br/>
@@ -319,7 +319,7 @@ const Map = () => {
           </div>`;
       } else {
         label = `
-          <div style="background:white;padding:5px;border:1px solid black;border-radius:5px;font-size:12px;">
+          <div style="background:white;padding:8px;border:1px solid #aaa;border-radius:8px;font-size:12px;line-height:1.4;min-width:100px;">
             ${region.custNo} ${region.custName}<br/>
             ${region.tel}<br/>
             담당자 : ${region.salesMan}<br/>
@@ -338,7 +338,7 @@ const Map = () => {
       const labelOnlyOverlay = new kakao.maps.CustomOverlay({
         position: centerPos,
         content: `
-          <div style="background:white;padding:3px 7px;border:1px solid black;border-radius:3px;font-size:12px;font-weight:bold;">
+          <div style="background:white;padding:8px;border:1px solid #aaa;border-radius:8px;font-size:12px;line-height:1.4;min-width:100px;font-weight:bold;">
             ${region.custNo} ${region.custName}
           </div>`,
         yAnchor: 1.5
@@ -387,7 +387,7 @@ const Map = () => {
 
   return (
     <div className="mt-0 justify-content-start">
-      <Card className="form-shrink px-3 pt-3 pb-1 shadow-sm" style={{ fontSize: '13px' }}>
+      <Card className="form-shrink px-3 pt-3 pb-1 shadow-sm" style={{ fontSize: '14px' }}>
         <Card.Body className="p-0">
           <Card.Title>대리점별 권역 조회</Card.Title>
           <Collapse in={showContent}>

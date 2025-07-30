@@ -1,5 +1,0 @@
-package com.yonseidairy.site.config;
-
-public class TomcatConfig {
-
-}

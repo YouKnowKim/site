@@ -17,6 +17,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -52,8 +53,10 @@ public class RegionService {
 		List<RegionDao> rawList = regionMapper.selectRegions(inRegionDao);
 
 		for (RegionDao raw : rawList) {
+			System.out.println("확인 : " + raw.getPolygon_coords());
 			raw.setPolygon(parsePolygon(raw.getPolygon_coords()));
-
+			System.out.println("확인2 : " + raw.getPolygon());
+			
 			result.add(raw);
 		}
 
@@ -152,6 +155,69 @@ public class RegionService {
 		}
 
 		return result;
+	}
+	
+	
+	// 대리점별 권역 지정 여부 그리드 팝업 조회
+	public List<RegionDao> getRegionSaveStatus(RegionDao inRegionDao){
+		return regionMapper.selectRegionSaveStatus(inRegionDao);
+	}
+	
+	public HashMap<String, String> saveRegion(RegionDao inRegionDao){
+		
+		HashMap<String, String> result = new HashMap<>();
+		
+		Gson gson = new Gson();
+
+		double centerLat = inRegionDao.getPolygonCoordsArray().get(0)[0];
+		double centerLng = inRegionDao.getPolygonCoordsArray().get(0)[1];
+		
+		inRegionDao.setCenterLat(centerLat);
+		inRegionDao.setCenterLng(centerLng);
+		inRegionDao.setPolygonCoords(gson.toJson(inRegionDao.getPolygonCoordsArray()));
+		
+		inRegionDao.setLatitude(centerLat);
+		inRegionDao.setLongitude(centerLng);
+		
+		if(inRegionDao.getRegionId() == null || inRegionDao.getRegionId().isEmpty()) {
+			inRegionDao.setType("I");
+			inRegionDao.setRegionId("0");
+			inRegionDao.setRegionIdInt(0);
+			System.out.println(inRegionDao.toString());
+			regionMapper.insertRegion(inRegionDao);
+//			regionMapper.insertLog(inRegionDao);
+		} else {
+			inRegionDao.setType("U");
+			regionMapper.updateRegion(inRegionDao);
+			regionMapper.insertLog(inRegionDao);
+		}
+		
+		result.put("success", "true");
+		
+		return result;
+	}
+	
+	// 대리점 권역 삭제
+	public String deleteRegion(RegionDao inRegionDao) {
+		
+		String resultStr = "success";
+		
+		RegionDao checkDelete = regionMapper.selectForDelete(inRegionDao);
+		
+		// 조회 시 없으면 삭제 하지 않고 끝남
+		if(checkDelete == null) {
+			resultStr = "No Data Found";
+			return resultStr;
+		}
+		
+		checkDelete.setRegionId(inRegionDao.getRegionId());
+		checkDelete.setGubun("D");
+		checkDelete.setGubunType(inRegionDao.getGubunType());
+		checkDelete.setRegionIdInt(Integer.parseInt(inRegionDao.getRegionId()));
+		
+		regionMapper.deleteRegion(inRegionDao);
+//		regionMapper.insertLog(checkDelete);
+		return resultStr;
 	}
 
 	// String 위치 정보를 JsonArray로 변경하는 메소드

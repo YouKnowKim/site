@@ -1,0 +1,78 @@
+package com.yonseidairy.site.controller;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.yonseidairy.site.dao.AddressDao;
+import com.yonseidairy.site.dao.RegionDao;
+import com.yonseidairy.site.service.RegionService;
+
+@RestController
+@RequestMapping("/api/region")
+public class RegionController {
+
+	@Autowired
+	private RegionService regionService;
+
+	@GetMapping("/getAllRegions")
+	public List<RegionDao> getAllRegions(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectAllRegions(inRegionDao);
+	}
+
+	@GetMapping("/getRegions")
+	public List<RegionDao> getRegions(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectRegions(inRegionDao);
+	}
+
+	@GetMapping("/getAddressCategories")
+	public Map<String, Set<String>> getAddressCategories(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.selectAddressCategories(inRegionDao);
+	}
+
+	// 주소 기반 대리점 정보 조회 API
+	@GetMapping("/getRegionByAddress")
+	public HashMap<String, String> getRegionByAddress(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.getRegionByAddress(inRegionDao);
+	}
+	
+	// 사번 존재 여부 확인
+	@GetMapping("/checkSabun")
+	public HashMap<String, Boolean> checkSabun(@ModelAttribute RegionDao inRegionDao){
+		return regionService.checkSabun(inRegionDao);
+	}
+	
+	// 대리점별 권역 지정 여부 그리드 팝업
+	@GetMapping("/getRegionSaveStatus")
+	public List<RegionDao> getRegionSaveStatus(@ModelAttribute RegionDao inRegionDao){
+		return regionService.getRegionSaveStatus(inRegionDao);
+	}
+	
+	// 대리점 권역 저장
+	@PostMapping("/saveRegion")
+	public HashMap<String, String> saveRegion(@RequestBody  RegionDao inRegionDao){
+		System.out.println("확인 : " + inRegionDao.toString());
+		
+		return regionService.saveRegion(inRegionDao);
+		return null;
+	}
+	
+	// 대리점 권역 삭제
+	@GetMapping("/deleteRegion")
+	public String deleteRegion(@ModelAttribute RegionDao inRegionDao) {
+		return regionService.deleteRegion(inRegionDao);
+	}
+
+}

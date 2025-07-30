@@ -7,21 +7,38 @@
 	</section>
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
+		<item key="selection" value="regionId"/>
+		<item key="wrap" value="true"/>
+		<item key="casesensitive" value="false"/>
+		<item key="wholeword" value="false"/>
+		<item key="incremental" value="false"/>
+		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="cnt"/>
-			<item value="sabun"/>
-			<item value="RegionService"/>
-			<item value="salesMan"/>
-			<item value="lat"/>
-			<item value="custNo"/>
-			<item value="custName"/>
-			<item value="manifest"/>
-			<item value="allowedHosts"/>
-			<item value="getAllRegions"/>
-			<item value="HomeMapper"/>
+			<item value="selectForDelete"/>
+			<item value="regionId"/>
+			<item value="insertLog"/>
+			<item value="inRegionDao"/>
+			<item value="insertlog"/>
+			<item value="POLYGON_COORDS"/>
+			<item value="getRegionById"/>
+			<item value="selectRegions"/>
+			<item value="deleteRegion"/>
+			<item value="getRegions"/>
+			<item value="데이터 확인"/>
+			<item value="getRegion"/>
+			<item value="insertRegion"/>
+			<item value="PolygonCoords"/>
+			<item value="type"/>
 		</list>
 		<list key="replacehistory">
 			<item value="RegionMapper"/>
 		</list>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="2243"/>
+		<item key="DIALOG_Y_ORIGIN" value="260"/>
+		<item key="DIALOG_WIDTH" value="322"/>
+		<item key="DIALOG_HEIGHT" value="391"/>
+		<item key="DIALOG_FONT_NAME" value="1|맑은 고딕|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|맑은 고딕"/>
 	</section>
 </section>
