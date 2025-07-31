@@ -495,7 +495,7 @@ const MapEdit = () => {
     const polygonCoordsArray = polygonCoords.map(point => [point.Ma, point.La]);
 
     axios.post(`${baseURL}/api/region/saveRegion`, {
-      id: selectedRegionId,
+      regionId: selectedRegionId,
       custNo: custno,
       custName: custName,
       polygonCoordsArray: polygonCoordsArray,
@@ -524,7 +524,7 @@ const MapEdit = () => {
   // 다각형이 기존 대리점 구역과 겹치는지 확인하는 함수
   const isOverlapping = (newPolygonCoords) => {
     const newPolygon = new kakao.maps.Polygon({
-      path: newPolygonCoords.map(coord => new kakao.maps.LatLng(coord[0], coord[1]))
+      path: newPolygonCoords.map(coord => new kakao.maps.LatLng(coord.Ma, coord.La))
     });
 
     for (let i = 0; i < allPolygons.length; i++) {
@@ -621,6 +621,11 @@ const MapEdit = () => {
     const sabun = sessionStorage.getItem('sabun');
     const gubunType = sessionStorage.getItem('gubunType');
 
+    if(sabun == null || sabun === ""){
+      alert("사번이 없습니다. 삭제 실패");
+      return;
+    }
+
     axios.get(`${baseURL}/api/region/deleteRegion`,{
         params: {
           regionId: regionId,
@@ -656,27 +661,25 @@ const MapEdit = () => {
       return;
     }
 
-    // 기존 요소들 정리
-    if (drawingPolygon) {
-      drawingPolygon.setMap(null);
-      setDrawingPolygon(null);
-    }
-
-    if (polyline) {
-      polyline.setMap(null);
-      setPolyline(null);
-    }
-
-    // 기존 마커들 제거
-    if (markers && markers.length > 0) {
-      markers.forEach(marker => marker.setMap(null));
-    }
-
+    // ✅ startDrawing과 동일한 초기화 패턴
     // 기존 클릭 이벤트 제거
     if (mapClickListener.current) {
       kakao.maps.event.removeListener(map, 'click', mapClickListener.current);
       mapClickListener.current = null;
     }
+
+    // 기존 객체 제거 및 상태 초기화 (startDrawing과 동일)
+    if (drawingPolygon) {
+      drawingPolygon.setMap(null);
+      setDrawingPolygon(null);
+    }
+    if (polyline) {
+      polyline.setMap(null);
+      setPolyline(null);
+    }
+    markers.forEach(marker => marker.setMap(null));
+    setMarkers([]);
+    setPolygonCoords([]);
 
     // 입력 필드 업데이트
     custnoInputRef.current.value = regionData.custNo;
@@ -685,13 +688,34 @@ const MapEdit = () => {
     selectedPolygon.current = regionData.polygon;
     setSelectedRegionId(regionData.id);
     setEditingPolygon(regionData.polygon);
-    setDrawingPolygon(regionData.polygon);
 
+    // ✅ 기존 폴리곤을 지도에서 숨김 (중복 방지)
+    if (regionData.polygon) {
+      regionData.polygon.setMap(null);
+    }
+
+    // ✅ startDrawing과 동일한 Polygon 및 Polyline 생성
+    const editPolygon = new kakao.maps.Polygon({
+      strokeWeight: 2,
+      strokeColor: '#FF0000',  // 수정용이므로 빨간색
+      fillColor: '#FFAAAA',
+      fillOpacity: 0.5,
+      map: map
+    });
+    setDrawingPolygon(editPolygon);
+
+    const editPolyline = new kakao.maps.Polyline({
+      strokeWeight: 2,
+      strokeColor: '#FF0000',  // 수정용이므로 빨간색
+      strokeOpacity: 0.7,
+      map: map
+    });
+    setPolyline(editPolyline);
+
+    // ✅ 기존 polygon 좌표로 마커들 생성 및 상태 설정
     const path = selectedPolygon.current.getPath();
-    
-    // 1. 기존 polygon 좌표로 마커들 생성
-    let tempMarkers = [];
-    let tempPolygonCoords = [];
+    const initialMarkers = [];
+    const initialCoords = [];
 
     for (let i = 0; i < path.length; i++) {
       const latlng = path[i];
@@ -701,161 +725,96 @@ const MapEdit = () => {
         map: map
       });
 
-      tempMarkers.push(marker);
-      tempPolygonCoords.push(latlng);
+      initialMarkers.push(marker);
+      initialCoords.push(latlng);
     }
 
-    // 2. polyline 생성
-    const tempPolyline = new kakao.maps.Polyline({
-      strokeWeight: 2,
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.7,
-      map: map
-    });
+    // ✅ React 상태 초기화 (startDrawing과 동일한 패턴)
+    setMarkers(initialMarkers);
+    setPolygonCoords(initialCoords);
+    
+    // 초기 polygon과 polyline 경로 설정
+    editPolygon.setPath(initialCoords);
+    editPolyline.setPath(initialCoords);
 
-    // 초기 polyline 경로 설정 (닫힌 형태)
-    const closedPath = [...tempPolygonCoords, tempPolygonCoords[0]];
-    tempPolyline.setPath(closedPath);
-    setPolyline(tempPolyline);
-
-    // 3. 상태 업데이트
-    setMarkers(tempMarkers);
-    setPolygonCoords(tempPolygonCoords);
-
-    // 4. 좌표 업데이트 공통 함수 정의 (먼저 정의해야 함)
-    const updatePolygonAndPolyline = (coords) => {
-      if (coords.length < 3) {
-        // 좌표가 3개 미만이면 polygon 제거
-        if (regionData.polygon) {
-          regionData.polygon.setMap(null);
-        }
-        if (tempPolyline) {
-          tempPolyline.setMap(null);
-          setPolyline(null);
-        }
-        return;
-      }
-
-      // polygon 업데이트
-      if (regionData.polygon) {
-        regionData.polygon.setPath(coords);
-      }
-      
-      // polyline 업데이트 (닫힌 형태로)
-      if (tempPolyline) {
-        const closedPath = [...coords, coords[0]];
-        tempPolyline.setPath(closedPath);
-      }
-    };
-
-    // 5. 각 기존 마커에 이벤트 추가
-    tempMarkers.forEach((marker, index) => {
-      // 마커 드래그 이벤트
+    // ✅ 기존 마커들에 이벤트 추가 (startDrawing과 완전히 동일한 패턴)
+    initialMarkers.forEach((marker) => {
+      // 마커 드래그 이벤트 (startDrawing과 동일)
       kakao.maps.event.addListener(marker, 'dragend', () => {
-        const updatedCoords = tempMarkers.map(m => m.getPosition());
-        
-        // 좌표 상태 업데이트
-        setPolygonCoords(updatedCoords);
-        
-        // polygon과 polyline 즉시 업데이트
-        updatePolygonAndPolyline(updatedCoords);
-        
-        console.log("드래그 후 좌표:", updatedCoords.length, "개");
+        setMarkers(current => {
+          const updated = [...current];
+          const updatedCoords = updated.map(m => m.getPosition());
+          setPolygonCoords(updatedCoords);
+          editPolygon.setPath(updatedCoords);
+          editPolyline.setPath(updatedCoords);
+          return updated;
+        });
       });
 
-      // 마커 클릭 삭제 이벤트
+      // 마커 클릭 → 삭제 (startDrawing과 동일)
       kakao.maps.event.addListener(marker, 'click', () => {
-        // 마커를 지도에서 제거
-        marker.setMap(null);
-        
-        // 마커 배열에서 해당 마커 제거
-        const markerIndex = tempMarkers.indexOf(marker);
-        if (markerIndex > -1) {
-          tempMarkers.splice(markerIndex, 1);
-        }
-        
-        // 남은 마커들의 좌표 계산
-        const remainingCoords = tempMarkers.map(m => m.getPosition());
-        
-        // 상태 업데이트
-        setMarkers([...tempMarkers]);
-        setPolygonCoords(remainingCoords);
-        
-        // polygon과 polyline 업데이트
-        updatePolygonAndPolyline(remainingCoords);
-        
-        console.log("삭제 후 좌표:", remainingCoords.length, "개");
+        setMarkers(current => {
+          const remaining = current.filter(m => m !== marker);
+          marker.setMap(null);
+          const coords = remaining.map(m => m.getPosition());
+          setPolygonCoords(coords);
+          editPolygon.setPath(coords);
+          editPolyline.setPath(coords);
+          return remaining;
+        });
       });
     });
 
-    // 6. 지도 클릭 시 마커 추가 이벤트 핸들러
-    const handleMapClick = (e) => {
-      console.log("editingPolygon : ", editingPolygon);
-      // if (!editingPolygon) return;
+    // ✅ 지도 클릭 핸들러 정의 (startDrawing과 완전히 동일)
+    const clickHandler = (mouseEvent) => {
+      const clickPosition = mouseEvent.latLng;
 
-      console.log("지도 클릭됨!", e.latLng); // 디버깅용
-
-      const latlng = e.latLng;
-
-      const newMarker = new kakao.maps.Marker({
-        position: latlng,
-        draggable: true,
-        map: map
+      const marker = new kakao.maps.Marker({
+        position: clickPosition,
+        map,
+        draggable: true
       });
 
-      // 새 마커에 이벤트 추가
-      kakao.maps.event.addListener(newMarker, 'dragend', () => {
-        
-        const allMarkers = [...tempMarkers];
-        console.log("allMarkers : ", allMarkers);
-        const updatedCoords = allMarkers.map(m => m.getPosition());
-        
+      setMarkers(prev => {
+        const newMarkers = [...prev, marker];
+        const updatedCoords = newMarkers.map(m => m.getPosition());
         setPolygonCoords(updatedCoords);
-        updatePolygonAndPolyline(updatedCoords);
-        
-        console.log("새 마커 드래그 후 좌표:", updatedCoords.length, "개");
+        editPolygon.setPath(updatedCoords);
+        editPolyline.setPath(updatedCoords);
+        return newMarkers;
       });
 
-      kakao.maps.event.addListener(newMarker, 'click', () => {
-        newMarker.setMap(null);
-        
-        const markerIndex = tempMarkers.indexOf(newMarker);
-        if (markerIndex > -1) {
-          tempMarkers.splice(markerIndex, 1);
-        }
-        
-        const remainingCoords = tempMarkers.map(m => m.getPosition());
-        
-        setMarkers([...tempMarkers]);
-        setPolygonCoords(remainingCoords);
-        tempPolygonCoords = remainingCoords;
-        updatePolygonAndPolyline(remainingCoords);
-        
-        console.log("새 마커 삭제 후 좌표:", remainingCoords.length, "개");
+      // 마커 드래그 이벤트 (startDrawing과 동일)
+      kakao.maps.event.addListener(marker, 'dragend', () => {
+        setMarkers(current => {
+          const updated = [...current];
+          const updatedCoords = updated.map(m => m.getPosition());
+          setPolygonCoords(updatedCoords);
+          editPolygon.setPath(updatedCoords);
+          editPolyline.setPath(updatedCoords);
+          return updated;
+        });
       });
 
-      // 마커 배열에 추가
-      tempMarkers.push(newMarker);
-      tempPolygonCoords.push(latlng);
-      
-      // 상태 업데이트
-      setMarkers([...tempMarkers]);
-      setPolygonCoords([...tempPolygonCoords]);
-      
-      // polygon과 polyline 업데이트
-      updatePolygonAndPolyline([...tempPolygonCoords]);
-      
-      console.log("새 마커 추가 후 좌표:", tempPolygonCoords.length, "개");
+      // 마커 클릭 → 삭제 (startDrawing과 동일)
+      kakao.maps.event.addListener(marker, 'click', () => {
+        setMarkers(current => {
+          const remaining = current.filter(m => m !== marker);
+          marker.setMap(null);
+          const coords = remaining.map(m => m.getPosition());
+          setPolygonCoords(coords);
+          editPolygon.setPath(coords);
+          editPolyline.setPath(coords);
+          return remaining;
+        });
+      });
     };
 
-    // 7. 지도 클릭 이벤트 리스너 추가 (수정된 부분)
-    const clickListener = kakao.maps.event.addListener(map, 'click', handleMapClick);
-    mapClickListener.current = clickListener; // 리스너 객체만 저장
+    // ✅ 클릭 리스너 등록 (startDrawing과 동일)
+    kakao.maps.event.addListener(map, 'click', clickHandler);
+    mapClickListener.current = clickHandler;
 
-    console.log("지도 클릭 이벤트 등록 완료"); // 디버깅용
-
-    // 완료 메시지
-    alert("기존 관할구역을 불러왔습니다. 지도 클릭으로 마커를 추가할 수 있습니다.");
+    alert("기존 관할구역을 불러왔습니다.\n지도를 클릭하여 마커를 추가하거나\n기존 마커를 드래그하여 수정할 수 있습니다.\n마커를 다시 클릭하면 삭제됩니다.");
   };
 
   return (
@@ -926,7 +885,10 @@ const MapEdit = () => {
                   </Col>
 
                   <Col xs="auto">
-                    <Button variant="secondary" style={{ backgroundColor: '#6c757d' }} onClick={toggleOverlayDetail}>
+                    <Button 
+                      variant={overlaysVisible ? "secondary" : "outline-secondary"}
+                      onClick={toggleOverlayDetail}
+                    >
                       거래처정보 {overlaysVisible ? '숨기기' : '보이기'}
                     </Button>
                   </Col>

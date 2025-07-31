@@ -262,6 +262,7 @@ const StatusSearchPopup = (props) => {
                 }}
             >
               <tr>
+                <th style={{ width: '10%', textAlign: 'center' }}>순번</th>
                 <th style={{ width: '20%', textAlign: 'center' }}>거래처코드</th>
                 <th style={{ width: '35%', textAlign: 'center' }}>거래처명</th>
                 <th style={{ width: '25%', textAlign: 'center' }}>담당자명</th>
@@ -296,6 +297,9 @@ const StatusSearchPopup = (props) => {
                       }
                     }}
                   >
+                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#666' }}>
+                      {index + 1}
+                    </td>
                     <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       {row.custNo}
                     </td>

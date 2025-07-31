@@ -14,23 +14,24 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="saveRegion"/>
+			<item value="delete"/>
+			<item value="save"/>
+			<item value="sabun"/>
+			<item value="insertlog"/>
+			<item value="System.out."/>
+			<item value="SpringApplicationBuilder"/>
+			<item value="bootwar"/>
+			<item value="versielcome"/>
+			<item value="java"/>
 			<item value="selectForDelete"/>
 			<item value="regionId"/>
 			<item value="insertLog"/>
 			<item value="inRegionDao"/>
-			<item value="insertlog"/>
 			<item value="POLYGON_COORDS"/>
-			<item value="getRegionById"/>
-			<item value="selectRegions"/>
-			<item value="deleteRegion"/>
-			<item value="getRegions"/>
-			<item value="데이터 확인"/>
-			<item value="getRegion"/>
-			<item value="insertRegion"/>
-			<item value="PolygonCoords"/>
-			<item value="type"/>
 		</list>
 		<list key="replacehistory">
+			<item value="JAVA"/>
 			<item value="RegionMapper"/>
 		</list>
 	</section>

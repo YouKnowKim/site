@@ -165,15 +165,15 @@
 	   POLYGON_COORDS,
 	   GUBUN_TYPE)
 	  VALUES (SYSDATE,
-	  		  #{gubunType, jdbcType=VARCHAR},
 	  		  #{type, jdbcType=VARCHAR},
 	  		  #{sabun, jdbcType=VARCHAR},
-	  		  #{regionIdInt, jdbcType=INTEGER},
+	  		  #{regionId, jdbcType=INTEGER},
 	  		  #{custNo, jdbcType=VARCHAR},
 	  		  #{custName, jdbcType=VARCHAR},
 	  		  #{latitude, jdbcType=DOUBLE},
 	  		  #{longitude, jdbcType=DOUBLE},
-	  		  #{polygonCoords}) 
+	  		  #{polygonCoords},
+			  #{gubunType})  
 	</insert>
 
 </mapper>

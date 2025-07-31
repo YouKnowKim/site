@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Header from './layout/header.js';
 import Footer from './layout/footer.js';
-import Home from './pages/Home.js';
 import Login from './pages/Login.js';
 import Map from './pages/Map.js';
 import MapEdit from './pages/MapEdit.js';

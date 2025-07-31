@@ -45,8 +45,6 @@ const StatusExcelPopup = () => {
     setSaveYn('');
     const gubunType = (sessionStorage.getItem("gubunType"));
 
-    console.log("gubunType : " + gubunType);
-
     axios.get(`${baseURL}/api/region/getRegionSaveStatus`,{
         params: { gubunType: gubunType }
         })
@@ -103,8 +101,9 @@ const StatusExcelPopup = () => {
         return;
     }
 
-    // 필터된 상태 데이터를 엑셀 형식으로 변환
-    const excelData = filterStatusData.map(row => ({
+    // ✅ 필터된 상태 데이터를 엑셀 형식으로 변환 (순번 포함)
+    const excelData = filterStatusData.map((row, index) => ({
+        순번: index + 1,                                              // ✅ 순번 추가
         거래처코드: row.custNo,
         거래처명: row.custName,
         담당자명: row.salesMan,
@@ -218,6 +217,7 @@ const StatusExcelPopup = () => {
                 }}
             >
               <tr>
+                <th style={{ width: '10%', textAlign: 'center' }}>순번</th>
                 <th style={{ width: '20%', textAlign: 'center' }}>거래처코드</th>
                 <th style={{ width: '35%', textAlign: 'center' }}>거래처명</th>
                 <th style={{ width: '25%', textAlign: 'center' }}>담당자명</th>
@@ -228,6 +228,9 @@ const StatusExcelPopup = () => {
               {filterStatusData && filterStatusData.length > 0 ? (
                 filterStatusData.map((row, index) => (
                   <tr key={index} style={{ cursor: 'pointer' }}>
+                    <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#666' }}>
+                      {index + 1}
+                    </td>
                     <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                       {row.custNo}
                     </td>

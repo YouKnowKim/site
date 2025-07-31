@@ -368,8 +368,6 @@ const Map = () => {
 
   const clearMap = () => {
 
-    console.log(allPolygons);
-
     // 상태로 선언한 각 배열을 비우고 map 객체에서 제거
     allPolygons.forEach(polygon => polygon.setMap(null));
     setAllPolygons([]); // 상태 초기화
@@ -411,9 +409,8 @@ const Map = () => {
                   </Col>
 
                   <Col xs="auto">
-                    <Button
-                      variant="secondary"
-                      style={{ backgroundColor: '#6c757d' }}
+                    <Button 
+                      variant={overlaysVisible ? "secondary" : "outline-secondary"}
                       onClick={toggleOverlayDetail}
                     >
                       거래처정보 {overlaysVisible ? '숨기기' : '보이기'}
