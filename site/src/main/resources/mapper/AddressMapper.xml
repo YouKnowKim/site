@@ -21,5 +21,31 @@
 	      AND A.CUSTNO = B.CUSTNO
 	      AND A.GUBUN_TYPE = '10'
     </select>
+    
+    <select id="selectInfoByCustno" parameterType="InfoByCustnoDao" resultType="InfoByCustnoDao">
+        SELECT
+           a.custno as custno
+	       , a.custname as custname
+	       , a.addr as addr
+	       , a.addr_1 AS gubun
+	       , NVL(a.tel, a.phone_mobile1) AS tel
+	       , apps.f_get_cmetc_name(a.office_id, 'BNKCDE', MAX(DECODE(b.seq, 1, b.bnk_cde))) AS bnk_nme1
+	       , MAX(DECODE(b.seq, 1, b.acct_nbr)) AS acct_nbr1
+	       , MAX(DECODE(b.seq, 1, b.remark))   AS remark1
+	       , apps.f_get_cmetc_name(a.office_id, 'BNKCDE', MAX(DECODE(b.seq, 2, b.bnk_cde))) AS bnk_nme2
+	       , MAX(DECODE(b.seq, 2, b.acct_nbr)) AS acct_nbr2
+	       , MAX(DECODE(b.seq, 2, b.remark))   AS remark2
+	     FROM apps.cd_customer a, apps.cd_customer_acct_nbr b
+	     WHERE a.office_id = 'YSM'
+	        AND a.custno = #{custno,jdbcType=VARCHAR}
+	        AND a.custno = b.custno
+	     GROUP BY
+	         a.office_id
+	       , a.custno
+	       , a.custname
+	       , a.addr
+	       , a.addr_1
+	       , NVL(a.tel, a.phone_mobile1)
+    </select>
 
 </mapper>

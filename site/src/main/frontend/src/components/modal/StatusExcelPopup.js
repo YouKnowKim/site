@@ -20,7 +20,6 @@ const StatusExcelPopup = () => {
     countY: 0,
     countN: 0
     });
-  const baseURL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const showHandler = () => {
@@ -45,7 +44,7 @@ const StatusExcelPopup = () => {
     setSaveYn('');
     const gubunType = (sessionStorage.getItem("gubunType"));
 
-    axios.get(`${baseURL}/api/region/getRegionSaveStatus`,{
+    axios.get(`/api/region/getRegionSaveStatus`,{
         params: { gubunType: gubunType }
         })
         .then(res => {

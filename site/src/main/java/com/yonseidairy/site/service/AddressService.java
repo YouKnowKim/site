@@ -18,6 +18,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.yonseidairy.site.dao.AddressDao;
+import com.yonseidairy.site.dao.InfoByCustnoDao;
 import com.yonseidairy.site.dao.RegionDao;
 import com.yonseidairy.site.mapper.AddressMapper;
 
@@ -82,6 +83,10 @@ public class AddressService {
 		}
 
 		return result;
+	}
+	
+	public InfoByCustnoDao getInfoByCustno(InfoByCustnoDao inInfoDao){
+		return addressMapper.selectInfoByCustno(inInfoDao);
 	}
 
 	// 🧭 Kakao 주소 → 좌표 변환

@@ -14,6 +14,12 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="custname"/>
+			<item value="getInfoByCustno"/>
+			<item value="selectCheckSabun"/>
+			<item value="checkSabun"/>
+			<item value="getall"/>
+			<item value="REACT_APP_API_URL"/>
 			<item value="saveRegion"/>
 			<item value="delete"/>
 			<item value="save"/>
@@ -23,12 +29,6 @@
 			<item value="SpringApplicationBuilder"/>
 			<item value="bootwar"/>
 			<item value="versielcome"/>
-			<item value="java"/>
-			<item value="selectForDelete"/>
-			<item value="regionId"/>
-			<item value="insertLog"/>
-			<item value="inRegionDao"/>
-			<item value="POLYGON_COORDS"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

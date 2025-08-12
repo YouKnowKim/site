@@ -49,8 +49,6 @@ const MapEdit = () => {
         "경상북도": "#D8BFD8",		// 옅은 자주색 (연한 자색/보라, 부드럽고 은은함)
         "제주특별자치도": "#90EE90"	// 연한 초록색 (LimeGreen – 상큼한 자연 느낌)
       });
-  const [filterCategory1Options, setFilterCategory1Options] = useState([]);
-  const [filterCategory2Options, setFilterCategory2Options] = useState([]);
   const navigate = useNavigate();
   const [selectedCustomer, setSelectedCustomer] = useState(null); // 선택된 거래처 정보
   const [regionTitle, setRegionTitle] = useState("대리점별 권역 지정");
@@ -61,7 +59,6 @@ const MapEdit = () => {
   let [allOverlays, setAllOverlays] = useState([]);
   let [overlayObjects, setOverlayObjects] = useState([]);
   let [labelOnlyOverlays, setLabelOnlyOverlays] = useState([]);
-  const baseURL = process.env.REACT_APP_API_URL;
 
   const [drawingPolygon, setDrawingPolygon] = useState(null);
   const [polyline, setPolyline] = useState(null);
@@ -79,7 +76,7 @@ const MapEdit = () => {
 
       const options = {
         center: new kakao.maps.LatLng(37.5665, 126.9780),
-        level: 6
+        level: 8
       };
 
       const map = new kakao.maps.Map(mapRef.current, options);
@@ -132,7 +129,7 @@ const MapEdit = () => {
     // sabun이 없거나, 빈 문자열일 때
         const promptSabun = prompt("사번을 입력해주세요");
 
-        axios.get(`${baseURL}/api/region/checkSabun?sabun=${encodeURIComponent(promptSabun)}`)
+        axios.get(`/api/region/checkSabun?sabun=${encodeURIComponent(promptSabun)}`)
             .then(res => {
                 if (res.data.valid) {
                     sessionStorage.setItem('sabun', promptSabun);
@@ -194,7 +191,7 @@ const MapEdit = () => {
 
     const gubunType = sessionStorage.getItem('gubunType');
 
-    axios.get(`${baseURL}/api/region/getRegions`, {
+    axios.get(`/api/region/getRegions`, {
       params: { gubunType: gubunType }
     })
     .then(response => {
@@ -446,24 +443,24 @@ const MapEdit = () => {
     if (polygonCoords.length < 3) {
       alert("적어도 3개 이상의 점을 선택해야 합니다.");
       return;
-    } else {
-      const newPolygonCoords = markers.map(marker => [
-        marker.getPosition().getLat(), 
-        marker.getPosition().getLng()
-      ]);
-      setPolygonCoords(newPolygonCoords);
-      
-      if (drawingPolygon) {
-        drawingPolygon.setPath(
-          newPolygonCoords.map(coord => new kakao.maps.LatLng(coord[0], coord[1]))
-        );
-      }
-      
-      // polyline이 있을때만 초기화
-      if (polyline) {
-        polyline.setMap(null);
-        setPolyline(null);
-      }
+    }
+
+    const newPolygonCoords = markers.map(marker => [
+      marker.getPosition().getLat(), 
+      marker.getPosition().getLng()
+    ]);
+    setPolygonCoords(newPolygonCoords);
+    
+    if (drawingPolygon) {
+      drawingPolygon.setPath(
+        newPolygonCoords.map(coord => new kakao.maps.LatLng(coord[0], coord[1]))
+      );
+    }
+    
+    // polyline이 있을때만 초기화
+    if (polyline) {
+      polyline.setMap(null);
+      setPolyline(null);
     }
 
     if (!drawingPolygon || polygonCoords.length < 3) {
@@ -486,15 +483,15 @@ const MapEdit = () => {
       return;
     }
 
+    const polygonCoordsArray = newPolygonCoords.map(point => [point[0], point[1]]);
+
     // 기존 다각형과 겹치는지 확인
-    if (isOverlapping(polygonCoords)) {
+    if (isOverlapping(newPolygonCoords)) {
       alert("이미 존재하는 대리점 관할구역과 겹칩니다. 다시 설정해주세요.");
       return;
     }
 
-    const polygonCoordsArray = polygonCoords.map(point => [point.Ma, point.La]);
-
-    axios.post(`${baseURL}/api/region/saveRegion`, {
+    axios.post(`/api/region/saveRegion`, {
       regionId: selectedRegionId,
       custNo: custno,
       custName: custName,
@@ -507,7 +504,7 @@ const MapEdit = () => {
         alert("대리점이 저장되었습니다.");
         window.location.reload();
       } else if (response.data.fail) {
-        alert("이미 저장된 거래처코드 입니다.\n확인 부탁드립니다.");
+        alert("저장 실패. 대리점 구분이 없습니다.");
       } else {
         alert("저장 실패. 다시 시도해주세요.");
       }
@@ -524,18 +521,22 @@ const MapEdit = () => {
   // 다각형이 기존 대리점 구역과 겹치는지 확인하는 함수
   const isOverlapping = (newPolygonCoords) => {
     const newPolygon = new kakao.maps.Polygon({
-      path: newPolygonCoords.map(coord => new kakao.maps.LatLng(coord.Ma, coord.La))
+      path: newPolygonCoords.map(coord => new kakao.maps.LatLng(coord[0], coord[1]))
     });
+
+    // 본인 대리점 확인
+    const isRegionExists = allRegionsRef.current.some(region => region.id === selectedRegionId);
 
     for (let i = 0; i < allPolygons.length; i++) {
       const existingPolygonData = allPolygons[i];
       
       // ✅ 본인 대리점은 겹침 검사에서 제외
-      if (selectedRegionId && existingPolygonData.id === selectedRegionId) {
+      if (selectedRegionId && isRegionExists) {
         continue;
       }
 
       const existingPolygon = existingPolygonData;
+
       if (isPolygonOverlap(newPolygon, existingPolygon)) {
         return true;
       }
@@ -626,7 +627,7 @@ const MapEdit = () => {
       return;
     }
 
-    axios.get(`${baseURL}/api/region/deleteRegion`,{
+    axios.get(`/api/region/deleteRegion`,{
         params: {
           regionId: regionId,
           sabun: sabun,
@@ -827,7 +828,7 @@ const MapEdit = () => {
               {/* 주소 검색 영역 */}
               <Form onSubmit={e => e.preventDefault()}>
                 <Row className="align-items-center g-3 mb-3">
-                  <Col xs={12} md={2}>
+                  <Col xs={12} md={1}>
                     <Form.Group controlId="custnoInput" className="d-flex align-items-center gap-2">
                       <Form.Control
                         type="text"
@@ -837,7 +838,7 @@ const MapEdit = () => {
                     </Form.Group>
                   </Col>
 
-                  <Col xs={12} md={2}>
+                  <Col xs={12} md={3}>
                     <Form.Group controlId="custNameInput" className="d-flex align-items-center gap-2">
                       <Form.Control
                         type="text"

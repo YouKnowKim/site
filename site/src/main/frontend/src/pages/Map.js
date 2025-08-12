@@ -11,7 +11,6 @@ import {
   InputGroup,
   Collapse
 } from 'react-bootstrap';
-import { Map as KakaoMap, MapMarker } from "react-kakao-maps-sdk";
 import axios from 'axios';
 const { kakao } = window;
 
@@ -59,9 +58,6 @@ const Map = () => {
   let [allOverlays, setAllOverlays] = useState([]);
   let [overlayObjects, setOverlayObjects] = useState([]);
   let [labelOnlyOverlays, setLabelOnlyOverlays] = useState([]);
-  let [searchMarker, setSearchMarker] = useState(null);
-  const baseURL = process.env.REACT_APP_API_URL;
-
 
   useEffect(() => {
 
@@ -100,7 +96,7 @@ const Map = () => {
           map.setLevel(5);
           addMarker(position);
 
-          fetch(`${baseURL}/api/region/getRegionByAddress?address=${encodeURIComponent(address)}&&gubunType=${encodeURIComponent(gubunType)}`)
+          fetch(`/api/region/getRegionByAddress?address=${encodeURIComponent(address)}&&gubunType=${encodeURIComponent(gubunType)}`)
             .then(res => res.json())
             .then(data => {
               regionInfoRef.current.innerHTML = data.custNo ? `<b>거래처 코드:</b> ${data.custNo}<br><b>거래처명:</b> ${data.custName}`
@@ -193,7 +189,7 @@ const Map = () => {
     lastFilterRef.current.category1 = category1;
     lastFilterRef.current.category2 = category2;
 
-    axios.get(`${baseURL}/api/region/getRegions`, {
+    axios.get(`/api/region/getRegions`, {
       params: { gubunType: gubunType }
     })
     .then(response => {
@@ -205,7 +201,7 @@ const Map = () => {
   };
 
   const initCategory1 = () => {
-  axios.get(`${baseURL}/api/region/getAddressCategories`)
+  axios.get(`/api/region/getAddressCategories`)
     .then(res => {
       setCategoryData(res.data); // ✅ 수정 1: setState 함수 사용
       
@@ -238,7 +234,7 @@ const Map = () => {
 
     const gubunType = sessionStorage.getItem('gubunType');
 
-    axios.get(`${baseURL}/api/region/getRegions`, {
+    axios.get(`/api/region/getRegions`, {
       params: { gubunType: gubunType }
     })
     .then(response => {

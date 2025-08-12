@@ -1,0 +1,20 @@
+package com.yonseidairy.site.dao;
+
+import lombok.Data;
+
+@Data
+public class InfoByCustnoDao {
+	
+	private String custno;
+
+	private String custname;
+	private String addr;
+	private String gubun;
+	private String tel;
+	private String bnk_nme1;
+	private String acct_nbr1;
+	private String remark1;
+	private String bnk_nme2;
+	private String acct_nbr2;
+	private String remark2;
+}

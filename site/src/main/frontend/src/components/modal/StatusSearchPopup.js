@@ -21,7 +21,6 @@ const StatusSearchPopup = (props) => {
     countY: 0,
     countN: 0
     });
-  const baseURL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const showHandler = () => {
@@ -47,7 +46,7 @@ const StatusSearchPopup = (props) => {
     setSelectedRow(null); // 선택된 행 초기화
     const gubunType = (sessionStorage.getItem("gubunType"));
 
-    axios.get(`${baseURL}/api/region/getRegionSaveStatus`,{
+    axios.get(`/api/region/getRegionSaveStatus`,{
         params: { gubunType: gubunType }
         })
         .then(res => {
@@ -135,7 +134,10 @@ const StatusSearchPopup = (props) => {
 
     props.getData(rowData);
 
-    handleClose();
+    setTimeout(() => {
+    handleClose(); // 모달 닫기
+  }, 100); // Edge 렌더링 충돌 방지
+    // handleClose();
   };
 
   return (

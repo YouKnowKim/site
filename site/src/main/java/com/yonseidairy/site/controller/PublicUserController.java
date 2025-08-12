@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.yonseidairy.site.dao.AddressDao;
+import com.yonseidairy.site.dao.InfoByCustnoDao;
 import com.yonseidairy.site.service.AddressService;
 
 @RestController
@@ -24,6 +26,20 @@ public class PublicUserController {
 	@GetMapping("/getRegionByAddress")
 	public HashMap<String, String> getRegionByAddress(@ModelAttribute AddressDao inAddressDao) {
 		return addressService.getRegionByAddress(inAddressDao);
+    }
+	
+	@GetMapping("/getInfoByCustno")
+	public ResponseEntity<?> getInfoByCustno(@ModelAttribute InfoByCustnoDao inInfoDao) {
+		
+		InfoByCustnoDao result = addressService.getInfoByCustno(inInfoDao);
+	    
+	    if (result == null) {
+	    	HashMap<String, String> error = new HashMap<>();
+	    	error.put("error", "해당 거래처를 찾을 수 없습니다.");
+	        return ResponseEntity.ok(error);
+	    }
+	    
+	    return ResponseEntity.ok(result);
     }
 
 }

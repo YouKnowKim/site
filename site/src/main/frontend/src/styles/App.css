@@ -2,8 +2,10 @@
 .app {
   padding-top: 85px;        /* Header 높이만큼 패딩 */
   padding-bottom: 40px;     /* Footer 높이만큼 패딩 */
-  padding-left: 10%;
-  padding-right: 10%;
+  
+  /* ✅ 가운데 90% 사용 */
+  width: 85%;
+  margin: 0 auto;          /* 좌우 가운데 정렬 */
 }
 
 .content {

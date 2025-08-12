@@ -6,9 +6,7 @@ import Login from './pages/Login.js';
 import Map from './pages/Map.js';
 import MapEdit from './pages/MapEdit.js';
 import ProtectedRoute from './components/ProtectedRoute';
-// import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// import logo from './logo.svg';
 import './styles/App.css';
 
 function App() {

@@ -1,9 +1,0 @@
-package com.yonseidairy.site.dao;
-
-import lombok.Data;
-
-@Data
-public class LocationDao {
-	private String La; // Longitude
-    private String Ma; // Latitude
-}

@@ -46,4 +46,5 @@ public class RegionDao {
     private double centerLat;
     private double centerLng;
     private List<double[]> polygonCoordsArray;
+    
 }

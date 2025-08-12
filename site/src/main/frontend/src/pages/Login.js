@@ -32,19 +32,19 @@ const Login = () => {
 
     if (userId === 'admin' && password === '1q2w3e4r!!') {
       gubunType = '10';
-      name = '대리점';
+      name = '가정대리점';
       valid = true;
     } else if (userId === 'admin02' && password === '1q2w3e4r!!') {
       gubunType = '20';
-      name = '유통';
+      name = '유통대리점';
       valid = true;
     } else if (userId === 'superadmin' && password === 'ys1234') {
       gubunType = '10';
-      name = '대리점';
+      name = '가정대리점 관리자';
       valid = true;
     } else if (userId === 'superadmin02' && password === 'ys1234') {
       gubunType = '20';
-      name = '유통';
+      name = '유통대리점 관리자';
       valid = true;
     }
 
@@ -53,7 +53,7 @@ const Login = () => {
       sessionStorage.setItem('username', userId.startsWith('superadmin') ? 'superadmin' : userId);
       sessionStorage.setItem('name', name);
       sessionStorage.setItem('gubunType', gubunType);
-      navigate('/');
+      navigate('/Map');
     } else {
       setError('아이디 또는 비밀번호가 올바르지 않습니다.');
     }

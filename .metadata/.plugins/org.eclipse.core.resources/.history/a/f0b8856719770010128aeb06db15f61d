@@ -1,0 +1,10 @@
+package com.yonseidairy.site.dao;
+
+import lombok.Data;
+
+@Data
+public class InfoByCustnoDao {
+
+	
+	private String custname;
+}

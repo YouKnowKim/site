@@ -23,8 +23,8 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "env-cmd -f .env.development react-scripts start",
-    "build": "env-cmd -f .env.production react-scripts build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
