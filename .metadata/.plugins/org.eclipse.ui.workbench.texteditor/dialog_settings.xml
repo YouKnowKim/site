@@ -7,13 +7,16 @@
 	</section>
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
-		<item key="selection" value="regionId"/>
+		<item key="selection" value=""/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="partnerId"/>
+			<item value="temparature"/>
+			<item value="insert"/>
 			<item value="custname"/>
 			<item value="getInfoByCustno"/>
 			<item value="selectCheckSabun"/>
@@ -26,9 +29,6 @@
 			<item value="sabun"/>
 			<item value="insertlog"/>
 			<item value="System.out."/>
-			<item value="SpringApplicationBuilder"/>
-			<item value="bootwar"/>
-			<item value="versielcome"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

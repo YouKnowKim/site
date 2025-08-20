@@ -1,0 +1,34 @@
+package com.yonseidairy.site.dao;
+
+import lombok.Data;
+
+@Data
+public class ColdChainDao {
+	
+	String vendorDeviceId;
+	Integer interval;
+	String date;
+	String time;
+	String vendorId;
+	
+	double temparature;
+	double humidity;
+	double light;
+	String door;
+	double shock;
+	double xaxis;
+	double yaxis;
+	double zaxis;
+	
+	String timestamp;
+	String voltage;
+	String deviceType;
+	
+	double longitude;
+	double latitude;
+	String isValid;
+	
+	String deviceId;
+	String refType;
+	String deviceAlias;
+}

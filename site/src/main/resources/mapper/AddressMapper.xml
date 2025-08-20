@@ -47,5 +47,71 @@
 	       , a.addr_1
 	       , NVL(a.tel, a.phone_mobile1)
     </select>
+    
+    <select id="selectCustnoList" resultType="InfoByCustnoDao">
+        SELECT custno, custname FROM apps.cd_customer a
+        WHERE office_id = 'YSM' AND use_yno = 'Y' AND HANDLE = '10'
+        AND exists ( select 1 from sale.sasaltyp where office_id = a.office_id and org_id = 'MHD' and custno = a.custno and sale_type = '01' and use_yno = 'Y')
+        ORDER BY custname
+    </select>
+    
+    <insert id="insertColdChainData" parameterType="ColdChainDao">
+	    INSERT INTO COLD_CHAIN_DATA (
+	        VENDOR_DEVICE_ID
+	        , INTERVAL
+	        , PARTNER_ID
+	        , DATE_VAL
+	        , TIME_VAL
+	        , VENDOR_ID
+	        , TEMP
+	        , HUMIDITY
+	        , LIGHT
+	        , DOOR_STATUS
+	        , SHOCK
+	        , AXIS_X
+	        , AXIS_Y
+	        , AXIS_Z
+	        , TIMESTAMP_VAL
+	        , VOLTAGE
+	        , DEVICE_TYPE
+	        , GPS_LNG
+	        , GPS_LAT
+	        , GPS_VALID
+	        , DEVICE_ID
+	        , REF_TYPE
+	        , DEVICE_ALIAS
+	        , INSERT_DATE
+	    ) VALUES (
+	        #{vendorDeviceId,jdbcType=VARCHAR},
+	        #{interval,jdbcType=INTEGER},
+	        #{partnerId,jdbcType=VARCHAR},  
+	        #{date,jdbcType=VARCHAR},
+	        #{time,jdbcType=VARCHAR},
+	        #{vendorId,jdbcType=VARCHAR},
+	
+	        #{temparature,jdbcType=NUMERIC},
+	        #{humidity,jdbcType=NUMERIC},
+	        #{light,jdbcType=NUMERIC},
+	        #{door,jdbcType=VARCHAR},
+	        #{shock,jdbcType=NUMERIC},
+	
+	        #{xaxis,jdbcType=NUMERIC},
+	        #{yaxis,jdbcType=NUMERIC},
+	        #{zaxis,jdbcType=NUMERIC},
+	
+	        #{timestamp,jdbcType=VARCHAR},
+	        #{voltage,jdbcType=VARCHAR},
+	        #{deviceType,jdbcType=VARCHAR},
+	
+	        #{longitude,jdbcType=NUMERIC},
+	        #{latitude,jdbcType=NUMERIC},
+	        #{isValid,jdbcType=VARCHAR},
+	
+	        #{deviceId,jdbcType=VARCHAR},
+	        #{refType,jdbcType=VARCHAR},
+	        #{deviceAlias,jdbcType=VARCHAR},
+	        SYSDATE
+	    )
+	  </insert>
 
 </mapper>
