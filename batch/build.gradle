@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.5'
+	id 'org.springframework.boot' version '2.7.18'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -10,7 +10,7 @@ description = 'Milkbang Batch'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(8)
 	}
 }
 
@@ -25,6 +25,10 @@ repositories {
 }
 
 dependencies {
+	// Apache POI - Excel 파일 처리
+    implementation 'org.apache.poi:poi:5.2.5'              // 기본 POI (XLS)
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'        // XLSX 지원
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'

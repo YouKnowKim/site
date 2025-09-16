@@ -14,6 +14,13 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="DBManager."/>
+			<item value="DBManager"/>
+			<item value="openDB"/>
+			<item value="temp = &quot;300&quot;"/>
+			<item value="temp"/>
+			<item value="if (!p_Param.AddressType.equals(&quot;&quot;))"/>
+			<item value="computeActualHob"/>
 			<item value="partnerId"/>
 			<item value="temparature"/>
 			<item value="insert"/>
@@ -22,13 +29,6 @@
 			<item value="selectCheckSabun"/>
 			<item value="checkSabun"/>
 			<item value="getall"/>
-			<item value="REACT_APP_API_URL"/>
-			<item value="saveRegion"/>
-			<item value="delete"/>
-			<item value="save"/>
-			<item value="sabun"/>
-			<item value="insertlog"/>
-			<item value="System.out."/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

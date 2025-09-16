@@ -1,0 +1,99 @@
+package com.milk.batch.common;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DBManager {
+	public static Connection openDB(String p_DBName) {
+		String strError = "(DBManager) openDB 에러: ";
+		Connection con = null;
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			System.out.println("==== 오라클 드라이버 로드 성공 ====");
+			con = DriverManager.getConnection("jdbc:oracle:thin:@114.200.178.35:1521:YSMT", "RFLOG", "ysrflog");
+			System.out.println("==== 오라클 DB 연결 성공 ====");
+			
+//			Class.forName("com.mysql.cj.jdbc.Driver");
+//			con = DriverManager.getConnection(
+//					"jdbc:mysql://admin.yonseidairy.com:3306/ysc?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul",
+//					"jaebum", "jaebum7396");
+//			System.out.println("==== openDB 성공!!! ====");
+		} catch (Exception e) {
+			System.out.println(strError + e.getMessage());
+		}
+		return con;
+	}
+
+	public static Connection openDB() {
+		String strError = "(DBManager) openDB 에러 : ";
+		Connection con = null;
+		try {
+			con = openDB("RFLOGIX");
+		} catch (Exception e) {
+			System.out.println(strError + e.getMessage());
+		}
+		return con;
+	}
+
+	public static void closeDB(Connection p_con) {
+		String strError = "(DBManager) closeDB 에러 : ";
+		if (p_con != null)
+			try {
+				if (!p_con.isClosed()) {
+					p_con.close();
+					p_con = null;
+					System.out.println("==== closeDB 성공!!! ====");
+				}
+			} catch (SQLException e) {
+				System.out.println(strError + e.getMessage());
+			}
+	}
+
+	public static void stmtClose(Statement p_stmt) {
+		String strError = "(DBManager) stmtClose 에러 :";
+		if (p_stmt != null)
+			try {
+				p_stmt.close();
+			} catch (SQLException e) {
+				System.out.println(strError + e.getMessage());
+			}
+	}
+
+	public static void pstmtClose(PreparedStatement p_pstmt) {
+		String strError = "(DBManager) stmtClose 에러 :";
+		if (p_pstmt != null)
+			try {
+				p_pstmt.close();
+			} catch (SQLException e) {
+				System.out.println(strError + e.getMessage());
+			}
+	}
+
+	public static void rsClose(ResultSet p_rs) {
+		String strError = "(DBManager) rsClose 에러 :";
+		if (p_rs != null)
+			try {
+				p_rs.close();
+			} catch (SQLException e) {
+				System.out.println(strError + e.getMessage());
+			}
+	}
+
+	public static Connection openOracleDB() {
+		String strError = "(DBManager) openOracleDB : ";
+		Connection con = null;
+		try {
+			Class.forName("oracle.jdbc.OracleDriver");
+			System.out.println("==== 오라클 드라이버 로드 성공 ====");
+			con = DriverManager.getConnection("jdbc:oracle:thin:@114.200.178.35:1521:YSMT", "RFLOG", "ysrflog");
+			System.out.println("==== 오라클 DB 연결 성공 ====");
+		} catch (Exception e) {
+			System.out.println(strError + e.getMessage());
+		}
+		return con;
+	}
+}
