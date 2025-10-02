@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="DBManager."/>
-			<item value="DBManager"/>
-			<item value="openDB"/>
-			<item value="temp = &quot;300&quot;"/>
-			<item value="temp"/>
-			<item value="if (!p_Param.AddressType.equals(&quot;&quot;))"/>
-			<item value="computeActualHob"/>
-			<item value="partnerId"/>
-			<item value="temparature"/>
-			<item value="insert"/>
-			<item value="custname"/>
-			<item value="getInfoByCustno"/>
-			<item value="selectCheckSabun"/>
-			<item value="checkSabun"/>
-			<item value="getall"/>
+			<item value="insertMilkbang"/>
+			<item value="DuplicateYN"/>
+			<item value="OrderDT"/>
+			<item value="findMilkbang"/>
+			<item value="findDuplicate"/>
+			<item value="selectMilkbangGoods"/>
+			<item value="hc"/>
+			<item value="AgencyHob"/>
+			<item value="expiredt"/>
+			<item value="promodt"/>
+			<item value="OrderStatus"/>
+			<item value="orderstatus"/>
+			<item value="findPeriodHC"/>
+			<item value="GoodsCD"/>
+			<item value="tc_agency_old"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

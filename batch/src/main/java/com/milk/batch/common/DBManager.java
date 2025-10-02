@@ -12,16 +12,18 @@ public class DBManager {
 		String strError = "(DBManager) openDB 에러: ";
 		Connection con = null;
 		try {
+//			// 개발
+//			Class.forName("oracle.jdbc.OracleDriver");
+//			System.out.println("==== 오라클 드라이버 로드 성공 ====");
+//			con = DriverManager.getConnection("jdbc:oracle:thin:@192.168.135.34:1521:YSMT?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul", "apps", "apps21");
+//			System.out.println("==== 오라클 DB 연결 성공 ====");
+			
+			// 운영
 			Class.forName("oracle.jdbc.OracleDriver");
 			System.out.println("==== 오라클 드라이버 로드 성공 ====");
-			con = DriverManager.getConnection("jdbc:oracle:thin:@114.200.178.35:1521:YSMT", "RFLOG", "ysrflog");
+			con = DriverManager.getConnection("jdbc:oracle:thin:@165.132.200.104:1521:YSMT?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul", "apps", "apps21");
 			System.out.println("==== 오라클 DB 연결 성공 ====");
-			
-//			Class.forName("com.mysql.cj.jdbc.Driver");
-//			con = DriverManager.getConnection(
-//					"jdbc:mysql://admin.yonseidairy.com:3306/ysc?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul",
-//					"jaebum", "jaebum7396");
-//			System.out.println("==== openDB 성공!!! ====");
+
 		} catch (Exception e) {
 			System.out.println(strError + e.getMessage());
 		}
@@ -81,19 +83,5 @@ public class DBManager {
 			} catch (SQLException e) {
 				System.out.println(strError + e.getMessage());
 			}
-	}
-
-	public static Connection openOracleDB() {
-		String strError = "(DBManager) openOracleDB : ";
-		Connection con = null;
-		try {
-			Class.forName("oracle.jdbc.OracleDriver");
-			System.out.println("==== 오라클 드라이버 로드 성공 ====");
-			con = DriverManager.getConnection("jdbc:oracle:thin:@114.200.178.35:1521:YSMT", "RFLOG", "ysrflog");
-			System.out.println("==== 오라클 DB 연결 성공 ====");
-		} catch (Exception e) {
-			System.out.println(strError + e.getMessage());
-		}
-		return con;
 	}
 }

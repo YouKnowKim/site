@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -49,15 +50,147 @@ public class MilkbangManager {
 		if (this.FV_blnCloseConnectYN)
 			DBManager.closeDB(this.FV_conDB);
 	}
-
+	
 	public ArrayList<MilkbangBean> findFileSummary(MilkbangBean p_Param) {
+	    String strError = "(MilkbangManager) findFileSummary 에러 : ";
+	    Statement stmt = null;
+	    ResultSet rs = null;
+	    ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
+	    
+	    try {
+	        // 페이징 없이 단순 조회
+	        String strSQL = "SELECT f.*, a.AgencyNM " +
+	                       "FROM ysc.tc_milkbang_file f " +
+	                       "LEFT OUTER JOIN ysc.tc_agency a ON f.AgencyCD = a.AgencyCD " +
+	                       "WHERE f.UploadYN = -1 " +  // 미처리 파일만
+	                       "ORDER BY f.FileNM ASC";
+	        
+	        stmt = this.FV_conDB.createStatement();
+	        rs = stmt.executeQuery(strSQL);
+	        
+	        while (rs.next()) {
+	            MilkbangBean clsReturn = setAllField_File(rs);
+	            clsReturn.AgencyNM = GF.getString(rs, "AgencyNM");
+	            arrReturn.add(clsReturn);
+	        }
+	        
+	    } catch (SQLException e) {
+	        System.out.println(strError + e.getMessage());
+	    } finally {
+	        DBManager.rsClose(rs);
+	        DBManager.stmtClose(stmt);
+	    }
+	    
+	    return arrReturn;
+	}
+	
+	public ArrayList<MilkbangBean> findFileSummary0(MilkbangBean p_Param) {
+	    String strError = "(MilkbangManager) findFileSummary 에러 : ";
+	    Statement stmt = null;
+	    ResultSet rs = null;
+	    ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
+	    
+	    try {
+	        // COUNT 쿼리 구성
+	        String strSelect = "SELECT COUNT(*) as TotalCNT";
+	        String strFrom = " FROM ysc.tc_milkbang_file " +
+	                        "LEFT OUTER JOIN ysc.tc_agency ON " +
+	                        "(ysc.tc_milkbang_file.AgencyCD = ysc.tc_agency.AgencyCD)";
+	        String strWhere = "";
+	        
+	        // WHERE 조건 구성
+	        if (!p_Param.SearchDT_Type.equals("")) {
+	            if (!p_Param.SearchFromDT.equals("")) {
+	                strWhere = strWhere + " AND (TO_DATE('" + p_Param.SearchFromDT + 
+	                          "', 'YYYY-MM-DD') <= tc_milkbang_file." + p_Param.SearchDT_Type + ")";
+	            }
+	            if (!p_Param.SearchToDT.equals("")) {
+	                // Oracle 날짜 연산 사용
+	                strWhere = strWhere + " AND (tc_milkbang_file." + p_Param.SearchDT_Type + 
+	                          " < TO_DATE('" + p_Param.SearchToDT + "', 'YYYY-MM-DD') + 1)";
+	            }
+	        }
+	        
+	        if (p_Param.UploadYN != 0) {
+	            strWhere = strWhere + " AND (tc_milkbang_file.UploadYN = " + p_Param.UploadYN + ")";
+	        }
+	        
+	        if (p_Param.AgencyCD != 0L) {
+	            strWhere = strWhere + " AND (tc_milkbang_file.AgencyCD = " + p_Param.AgencyCD + ")";
+	        }
+	        
+	        // WHERE 절 처리 개선
+	        if (!strWhere.equals("")) {
+	            strWhere = " WHERE " + strWhere.substring(5);
+	        }
+	        
+	        // 전체 건수 조회
+	        String strSQL = strSelect + strFrom + strWhere;
+	        stmt = this.FV_conDB.createStatement();
+	        rs = stmt.executeQuery(strSQL);
+	        
+	        if (rs.next()) {
+	            p_Param.Search_TotalCNT = rs.getInt("TotalCNT");
+	        }
+	        DBManager.rsClose(rs);
+	        
+	        // 페이징 계산
+	        if (p_Param.Search_TotalCNT > 0) {
+	            p_Param.Search_TotalPage = (int) Math.ceil((double)p_Param.Search_TotalCNT / p_Param.Search_ShowCNT);
+	        } else {
+	            p_Param.Search_TotalPage = 0;
+	        }
+	        
+	        if (p_Param.Search_Page > p_Param.Search_TotalPage) {
+	            p_Param.Search_Page = p_Param.Search_TotalPage;
+	        }
+	        
+	        int Start = p_Param.Search_ShowCNT * p_Param.Search_Page - p_Param.Search_ShowCNT;
+	        if (Start < 0) Start = 0;
+	        int End = Start + p_Param.Search_ShowCNT;
+	        
+	        // 데이터 조회 - Oracle ROWNUM 사용
+	        strSelect = "SELECT * FROM (" +
+	                   "  SELECT ROWNUM AS RN, T.* FROM (" +
+	                   "    SELECT ysc.tc_milkbang_file.*, ysc.tc_agency.AgencyNM" +
+	                   strFrom + strWhere;
+	        
+	        // ORDER BY 처리
+	        if (!p_Param.Search_OrderCol.equals("")) {
+	            strSelect += " ORDER BY " + p_Param.Search_OrderCol + " " + p_Param.Search_OrderBy;
+	        } else {
+	            strSelect += " ORDER BY FileNM ASC";
+	        }
+	        
+	        strSelect += "  ) T WHERE ROWNUM <= " + End + 
+	                    ") WHERE RN > " + Start;
+	        
+	        rs = stmt.executeQuery(strSelect);
+	        
+	        while (rs.next()) {
+	            MilkbangBean clsReturn = setAllField_File(rs);
+	            clsReturn.AgencyNM = GF.getString(rs, "AgencyNM");
+	            arrReturn.add(clsReturn);
+	        }
+	        
+	    } catch (SQLException e) {
+	        System.out.println(strError + e.getMessage());
+	    } finally {
+	        DBManager.rsClose(rs);
+	        DBManager.stmtClose(stmt);
+	    }
+	    
+	    return arrReturn;
+	}
+
+	public ArrayList<MilkbangBean> findFileSummary2(MilkbangBean p_Param) {
 		String strError = "(MilkbangManager) findFileSummary 에러 : ";
 		Statement stmt = null;
 		ResultSet rs = null;
 		ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
 		try {
 			String strSelect = "SELECT COUNT(*) as TotalCNT";
-			String strFrom = " FROM tc_milkbang_file LEFT OUTER JOIN tc_agency ON (tc_milkbang_file.AgencyCD = tc_agency.AgencyCD)";
+			String strFrom = " FROM ysc.tc_milkbang_file LEFT OUTER JOIN ysc.tc_agency ON (ysc.tc_milkbang_file.AgencyCD = ysc.tc_agency.AgencyCD)";
 			String strWhere = "";
 			if (!p_Param.SearchDT_Type.equals("")) {
 				if (!p_Param.SearchFromDT.equals(""))
@@ -90,7 +223,7 @@ public class MilkbangManager {
 			int Start = p_Param.Search_ShowCNT * p_Param.Search_Page - p_Param.Search_ShowCNT;
 			if (Start < 0)
 				Start = 0;
-			strSelect = "SELECT tc_milkbang_file.* , tc_agency.AgencyNM";
+			strSelect = "SELECT ysc.tc_milkbang_file.* , ysc.tc_agency.AgencyNM";
 			strSQL = strSelect + strFrom + strWhere;
 			if (!p_Param.Search_OrderCol.equals("")) {
 				strSQL = strSQL + " ORDER BY " + p_Param.Search_OrderCol + " " + p_Param.Search_OrderBy;
@@ -125,8 +258,8 @@ public class MilkbangManager {
 		ResultSet rs = null;
 		ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
 		try {
-			String strSelect = "SELECT tc_milkbang_file.*";
-			String strFrom = " FROM tc_milkbang_file";
+			String strSelect = "SELECT ysc.tc_milkbang_file.*";
+			String strFrom = " FROM ysc.tc_milkbang_file";
 			String strWhere = "";
 			String strSQL = strSelect + strFrom + strWhere;
 			strSQL = strSQL + " ORDER BY FileNM ASC";
@@ -169,158 +302,380 @@ public class MilkbangManager {
 		return clsReturn;
 	}
 
+	/**
+	 * 파일 정보를 DB에 저장 (PreparedStatement 버전)
+	 * 
+	 * @param p_Param 저장할 파일 정보
+	 * @return boolean 저장 성공 여부
+	 */
 	public boolean insertFileList(MilkbangBean p_Param) {
-		String strSQL = "", strError = "(MilkbangManager) insertFileList 에러 : ";
-		Statement stmt = null;
-		boolean blnReturn = false;
-		try {
-			strSQL = "INSERT INTO tc_milkbang_file (FileNM,FileURL,DownloadDT,AgencyCD,UploadYN,UploadDT) SELECT "
-					+ GF.sqlString(p_Param.FileNM) + "," + GF.sqlString(p_Param.FileURL) + ","
-					+ GF.sqlDate(p_Param.DownloadDT) + ","
-					+ ((p_Param.AgencyCD > 0L) ? String.valueOf(p_Param.AgencyCD) : "null") + "," + p_Param.UploadYN
-					+ "," + GF.sqlDate(p_Param.UploadDT) + ";\n";
-			this.FV_conDB.setAutoCommit(false);
-			stmt = this.FV_conDB.createStatement(1004, 1007);
-			stmt.executeUpdate(strSQL);
-			this.FV_conDB.commit();
-			blnReturn = true;
-		} catch (SQLException e) {
-			blnReturn = false;
-			System.out.println(strError + e.getMessage());
-			try {
-				this.FV_conDB.rollback();
-			} catch (SQLException ex) {
-				System.out.println(strError + ex.getMessage());
-			}
-		} finally {
-			DBManager.stmtClose(stmt);
-		}
-		return blnReturn;
+	    String strError = "(MilkbangManager) insertFileList 에러 : ";
+	    PreparedStatement pstmt = null;
+	    boolean blnReturn = false;
+	    
+	    String strSQL = "INSERT INTO ysc.tc_milkbang_file " +
+	                   "(FileNM, FileURL, DownloadDT, AgencyCD, UploadYN, UploadDT) " +
+	                   "VALUES (?, ?, ?, ?, ?, ?)";
+	    
+	    try {
+	        this.FV_conDB.setAutoCommit(false);
+	        pstmt = this.FV_conDB.prepareStatement(strSQL);
+	        
+	        // 파라미터 설정
+	        pstmt.setString(1, p_Param.FileNM);
+	        pstmt.setString(2, p_Param.FileURL);
+	        pstmt.setTimestamp(3, p_Param.DownloadDT);
+	        
+	        // AgencyCD null 처리
+	        if (p_Param.AgencyCD > 0L) {
+	            pstmt.setLong(4, p_Param.AgencyCD);
+	        } else {
+	            pstmt.setNull(4, java.sql.Types.BIGINT);
+	        }
+	        
+	        pstmt.setInt(5, p_Param.UploadYN);
+	        pstmt.setTimestamp(6, p_Param.UploadDT);
+	        
+	        // 실행
+	        int rowCount = pstmt.executeUpdate();
+	        this.FV_conDB.commit();
+	        
+	        blnReturn = (rowCount > 0);
+	        
+	    } catch (SQLException e) {
+	        blnReturn = false;
+	        System.out.println(strError + e.getMessage());
+	        
+	        try {
+	            this.FV_conDB.rollback();
+	        } catch (SQLException ex) {
+	            System.out.println(strError + ex.getMessage());
+	        }
+	    } finally {
+	        DBManager.stmtClose(pstmt);
+	    }
+	    
+	    return blnReturn;
 	}
 
+	/**
+	 * 파일 상태를 업데이트 (AutoCommit 항상 false)
+	 * 
+	 * @param p_FileNM 파일명
+	 * @param p_FileStatus 파일 상태 코드
+	 * @return boolean 업데이트 성공 여부
+	 */
 	public boolean updateFileStatus(String p_FileNM, int p_FileStatus) {
-		String strSQL = "", strError = "(MilkbangManager) updateFileStatus 에러 : ";
-		Statement stmt = null;
-		boolean blnReturn = false;
-		try {
-			strSQL = "UPDATE tc_milkbang_file SET FileStatus=" + p_FileStatus
-					+ " , UploadYN = 1 , UploadDT = now() WHERE FileNM=" + GF.sqlString(p_FileNM) + ";\n";
-			this.FV_conDB.setAutoCommit(false);
-			stmt = this.FV_conDB.createStatement(1004, 1007);
-			stmt.executeUpdate(strSQL);
-			this.FV_conDB.commit();
-			blnReturn = true;
-		} catch (SQLException e) {
-			blnReturn = false;
-			System.out.println(strError + e.getMessage());
-			try {
-				this.FV_conDB.rollback();
-			} catch (SQLException ex) {
-				System.out.println(strError + ex.getMessage());
-			}
-		} finally {
-			DBManager.stmtClose(stmt);
-		}
-		return blnReturn;
+	    String strError = "(MilkbangManager) updateFileStatus 에러 : ";
+	    PreparedStatement pstmt = null;
+	    boolean blnReturn = false;
+	    
+	    // 입력값 검증
+	    if (p_FileNM == null || p_FileNM.trim().isEmpty()) {
+	        System.out.println(strError + "파일명이 없습니다");
+	        return false;
+	    }
+	    
+	    String strSQL = "UPDATE ysc.tc_milkbang_file " +
+	                   "SET FileStatus = ?, " +
+	                   "    UploadYN = 1, " +
+	                   "    UploadDT = SYSDATE " +
+	                   "WHERE FileNM = ?";
+	    
+	    try {
+	        // 무조건 AutoCommit을 false로 설정
+	        this.FV_conDB.setAutoCommit(false);
+	        
+	        pstmt = this.FV_conDB.prepareStatement(strSQL);
+	        
+	        // 파라미터 설정
+	        pstmt.setInt(1, p_FileStatus);
+	        pstmt.setString(2, p_FileNM);
+	        
+	        // 실행
+	        int rowCount = pstmt.executeUpdate();
+	        
+	        if (rowCount > 0) {
+	            blnReturn = true;
+	            // 커밋은 호출하는 쪽에서 처리
+	            System.out.println("파일 상태 업데이트 완료 (커밋 대기): " + p_FileNM + " → " + p_FileStatus);
+	        } else {
+	            System.out.println(strError + "업데이트할 파일 없음: " + p_FileNM);
+	        }
+	        
+	    } catch (SQLException e) {
+	        blnReturn = false;
+	        System.out.println(strError + e.getMessage());
+	    } finally {
+	        DBManager.stmtClose(pstmt);
+	    }
+	    
+	    return blnReturn;
 	}
 
+	/**
+	 * 파일 정보를 업데이트 (PreparedStatement 버전)
+	 * 
+	 * @param p_Param 업데이트할 파일 정보
+	 * @return boolean 업데이트 성공 여부
+	 */
 	public boolean updateFileList(MilkbangBean p_Param) {
-		String strSQL = "", strError = "(MilkbangManager) updateFileList 에러 : ";
-		Statement stmt = null;
-		boolean blnReturn = false;
-		try {
-			strSQL = " UPDATE tc_milkbang_file SET DownloadDT = " + GF.sqlDate(p_Param.DownloadDT);
-			if (p_Param.UploadYN != 0)
-				strSQL = strSQL + ", UploadYN = " + p_Param.UploadYN;
-			strSQL = strSQL + " WHERE FileNM = " + GF.sqlString(p_Param.FileNM) + ";\n";
-			this.FV_conDB.setAutoCommit(false);
-			stmt = this.FV_conDB.createStatement(1004, 1007);
-			stmt.executeUpdate(strSQL);
-			this.FV_conDB.commit();
-			blnReturn = true;
-		} catch (SQLException e) {
-			blnReturn = false;
-			System.out.println(strError + e.getMessage());
-			try {
-				this.FV_conDB.rollback();
-			} catch (SQLException ex) {
-				System.out.println(strError + ex.getMessage());
-			}
-		} finally {
-			DBManager.stmtClose(stmt);
-		}
-		return blnReturn;
+	    String strError = "(MilkbangManager) updateFileList 에러 : ";
+	    PreparedStatement pstmt = null;
+	    boolean blnReturn = false;
+	    
+	    // 입력값 검증
+	    if (p_Param == null || p_Param.FileNM == null || p_Param.FileNM.trim().isEmpty()) {
+	        System.out.println(strError + "필수 파라미터(FileNM) 누락");
+	        return false;
+	    }
+	    
+	    try {
+	        this.FV_conDB.setAutoCommit(false);
+	        
+	        // 동적 SQL 구성
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("UPDATE ysc.tc_milkbang_file SET ");
+	        sql.append("DownloadDT = ?");
+	        
+	        // UploadYN 조건부 추가
+	        boolean updateUploadYN = (p_Param.UploadYN != 0);
+	        if (updateUploadYN) {
+	            sql.append(", UploadYN = ?");
+	        }
+	        
+	        sql.append(" WHERE FileNM = ?");
+	        
+	        pstmt = this.FV_conDB.prepareStatement(sql.toString());
+	        
+	        // 파라미터 바인딩
+	        int paramIndex = 1;
+	        
+	        // DownloadDT 설정
+	        if (p_Param.DownloadDT != null) {
+	            pstmt.setTimestamp(paramIndex++, p_Param.DownloadDT);
+	        } else {
+	            pstmt.setTimestamp(paramIndex++, new Timestamp(System.currentTimeMillis()));
+	        }
+	        
+	        // UploadYN 설정 (조건부)
+	        if (updateUploadYN) {
+	            pstmt.setInt(paramIndex++, p_Param.UploadYN);
+	        }
+	        
+	        // WHERE 조건 - FileNM
+	        pstmt.setString(paramIndex, p_Param.FileNM);
+	        
+	        // 실행
+	        int rowCount = pstmt.executeUpdate();
+	        
+	        if (rowCount > 0) {
+	            this.FV_conDB.commit();
+	            blnReturn = true;
+	            System.out.println("파일 정보 업데이트 성공: " + p_Param.FileNM + " (수정된 행: " + rowCount + ")");
+	        } else {
+	            this.FV_conDB.rollback();
+	            System.out.println(strError + "업데이트할 파일을 찾을 수 없음: " + p_Param.FileNM);
+	        }
+	        
+	    } catch (SQLException e) {
+	        blnReturn = false;
+	        System.out.println(strError + e.getMessage());
+	        
+	        try {
+	            if (this.FV_conDB != null && !this.FV_conDB.getAutoCommit()) {
+	                this.FV_conDB.rollback();
+	            }
+	        } catch (SQLException ex) {
+	            System.out.println(strError + "롤백 실패: " + ex.getMessage());
+	        }
+	    } finally {
+	        // PreparedStatement 정리
+	        if (pstmt != null) {
+	            try {
+	                pstmt.close();
+	            } catch (SQLException e) {
+	                System.out.println(strError + "PreparedStatement close 실패");
+	            }
+	        }
+	    }
+	    
+	    return blnReturn;
 	}
 
+	/**
+	 * Excel 파일(.xls)을 새로운 형식(.xlsx)으로 변환
+	 * VBS 스크립트를 사용하여 변환 작업 수행
+	 * 
+	 * @param p_Origin_FilePath 원본 파일이 있는 디렉토리 경로
+	 * @param p_Origin_FileNM   원본 파일명 (.xls)
+	 * @param p_Target_FilePath 변환된 파일을 저장할 디렉토리 경로
+	 * @return 변환된 파일의 전체 경로 (실패시 빈 문자열)
+	 */
 	public String convertExcel(String p_Origin_FilePath, String p_Origin_FileNM, String p_Target_FilePath) {
-		String strError = "(MilkbangManager) convertExcel 에러 : ";
-		String strResult = "";
-		try {
-			String strTarget_FileNM = p_Origin_FileNM.replace(".xls", "").replace(".XLS", "") + ".xlsx";
-			String strTarget_Path = p_Origin_FilePath + "/temp";
-			if (!p_Target_FilePath.equals(""))
-				strTarget_Path = p_Target_FilePath;
-			File file = new File(strTarget_Path);
-			if (!file.exists())
-				file.mkdirs();
-			file = new File(strTarget_Path + "/" + strTarget_FileNM);
-			if (file.exists() == true)
-				file.delete();
-			String vbsPath = "c:/develop/FILES/Milkbang/util/XLStoXLSX.vbs";
-			Process p = Runtime.getRuntime().exec("cscript \"" + vbsPath + "\" \"" + p_Origin_FilePath + "/"
-					+ p_Origin_FileNM + "\" \"" + strTarget_Path + "/" + strTarget_FileNM + "\"");
-			p.waitFor();
-			p.destroyForcibly();
-			file = null;
-			strResult = strTarget_Path + "/" + strTarget_FileNM;
-		} catch (Exception e) {
-			System.out.println(strError + e.getMessage());
-			strResult = "";
-		}
-		return strResult;
+	    String strError = "(MilkbangManager) convertExcel 에러 : ";
+	    String strResult = "";
+	    
+	    try {
+	        // ======== 1. 대상 파일명 생성 ========
+	        // .xls, .XLS 확장자를 제거하고 .xlsx 추가
+	        String strTarget_FileNM = p_Origin_FileNM.replace(".xls", "").replace(".XLS", "") + ".xlsx";
+	        
+	        // ======== 2. 대상 디렉토리 설정 ========
+	        // 기본값: 원본 경로/temp
+	        String strTarget_Path = p_Origin_FilePath + "/temp";
+	        // 대상 경로가 지정된 경우 해당 경로 사용
+	        if (!p_Target_FilePath.equals(""))
+	            strTarget_Path = p_Target_FilePath;
+	        
+	        // ======== 3. 대상 디렉토리 생성 ========
+	        File file = new File(strTarget_Path);
+	        if (!file.exists())
+	            file.mkdirs();  // 디렉토리가 없으면 생성
+	        
+	        // ======== 4. 기존 파일 삭제 ========
+	        // 동일한 이름의 파일이 있으면 삭제
+	        file = new File(strTarget_Path + "/" + strTarget_FileNM);
+	        if (file.exists() == true)
+	            file.delete();
+	        
+	        // ======== 5. VBS 스크립트 실행 ========
+	        // Excel COM 객체를 사용하여 파일 변환
+	        String vbsPath = "c:/develop/FILES/Milkbang/util/XLStoXLSX.vbs";  // VBS 스크립트 경로
+	        
+	        // cscript 명령으로 VBS 실행
+	        // 인자: VBS경로, 원본파일경로, 대상파일경로
+	        Process p = Runtime.getRuntime().exec("cscript \"" + vbsPath + "\" \"" + 
+	                p_Origin_FilePath + "/" + p_Origin_FileNM + "\" \"" + 
+	                strTarget_Path + "/" + strTarget_FileNM + "\"");
+	        
+	        // 프로세스 완료 대기
+	        p.waitFor();
+	        
+	        // 프로세스 강제 종료 (리소스 해제)
+	        p.destroyForcibly();
+	        
+	        // ======== 6. 결과 경로 설정 ========
+	        file = null;  // 파일 객체 해제
+	        strResult = strTarget_Path + "/" + strTarget_FileNM;  // 변환된 파일 경로
+	        
+	        // TODO: 실제 파일 생성 여부 확인 필요
+	         File resultFile = new File(strResult);
+	         if (!resultFile.exists()) {
+	             System.out.println("변환 실패: 파일이 생성되지 않음");
+	             return "";
+	         }
+	        
+	    } catch (Exception e) {
+	        System.out.println(strError + e.getMessage());
+	        strResult = "";  // 오류 발생시 빈 문자열 반환
+	    }
+	    
+	    return strResult;
 	}
 
+	/**
+	 * 밀크방 주문 코드 생성 (Oracle 버전)
+	 * 날짜 기반으로 순차적인 고유 코드 생성
+	 * 
+	 * @param p_Date 기준 날짜 (yyyy-MM-dd 형식)
+	 * @return 생성된 주문 코드
+	 */
 	public long makeMilkbangCD(String p_Date) {
-		String strError = "(MilkbangManager) makeMilkbangCD 에러 : ";
-		Statement stmt = null;
-		ResultSet rs = null;
-		long lngReturn = 0L;
-		try {
-			Calendar cal = Calendar.getInstance();
-			String strDate = (p_Date == null) ? "" : p_Date;
-			strDate = strDate.replaceAll("-", "").replaceAll("\\.", "").replaceAll(" ", "");
-			String temp = "300";
-			if (strDate.equals(""))
-				strDate = cal.get(1) + GF.right("0" + (cal.get(2) + 1), 2) + GF.right("0" + cal.get(5), 2);
-			String strSQL = "SELECT IFNULL(MAX(tc_code.CodeSEQ), 0) as CodeSEQ FROM tc_code WHERE (tc_code.CodeDate = '300"
-					+ strDate + "') AND (tc_code.CodeType = " + temp + ")";
-			stmt = this.FV_conDB.createStatement(1004, 1007);
-			rs = stmt.executeQuery(strSQL);
-			rs.last();
-			if (rs.getLong("CodeSEQ") > 0L) {
-				lngReturn = rs.getLong("CodeSEQ") + 1L;
-				strSQL = "UPDATE tc_code SET tc_code.CodeSEQ = tc_code.CodeSEQ + 1 WHERE (tc_code.CodeDate = '300"
-						+ strDate + "') AND (tc_code.CodeType = " + temp + ")";
-				stmt.executeUpdate(strSQL);
-			} else {
-				strSQL = "INSERT INTO tc_code (CodeDate, CodeType, CodeSEQ) SELECT '300" + strDate + "'," + temp + ","
-						+ '\001';
-				stmt.executeUpdate(strSQL);
-				lngReturn = 1L;
-			}
-			if (99999L < lngReturn) {
-				lngReturn = Long.parseLong(temp + strDate + String.valueOf(lngReturn));
-			} else {
-				String strTemp = temp + strDate + GF.right(String.valueOf(100000), String.valueOf(99999).length());
-				lngReturn = Long.parseLong(strTemp) + lngReturn;
-			}
-		} catch (SQLException e) {
-			System.out.println(strError + e.getMessage());
-		} finally {
-			DBManager.rsClose(rs);
-			DBManager.stmtClose(stmt);
-		}
-		return lngReturn;
+	    String strError = "(MilkbangManager) makeMilkbangCD 에러 : ";
+	    PreparedStatement pstmt = null;
+	    ResultSet rs = null;
+	    long lngReturn = 0L;
+	    
+	    try {
+	        // 날짜 처리
+	        Calendar cal = Calendar.getInstance();
+	        String strDate = (p_Date == null) ? "" : p_Date;
+	        strDate = strDate.replaceAll("-", "").replaceAll("\\.", "").replaceAll(" ", "");
+	        String temp = "300";
+	        
+	        if (strDate.equals("")) {
+	            strDate = cal.get(Calendar.YEAR) + 
+	                     GF.right("0" + (cal.get(Calendar.MONTH) + 1), 2) + 
+	                     GF.right("0" + cal.get(Calendar.DAY_OF_MONTH), 2);
+	        }
+	        
+	        // 트랜잭션 시작
+	        this.FV_conDB.setAutoCommit(false);
+	        
+	        // Oracle: NVL 사용 (IFNULL 대체)
+	        String strSQL = "SELECT NVL(MAX(tc_code.CodeSEQ), 0) as CodeSEQ " +
+	                       "FROM ysc.tc_code " +
+	                       "WHERE tc_code.CodeDate = ? " +
+	                       "AND tc_code.CodeType = ?";
+	        
+	        pstmt = this.FV_conDB.prepareStatement(strSQL);
+	        pstmt.setString(1, "300" + strDate);
+	        pstmt.setString(2, temp);
+	        rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	            long currentSeq = rs.getLong("CodeSEQ");
+	            
+	            if (currentSeq > 0L) {
+	                // 기존 코드 시퀀스 증가
+	                lngReturn = currentSeq + 1L;
+	                
+	                rs.close();
+	                pstmt.close();
+	                
+	                strSQL = "UPDATE ysc.tc_code " +
+	                        "SET CodeSEQ = CodeSEQ + 1 " +
+	                        "WHERE CodeDate = ? " +
+	                        "AND CodeType = ?";
+	                
+	                pstmt = this.FV_conDB.prepareStatement(strSQL);
+	                pstmt.setString(1, "300" + strDate);
+	                pstmt.setString(2, temp);
+	                pstmt.executeUpdate();
+	            } else {
+	                // 신규 코드 생성
+	                rs.close();
+	                pstmt.close();
+	                
+	                strSQL = "INSERT INTO ysc.tc_code (CodeDate, CodeType, CodeSEQ) " +
+	                        "VALUES (?, ?, ?)";
+	                
+	                pstmt = this.FV_conDB.prepareStatement(strSQL);
+	                pstmt.setString(1, "300" + strDate);
+	                pstmt.setString(2, temp);
+	                pstmt.setInt(3, 1);
+	                pstmt.executeUpdate();
+	                
+	                lngReturn = 1L;
+	            }
+	        }
+	        
+	        // 최종 코드 생성
+	        if (99999L < lngReturn) {
+	            lngReturn = Long.parseLong(temp + strDate + String.valueOf(lngReturn));
+	        } else {
+	            String strTemp = temp + strDate + GF.right(String.valueOf(100000), 
+	                                                       String.valueOf(99999).length());
+	            lngReturn = Long.parseLong(strTemp) + lngReturn;
+	        }
+	        
+	        // 커밋
+	        //this.FV_conDB.commit();
+	        
+	    } catch (SQLException e) {
+	        System.out.println(strError + e.getMessage());
+	        try {
+	            this.FV_conDB.rollback();
+	        } catch (SQLException ex) {
+	            System.out.println(strError + "롤백 실패: " + ex.getMessage());
+	        }
+	    } finally {
+	        DBManager.rsClose(rs);
+	        DBManager.stmtClose(pstmt);
+	    }
+	    
+	    return lngReturn;
 	}
 
 	public GoodsOptionBean checkGoodsOptionCD(ArrayList<GoodsOptionBean> p_arrParam, long p_GoodsOptionCD) {
@@ -427,8 +782,258 @@ public class MilkbangManager {
 		}
 		return clsReturn;
 	}
-
+	
+	/**
+	 * 밀크방(유제품 배송) 엑셀 파일을 읽어서 MilkbangBean 객체 리스트로 변환
+	 * 
+	 * @param p_OriginFileNM   원본 파일명 (DB 상태 업데이트용)
+	 * @param p_TargerFilePath 읽을 엑셀 파일의 전체 경로
+	 * @return ArrayList<MilkbangBean> 파싱된 데이터 리스트 (오류 시 빈 리스트)
+	 */
 	public ArrayList<MilkbangBean> readExcel_Milkbang(String p_OriginFileNM, String p_TargerFilePath) {
+	    String strError = "(MilkbangManager) readExcel_Milkbang 에러 : ";
+	    
+	    // POI 라이브러리 워크북 객체 (.xls용 HSSF, .xlsx용 XSSF)
+	    HSSFWorkbook workbook_h = null;
+	    HSSFSheet sheet_h = null;
+	    XSSFWorkbook workbook_x = null;
+	    XSSFSheet sheet_x = null;
+	    
+	    boolean blnExceFilelYN = true;   // 엑셀 파일 여부
+	    boolean blnOldExcelYN = true;    // 구형 엑셀(.xls) 여부
+	    
+	    // 반환할 데이터 리스트
+	    ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
+	    MilkbangBean clsReturn = new MilkbangBean();
+	    
+	    // [미사용 변수들 - 추후 기능 확장용으로 추정]
+	    ArrayList<String> arrListIncreaseNM = new ArrayList<>();  // 증가 목록
+	    ArrayList<String> arrListDecreaseNM = new ArrayList<>();  // 감소 목록
+	    String strPromoTeamNM = "";        // 판촉팀명
+	    String strTemp = "", strDate = "", strYear = "", strMonth = "", strDay = "";
+	    String strBeforeAgencyNM = "";    // 이전 대리점명
+	    boolean blnKindergartenYN = false; // 유치원 여부
+	    
+	    // 엑셀에서 읽을 주요 필드
+	    String strAgencyCD = "";   // 대리점 코드
+	    String strPromoDT = "";    // 판촉일자
+	    String strPutDT = "";      // 투입일자
+	    String strAgencyNM = ""; // 대리점 명
+	    
+	    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	    ZipCDBean clsZipCD = null;
+	    
+	    try {
+	        // ======== 1. 파일 확장자로 엑셀 형식 판별 ========
+	        if (GF.right(p_TargerFilePath, 4).toLowerCase().equals(".xls") == true) {
+	            blnOldExcelYN = true;   // Excel 97-2003 형식
+	        } else if (GF.right(p_TargerFilePath, 5).toLowerCase().equals(".xlsx") == true) {
+	            blnOldExcelYN = false;  // Excel 2007+ 형식
+	        } else {
+	            blnExceFilelYN = false; // 엑셀 파일이 아님
+	        }
+	        
+	        // ======== 2. 엑셀 파일 읽기 ========
+	        if (blnExceFilelYN == true) {
+	            int intlastRow;
+	            
+	            // 파일 형식에 맞는 워크북 생성
+	            if (blnOldExcelYN == true) {
+	                // .xls 파일 처리 (HSSF 사용)
+	                workbook_h = new HSSFWorkbook(new POIFSFileSystem(new FileInputStream(p_TargerFilePath)));
+	            } else {
+	                // .xlsx 파일 처리 (XSSF 사용)
+	                workbook_x = new XSSFWorkbook(OPCPackage.open(new FileInputStream(p_TargerFilePath)));
+	            }
+	            
+	            // 첫 번째 시트 선택 및 마지막 행 번호 확인
+	            if (blnOldExcelYN == true) {
+	                sheet_h = workbook_h.getSheetAt(0);
+	                intlastRow = sheet_h.getLastRowNum();
+	            } else {
+	                sheet_x = workbook_x.getSheetAt(0);
+	                intlastRow = sheet_x.getLastRowNum();
+	            }
+	            
+	            // ======== 3. 데이터 행 처리 (1행부터 시작 - 0행은 헤더) ========
+	            if (intlastRow >= 1) {
+	                int intFirstRow = 1;  // 데이터 시작 행
+	                
+	                for (int intRow = intFirstRow; intRow <= intlastRow; intRow++) {
+	                    XSSFRow xSSFRow = null;
+	                    
+	                    // [주의: 버그 있음 - hSSFRow는 지역변수로만 선언되고 사용 안됨]
+	                    if (blnOldExcelYN == true) {
+	                        HSSFRow hSSFRow = sheet_h.getRow(intRow);  // 버그: 사용되지 않음
+	                    } else {
+	                        xSSFRow = sheet_x.getRow(intRow);
+	                    }
+	                    
+	                    int intCol = 0;  // 컬럼 인덱스
+	                    clsReturn = new MilkbangBean();
+	                    
+	                    // 파일명 저장 (경로에서 파일명만 추출)
+	                    clsReturn.FileNM = p_TargerFilePath.substring(p_TargerFilePath.lastIndexOf("/") + 1);
+	                    
+	                    // ======== 4. 필수 필드 검증 및 데이터 추출 ========
+	                    if (xSSFRow.getCell(intCol) != null) {
+	                        // 대리점코드(0열), 판촉일(10열), 투입일(11열) 추출 및 공백 제거
+	                        strAgencyCD = GF.excelString((Row) xSSFRow, intCol).replaceAll(" ", "");
+	                        strPromoDT = GF.excelString((Row) xSSFRow, intCol + 10)
+	                                    .replaceAll(" ", "").replaceAll("\\.", "");
+	                        strPutDT = GF.excelString((Row) xSSFRow, intCol + 11)
+	                                  .replaceAll(" ", "").replaceAll("\\.", "");
+	                        
+	                        // 날짜 상호 보완 처리: 판촉일이 없으면 투입일 사용, 반대도 동일
+	                        if (strPromoDT.equals("")) {
+	                            if (!strPutDT.equals(""))
+	                                strPromoDT = strPutDT;
+	                        } else if (strPutDT.equals("")) {
+	                            strPutDT = strPromoDT;
+	                        }
+	                        
+	                        // ======== 5. 필수 데이터가 모두 있는 경우만 처리 ========
+	                        if (!strAgencyCD.equals("") && !strPromoDT.equals("") && !strPutDT.equals("")) {
+	                            intCol++;  // 1열로 이동
+	                            
+	                            // 대리점 코드 변환 (뒤 3자리만 추출 후 10000번대로 변환)
+	                            strAgencyCD = GF.right(strAgencyCD, 3);
+	                            clsReturn.AgencyCD = Long.parseLong(strAgencyCD);
+	                            if (clsReturn.AgencyCD < 10000L)
+	                                clsReturn.AgencyCD = 10000L + clsReturn.AgencyCD;  // 예: 123 → 10123
+	                            
+	                            intCol++;  // 2열로 이동
+	                            
+	                            // ======== 6. 고객 정보 매핑 ========
+	                            // 판촉 담당자명 (백슬래시 제거)
+	                            clsReturn.PromoPersonNM = GF.excelString((Row) xSSFRow, intCol++)
+	                                                       .replaceAll(" ", "").replaceAll("\\\\", "");
+	                            clsReturn.PromoPersonNM_Origin = clsReturn.PromoPersonNM;  // 원본 보관
+	                            
+	                            // 주소 정보
+	                            clsReturn.PostArea = GF.excelString((Row) xSSFRow, intCol++);        // 우편 지역
+	                            clsReturn.OrderZipCD = GF.excelString((Row) xSSFRow, intCol++);      // 우편번호
+	                            clsReturn.ReceiveZipCD = clsReturn.OrderZipCD;  // 수령지 = 주문지 복사
+	                            
+	                            clsReturn.OrderAddress1 = GF.excelString((Row) xSSFRow, intCol++)
+	                                                      .replaceAll("\\\\", "");  // 주문 주소
+	                            clsReturn.ReceiveAddress1 = clsReturn.OrderAddress1;  // 수령 주소 복사
+	                            
+	                            intCol++;  // 6열 건너뜀
+	                            clsReturn.AddressType = "";  // 주소 타입 (미사용)
+	                            
+	                            // 주문자 정보
+	                            clsReturn.OrderUserNM = GF.excelString((Row) xSSFRow, intCol++)
+	                                                     .replaceAll(" ", "").replaceAll("\\\\", "");
+	                            clsReturn.ReceiveUserNM = clsReturn.OrderUserNM;  // 수령자 = 주문자
+	                            
+	                            // 연락처 정보
+	                            clsReturn.OrderHomePhone = GF.excelString((Row) xSSFRow, intCol++)
+	                                                        .replaceAll(" ", "").replaceAll("\\\\", "");
+	                            clsReturn.ReceiveHomePhone = clsReturn.OrderHomePhone;
+	                            
+	                            clsReturn.OrderCellPhone = GF.excelString((Row) xSSFRow, intCol++)
+	                                                        .replaceAll(" ", "").replaceAll("\\\\", "");
+	                            clsReturn.ReceiveCellPhone = clsReturn.OrderCellPhone;
+	                            
+	                            // ======== 7. 날짜 정보 처리 ========
+	                            clsReturn.PromoDT = GF.toDate(GF.excelString((Row) xSSFRow, intCol++));  // 판촉일
+	                            clsReturn.PutDT = GF.toDate(GF.excelString((Row) xSSFRow, intCol++));    // 투입일
+	                            
+	                            // 날짜 상호 보완 (null 체크)
+	                            if (clsReturn.PromoDT == null) {
+	                                if (clsReturn.PutDT != null)
+	                                    clsReturn.PromoDT = clsReturn.PutDT;
+	                            } else if (clsReturn.PutDT == null) {
+	                                clsReturn.PutDT = clsReturn.PromoDT;
+	                            }
+	                            
+	                            clsReturn.OrderDT = clsReturn.PromoDT;  // 주문일 = 판촉일
+	                            
+	                            // ======== 8. 주문일이 유효한 경우 상품 정보 처리 ========
+	                            if (clsReturn.OrderDT != null) {
+	                                // 상품 정보
+	                                clsReturn.GoodsOptionCD_Origin = GF.excelString((Row) xSSFRow, intCol++)
+	                                                                   .replaceAll(" ", "").replaceAll("\\\\", "");
+	                                clsReturn.GoodsOptionNM_Origin = GF.excelString((Row) xSSFRow, intCol++)
+	                                                                   .replaceAll("\\\\", "");
+	                                
+	                                // 수량 (빈값은 0으로 처리)
+	                                strTemp = GF.excelString((Row) xSSFRow, intCol++).replaceAll(" ", "");
+	                                strTemp = strTemp.equals("") ? "0" : strTemp;
+	                                clsReturn.Quantity = Integer.parseInt(strTemp);
+	                                
+	                                // 단가
+	                                clsReturn.UnitPrice = GF.toBigDecimal(GF.excelString((Row) xSSFRow, intCol++));
+	                                
+	                                // 주문 부가 정보
+	                                clsReturn.WeekRemark = GF.excelString((Row) xSSFRow, intCol++);        // 주간 비고
+	                                clsReturn.OrderKind = GF.excelString((Row) xSSFRow, intCol++)
+	                                                       .replaceAll("\\\\", "");  // 주문 종류
+	                                
+	                                // 할인 정보 (대리점 할인)
+	                                strTemp = GF.excelString((Row) xSSFRow, intCol++).replaceAll(" ", "");
+	                                strTemp = strTemp.equals("") ? "0" : strTemp;
+	                                clsReturn.AgencyHob = new BigDecimal(strTemp);
+	                                
+	                                // 본사 할인
+	                                strTemp = GF.excelString((Row) xSSFRow, intCol++).replaceAll(" ", "");
+	                                strTemp = strTemp.equals("") ? "0" : strTemp;
+	                                clsReturn.HQHob = GF.toBigDecimal(strTemp);
+	                                
+	                                // 주간 수량
+	                                strTemp = GF.excelString((Row) xSSFRow, intCol++).replaceAll(" ", "");
+	                                strTemp = strTemp.equals("") ? "0" : strTemp;
+	                                clsReturn.WeekQty = Integer.parseInt(strTemp);
+	                                
+	                                // 판촉 정보
+	                                clsReturn.PromoGiftNM = GF.excelString((Row) xSSFRow, intCol++)
+	                                                          .replaceAll("\\\\", "");  // 판촉 선물명
+	                                
+	                                // 계약 기간
+	                                strTemp = GF.excelString((Row) xSSFRow, intCol++).replaceAll(" ", "");
+	                                strTemp = strTemp.equals("") ? "0" : strTemp;
+	                                clsReturn.ContractPeriod = Integer.parseInt(strTemp);
+	                                
+	                                // 지급 정보
+	                                clsReturn.GiveDT = GF.toDate(GF.excelString((Row) xSSFRow, intCol++));  // 지급일
+	                                clsReturn.GivePersonNM = GF.excelString((Row) xSSFRow, intCol++)
+	                                                          .replaceAll(" ", "").replaceAll("\\\\", "");  // 지급자
+	                                
+	                                // 중지 정보
+	                                clsReturn.StopDT = GF.toDate(GF.excelString((Row) xSSFRow, intCol++));  // 중지일
+	                                clsReturn.StopReason = GF.excelString((Row) xSSFRow, intCol++)
+	                                                        .replaceAll("\\\\", "");  // 중지 사유
+	                                
+	                                // 유효한 데이터를 리스트에 추가
+	                                arrReturn.add(clsReturn);
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        
+	        // ======== 9. 처리 결과에 따른 파일 상태 업데이트 ========
+	        if (arrReturn.size() <= 0)
+	            updateFileStatus(p_OriginFileNM, 2);  // 상태 2: 데이터 없음
+	            
+	    } catch (Exception e) {
+	        System.out.println(strError + e.getMessage());
+	        arrReturn = new ArrayList<>();  // 오류 시 빈 리스트 반환
+	        updateFileStatus(p_OriginFileNM, 3);  // 상태 3: 처리 오류
+	    } finally {
+	        // 리소스 정리
+	        sheet_h = null;
+	        sheet_x = null;
+	        workbook_h = null;
+	        workbook_x = null;
+	    }
+	    
+	    return arrReturn;
+	}
+
+	public ArrayList<MilkbangBean> readExcel_Milkbang2(String p_OriginFileNM, String p_TargerFilePath) {
 		String strError = "(MilkbangManager) readExcel_Milkbang 에러 : ";
 		HSSFWorkbook workbook_h = null;
 		HSSFSheet sheet_h = null;
@@ -705,8 +1310,289 @@ public class MilkbangManager {
 		}
 		return arrReturn;
 	}
-
+	
+	/**
+	 * 밀크방(유제품 배송) 주문 데이터를 DB에 저장 (Oracle PreparedStatement 버전)
+	 * 중복 체크, 원클릭 체크를 수행하고 주문 마스터와 상품 상세를 저장
+	 * 
+	 * @param p_Param 저장할 주문 정보 (주문자, 상품 목록 등 포함)
+	 * @return boolean 저장 성공 여부
+	 */
 	public boolean insertMilkbang(MilkbangBean p_Param) {
+	    String strError = "(MilkbangManager) insertMilkbang 에러 : ";
+	    PreparedStatement pstmt = null;
+	    Statement stmt = null;
+	    boolean blnReturn = false;
+	    boolean SaveYN = false;
+	    
+	    try {
+	        // ======== 1. 트랜잭션 시작 ========
+	    	this.FV_conDB.setAutoCommit(false);
+	        
+	        // ======== 2. 기존 주문 존재 여부 확인 ========
+	        MilkbangBean clsParam = new MilkbangBean();
+	        clsParam.OrderDT = p_Param.OrderDT;
+	        clsParam.AgencyCD = p_Param.AgencyCD;
+	        clsParam.OrderUserNM = p_Param.OrderUserNM;
+	        clsParam.OrderAddress1 = p_Param.OrderAddress1;
+	        
+	        ArrayList<MilkbangBean> arrOrder = findMilkbang(clsParam);
+	        
+	        // ======== 3. 기존 주문이 1건 존재하는 경우 ========
+	        if (arrOrder.size() == 1) {
+	            MilkbangBean clsOrder = arrOrder.get(0);
+	            
+	            for (int i = 0; i < clsOrder.arrMilkbangGoods.size(); i++) {
+	                MilkbangBean clsMilkbangGoods = clsOrder.arrMilkbangGoods.get(i);
+	                if (clsMilkbangGoods.SaveYN == 1) {
+	                    SaveYN = true;
+	                    break;
+	                }
+	            }
+	            
+	            if (!SaveYN) {
+	                String sql = "DELETE FROM ysc.tc_milkbang WHERE OrderCD = ?";
+	                pstmt = this.FV_conDB.prepareStatement(sql);
+	                pstmt.setLong(1, clsOrder.OrderCD);
+	                pstmt.executeUpdate();
+	                pstmt.close();
+	            }
+	            
+	        } else {
+	            // ======== 4. 신규 주문인 경우 중복/원클릭 체크 ========
+	            clsParam = new MilkbangBean();
+	            clsParam.AgencyCD = p_Param.AgencyCD;
+	            clsParam.OrderUserNM = p_Param.OrderUserNM;
+	            clsParam.OrderAddress1 = p_Param.OrderAddress1;
+	            clsParam.OrderCellPhone = p_Param.OrderCellPhone;
+	            clsParam.SearchFromDT = GF.addTime_Year(p_Param.OrderDT.toString(), -1);
+	            
+	            ArrayList<MilkbangBean> arrUploaded = findDuplicate(clsParam);
+	            if (arrUploaded.size() > 0) {
+	                MilkbangBean clsUploaded = arrUploaded.get(0);
+	                p_Param.DuplicateYN = 1;
+	                p_Param.DuplOrderCD = clsUploaded.OrderCD;
+	            }
+	            
+	            arrUploaded = findOneclick(clsParam);
+	            if (arrUploaded.size() > 0) {
+	                MilkbangBean clsUploaded = arrUploaded.get(0);
+	                p_Param.OneclickYN = 1;
+	                p_Param.OneclickOrderCD = clsUploaded.OrderCD;
+	            }
+	        }
+	        
+	        // ======== 5. 새로운 주문 데이터 저장 ========
+	        if (!SaveYN) {
+	            clsParam = p_Param;
+	            
+	            // 5-1. 신규 주문번호 생성
+	            clsParam.OrderCD = makeMilkbangCD(GF.left(clsParam.OrderDT.toString(), 10));
+	            
+	            // 5-2. 주문 마스터 데이터 저장
+	            String sql = "INSERT INTO ysc.tc_milkbang (" +
+	                    "OrderCD, OrderDT, OrderType, OrderUserCD, OrderUserNM, " +
+	                    "OrderHomePhone, OrderCellPhone, OrderEmail, OrderZipCD, " +
+	                    "OrderAddress1, OrderAddress2, OrderRemark, " +
+	                    "ReceiveUserNM, ReceiveHomePhone, ReceiveCellPhone, ReceiveEmail, " +
+	                    "ReceiveZipCD, ReceiveAddress1, ReceiveAddress2, StaffRemark, " +
+	                    "TotalOrderPrice, TotalPayPrice, PG_Type, PG_PayYN, PG_PayType, PG_PayDT, " +
+	                    "AgencyCD, AgencyNM, AgencyTel, AgencyDeliveryYN, DeleteYN, " +
+	                    "MilkbangFileNM, PromoPersonNM, PromoPersonNM_Origin, PostArea, AddressType, " +
+	                    "ForceAddYN, DuplicateYN, DuplOrderCD, OneclickYN, OneclickOrderCD" +
+	                    ") VALUES( " +
+	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+	                    "?, ?, ?, ?, ?, ?, ?, ?, " +
+	                    "?, ?, ?, ?, ?, ?, " +
+	                    "?, ?, ?, ?, ?, " +
+	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+	            
+	            pstmt = this.FV_conDB.prepareStatement(sql);
+	            
+	            int idx = 1;
+	            pstmt.setLong(idx++, clsParam.OrderCD);
+	            pstmt.setTimestamp(idx++, clsParam.OrderDT);  // Timestamp 직접 사용
+	            pstmt.setInt(idx++, clsParam.OrderType);
+	            pstmt.setLong(idx++, clsParam.OrderUserCD);
+	            pstmt.setString(idx++, clsParam.OrderUserNM);
+	            pstmt.setString(idx++, clsParam.OrderHomePhone);
+	            pstmt.setString(idx++, clsParam.OrderCellPhone);
+	            pstmt.setString(idx++, clsParam.OrderEmail);
+	            pstmt.setString(idx++, clsParam.OrderZipCD != null ? 
+	                          clsParam.OrderZipCD.replaceAll("-", "") : "");
+	            pstmt.setString(idx++, clsParam.OrderAddress1);
+	            pstmt.setString(idx++, clsParam.OrderAddress2);
+	            pstmt.setString(idx++, clsParam.OrderRemark);
+	            pstmt.setString(idx++, clsParam.ReceiveUserNM);
+	            pstmt.setString(idx++, clsParam.ReceiveHomePhone);
+	            pstmt.setString(idx++, clsParam.ReceiveCellPhone);
+	            pstmt.setString(idx++, clsParam.ReceiveEmail);
+	            pstmt.setString(idx++, clsParam.ReceiveZipCD != null ? 
+	                          clsParam.ReceiveZipCD.replaceAll("-", "") : "");
+	            pstmt.setString(idx++, clsParam.ReceiveAddress1);
+	            pstmt.setString(idx++, clsParam.ReceiveAddress2);
+	            pstmt.setString(idx++, clsParam.StaffRemark);
+	            pstmt.setBigDecimal(idx++, clsParam.TotalOrderPrice);
+	            pstmt.setBigDecimal(idx++, clsParam.TotalPayPrice);
+	            pstmt.setInt(idx++, clsParam.PG_Type);
+	            pstmt.setInt(idx++, clsParam.PG_PayYN);
+	            pstmt.setInt(idx++, clsParam.PG_PayType);
+	            pstmt.setTimestamp(idx++, clsParam.PG_PayDT);  // null도 자동 처리
+	            pstmt.setLong(idx++, clsParam.AgencyCD);
+	            pstmt.setString(idx++, clsParam.AgencyNM); //AgencyNM
+	            pstmt.setString(idx++, clsParam.AgencyTel); //AgencyTel
+	            pstmt.setInt(idx++, clsParam.AgencyDeliveryYN);
+	            pstmt.setInt(idx++, clsParam.DeleteYN);
+	            pstmt.setString(idx++, clsParam.FileNM);
+	            pstmt.setString(idx++, clsParam.PromoPersonNM);
+	            pstmt.setString(idx++, clsParam.PromoPersonNM_Origin);
+	            pstmt.setString(idx++, clsParam.PostArea);
+	            pstmt.setString(idx++, clsParam.AddressType);
+	            pstmt.setInt(idx++, clsParam.ForceAddYN);
+	            pstmt.setInt(idx++, clsParam.DuplicateYN);
+	            pstmt.setLong(idx++, clsParam.DuplOrderCD);
+	            pstmt.setInt(idx++, clsParam.OneclickYN);
+	            pstmt.setLong(idx++, clsParam.OneclickOrderCD);
+	            
+	            pstmt.executeUpdate();
+	            pstmt.close();
+	            
+	            // 5-3. 주문 상품 상세 데이터 저장
+//	            sql = "INSERT INTO ysc.tc_milkbanggoods (" +
+//	                    "OrderCD, OrderSEQ, GoodsCD, GoodsOptionCD, GoodsOptionNM, " +
+//	                    "Quantity, ContractPeriod, WeekQty, WeekRemark, " +
+//	                    "UnitPrice, OrderPrice, FactoryPrice, DeliveryFee, " +
+//	                    "OrderStatus, DeleteYN, " +
+//	                    "PromoDT, PutDT, ExpireDT, " +
+//	                    "GoodsOptionCD_Origin, GoodsOptionNM_Origin, " +
+//	                    "OrderKindCD, OrderKind, " +
+//	                    "AgencyHob, HQHob, PromoGiftNM, " +
+//	                    "GiveDT, GivePersonNM, StopDT, StopReason, SaveYN, " +
+//	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM" +
+//	                    ") VALUES( " +
+//	                    "?, " +
+//	                    "(SELECT NVL(MAX(OrderSEQ),0) + 1 FROM ysc.tc_milkbanggoods WHERE OrderCD = ?), " +
+//	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+//	                    "?, ?, " +
+//	                    "ADD_MONTHS(?, ?), " +  // ExpireDT = PromoDT + ContractPeriod
+//	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+//	                    "0, '사원명', " +
+//	                    "0, '부서명' )";
+	            
+	            sql = "INSERT INTO ysc.tc_milkbanggoods (" +
+	                    "OrderCD, OrderSEQ, GoodsCD, GoodsOptionCD, GoodsOptionNM, " +
+	                    "Quantity, ContractPeriod, WeekQty, WeekRemark, " +
+	                    "UnitPrice, OrderPrice, FactoryPrice, DeliveryFee, " +
+	                    "OrderStatus, DeleteYN, " +
+	                    "PromoDT, PutDT, ExpireDT, " +
+	                    "GoodsOptionCD_Origin, GoodsOptionNM_Origin, " +
+	                    "OrderKindCD, OrderKind, " +
+	                    "AgencyHob, HQHob, PromoGiftNM, " +
+	                    "GiveDT, GivePersonNM, StopDT, StopReason, SaveYN, " +
+	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM" +
+	                    ") SELECT " +
+	                    "?, " +
+	                    "(SELECT NVL(MAX(OrderSEQ),0) + 1 FROM ysc.tc_milkbanggoods WHERE OrderCD = ?), " +
+	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+	                    "?, ?, " +
+	                    "ADD_MONTHS(?, ?), " +  // ExpireDT = PromoDT + ContractPeriod
+	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+	                    "tc_teamperson.TeamPersonCD, tc_teamperson.TeamPersonNM, " +
+	                    "tc_team.TeamCD, tc_team.TeamNM " +
+	                    "FROM ysc.tc_agency " +
+	                    "LEFT OUTER JOIN ysc.tc_teamperson ON (tc_agency.TeamPersonCD = tc_teamperson.TeamPersonCD) " +
+	                    "LEFT OUTER JOIN ysc.tc_team ON (tc_team.TeamCD = tc_teamperson.TeamCD) " +
+	                    "WHERE tc_agency.AgencyCD = ?";
+	            
+	            pstmt = this.FV_conDB.prepareStatement(sql);
+	            
+	            for (int j = 0; j < clsParam.arrMilkbangGoods.size(); j++) {
+	                MilkbangBean clsMilkbangGoods = clsParam.arrMilkbangGoods.get(j);
+	                
+	                idx = 1;
+	                pstmt.setLong(idx++, clsParam.OrderCD);
+	                pstmt.setLong(idx++, clsParam.OrderCD);  // for OrderSEQ subquery
+	                pstmt.setLong(idx++, clsMilkbangGoods.GoodsCD);
+	                pstmt.setLong(idx++, clsMilkbangGoods.GoodsOptionCD);
+	                pstmt.setString(idx++, clsMilkbangGoods.GoodsOptionNM);
+	                pstmt.setInt(idx++, clsMilkbangGoods.Quantity);
+	                pstmt.setInt(idx++, clsMilkbangGoods.ContractPeriod);
+	                pstmt.setInt(idx++, clsMilkbangGoods.WeekQty);
+	                pstmt.setString(idx++, clsMilkbangGoods.WeekRemark);
+	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.UnitPrice);
+	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.OrderPrice);
+	                pstmt.setBigDecimal(idx++, new BigDecimal("0"));  // FactoryPrice
+	                pstmt.setBigDecimal(idx++, new BigDecimal("0"));  // DeliveryFee
+	                pstmt.setInt(idx++, clsMilkbangGoods.OrderStatus);
+	                pstmt.setInt(idx++, clsMilkbangGoods.DeleteYN);
+	                pstmt.setTimestamp(idx++, clsMilkbangGoods.PromoDT);
+	                pstmt.setTimestamp(idx++, clsMilkbangGoods.PutDT);
+	                // ExpireDT 계산용
+	                pstmt.setTimestamp(idx++, clsMilkbangGoods.PromoDT);
+	                pstmt.setInt(idx++, clsMilkbangGoods.ContractPeriod);
+	                pstmt.setString(idx++, clsMilkbangGoods.GoodsOptionCD_Origin);
+	                pstmt.setString(idx++, clsMilkbangGoods.GoodsOptionNM_Origin);
+	                pstmt.setInt(idx++, clsMilkbangGoods.OrderKindCD);
+	                pstmt.setString(idx++, clsMilkbangGoods.OrderKind);
+	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.AgencyHob);
+	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.HQHob);
+	                pstmt.setString(idx++, clsMilkbangGoods.PromoGiftNM);
+	                pstmt.setTimestamp(idx++, clsMilkbangGoods.GiveDT);
+	                pstmt.setString(idx++, clsMilkbangGoods.GivePersonNM);
+	                pstmt.setTimestamp(idx++, clsMilkbangGoods.StopDT);
+	                pstmt.setString(idx++, clsMilkbangGoods.StopReason);
+	                pstmt.setInt(idx++, clsMilkbangGoods.SaveYN);
+	                pstmt.setLong(idx++, clsMilkbangGoods.AgencyCD);
+	                
+	                pstmt.executeUpdate();
+	            }
+	            pstmt.close();
+	            
+	            // 5-4. 파일 상태 업데이트
+	            sql = "UPDATE ysc.tc_milkbang_file " +
+	                    "SET UploadYN = 1, " +
+	                    "    UploadDT = SYSDATE, " +
+	                    "    AgencyCD = ?, " +
+	                    "    FileStatus = 1 " +
+	                    "WHERE FileNM = ?";
+	            
+	            pstmt = this.FV_conDB.prepareStatement(sql);
+	            pstmt.setLong(1, clsParam.AgencyCD);
+	            pstmt.setString(2, clsParam.FileNM);
+	            pstmt.executeUpdate();
+	            pstmt.close();
+	            
+	            // ======== 6. 트랜잭션 커밋 ========
+	            //this.FV_conDB.commit();
+	            
+	        } else {
+	            updateFileStatus(p_Param.FileNM, 1);
+	        }
+	        
+	        // ======== 6. 트랜잭션 커밋 ========
+            this.FV_conDB.commit();
+	        
+	        blnReturn = true;
+	        
+	    } catch (SQLException e) {
+	        blnReturn = false;
+	        System.out.println(strError + e.getMessage());
+	        
+	        try {
+	        	this.FV_conDB.rollback();
+	            
+	        } catch (SQLException ex) {
+	            System.out.println(strError + ex.getMessage());
+	        }
+	    } finally {
+	        DBManager.stmtClose(pstmt);
+	        DBManager.stmtClose(stmt);
+	    }
+	    
+	    return blnReturn;
+	}
+
+	public boolean insertMilkbang2(MilkbangBean p_Param) {
 		String strSQL = "", strError = "(MilkbangManager) insertMilkbang : ";
 		Statement stmt = null;
 		boolean blnReturn = false;
@@ -2499,12 +3385,15 @@ public class MilkbangManager {
 		MilkbangBean clsOrder = null;
 		try {
 			String strSQL = "SELECT tc_milkbang.*," + selectMilkbangGoods()
-					+ ", tc_user.UserID as OrderUserID FROM tc_milkbang INNER JOIN tc_milkbanggoods ON (tc_milkbanggoods.OrderCD = tc_milkbang.OrderCD) LEFT OUTER JOIN tc_user ON (tc_user.UserCD = tc_milkbang.OrderUserCD)";
+					+ ", tc_user.UserID as OrderUserID FROM ysc.tc_milkbang INNER JOIN ysc.tc_milkbanggoods ON (tc_milkbanggoods.OrderCD = tc_milkbang.OrderCD) LEFT OUTER JOIN ysc.tc_user ON (tc_user.UserCD = tc_milkbang.OrderUserCD)";
 			String strWhere = " AND (tc_milkbang.DeleteYN=0)";
 			if (p_Param.AgencyCD > 0L)
 				strWhere = strWhere + " AND (tc_milkbang.AgencyCD = " + p_Param.AgencyCD + ")";
-			if (p_Param.OrderDT != null)
-				strWhere = strWhere + " AND (tc_milkbang.OrderDT = '" + p_Param.OrderDT + "')";
+			if (p_Param.OrderDT != null) {
+			    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			    String dateStr = sdf.format(p_Param.OrderDT);
+			    strWhere = strWhere + " AND (tc_milkbang.OrderDT = TO_DATE('" + dateStr + "', 'YYYY-MM-DD'))";
+			}
 			if (!p_Param.OrderUserNM.equals(""))
 				strWhere = strWhere + " AND (tc_milkbang.OrderUserNM = '" + GF.recoverSQL(p_Param.OrderUserNM) + "')";
 			if (!p_Param.OrderAddress1.equals(""))
@@ -2888,10 +3777,14 @@ public class MilkbangManager {
 		ResultSet rs = null;
 		ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
 		try {
-			String strSQL = "SELECT tc_milkbang.* FROM tc_milkbang INNER JOIN tc_agency ON (tc_milkbang.AgencyCD = tc_agency.AgencyCD) WHERE (tc_milkbang.ordertype = 90) AND ((tc_milkbang.OrderAddress1 = '"
-					+ clsParam.OrderAddress1 + "') OR ((tc_milkbang.OrderCellPhone = '" + clsParam.OrderCellPhone
-					+ "') AND (tc_milkbang.OrderCellPhone != ''))) AND ('" + clsParam.SearchFromDT
-					+ "' <= tc_milkbang.OrderDT) AND (tc_milkbang.DeleteYN = 0) ORDER BY tc_milkbang.OrderDT DESC";
+			String strSQL = "SELECT tc_milkbang.* FROM ysc.tc_milkbang " +
+	                "WHERE (tc_milkbang.ordertype = 90) " +
+	                "AND ((tc_milkbang.OrderAddress1 = '" + clsParam.OrderAddress1 + "') " +
+	                "OR ((tc_milkbang.OrderCellPhone = '" + clsParam.OrderCellPhone + "') " +
+	                "AND (tc_milkbang.OrderCellPhone != ''))) " +
+	                "AND (TO_DATE('" + clsParam.SearchFromDT + "', 'YYYY-MM-DD HH24:MI:SS') <= tc_milkbang.OrderDT) " +
+	                "AND (tc_milkbang.DeleteYN = 0) " +
+	                "ORDER BY tc_milkbang.OrderDT DESC";
 			stmt = this.FV_conDB.createStatement(1004, 1007);
 			rs = stmt.executeQuery(strSQL);
 			if (rs.last() == true) {
@@ -2918,7 +3811,7 @@ public class MilkbangManager {
 		ResultSet rs = null;
 		ArrayList<MilkbangBean> arrReturn = new ArrayList<>();
 		try {
-			String strSQL = "SELECT tc_order.* FROM tc_order WHERE (tc_order.ordertype = 44) AND (tc_order.OrderCellPhone = '"
+			String strSQL = "SELECT tc_order.* FROM ysc.tc_order WHERE (tc_order.ordertype = 44) AND (tc_order.OrderCellPhone = '"
 					+ clsParam.OrderCellPhone
 					+ "') AND (tc_order.OrderCellPhone != '') AND (tc_order.OrderDT > '2019-04-25 00:00:00') AND (tc_order.DeleteYN = 0) ORDER BY tc_order.OrderDT DESC";
 			stmt = this.FV_conDB.createStatement(1004, 1007);
@@ -2942,12 +3835,12 @@ public class MilkbangManager {
 	}
 
 	public String now() {
-		String strError = "(MilkbangManager) now : ";
+		String strError = "(MilkbangManager) now 에러: ";
 		Statement stmt = null;
 		ResultSet rs = null;
 		String clsReturn = "";
 		try {
-			String strSQL = "select now() as now_time";
+			String strSQL = "select sysdate as now_time from dual";
 			stmt = this.FV_conDB.createStatement(1004, 1007);
 			rs = stmt.executeQuery(strSQL);
 			if (rs.last() == true) {

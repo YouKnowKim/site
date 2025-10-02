@@ -122,7 +122,7 @@ public class GoodsManager {
     ResultSet rs = null;
     ArrayList<GoodsOptionBean> arrReturn = new ArrayList<>();
     try {
-      String strSQL = "SELECT tc_goodsoption.* FROM tc_goodsoption";
+      String strSQL = "SELECT tc_goodsoption.* FROM ysc.tc_goodsoption";
       stmt = this.FV_conDB.createStatement(1004, 1007);
       rs = stmt.executeQuery(strSQL);
       if (rs.last() == true) {
