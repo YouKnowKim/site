@@ -29,7 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     
     // MyBatis Spring Boot Starter - 데이터베이스 SQL 매퍼 프레임워크
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
     
     // Gson - JSON 데이터 파싱 및 직렬화 라이브러리 (Google)
     implementation 'com.google.code.gson:gson:2.9.0'
@@ -47,7 +47,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     
     // MyBatis Test - MyBatis 관련 테스트 지원
-    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
+    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:2.3.2'
     
     // JUnit Platform Launcher - 테스트 실행 엔진
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -55,4 +55,45 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+def frontendDir = "$projectDir/src/main/frontend"
+
+sourceSets {
+	main {
+		resources { srcDirs = ["$projectDir/src/main/resources"]
+		}
+	}
+}
+
+processResources { dependsOn "copyReactBuildFiles" }
+
+task installReact(type: Exec) {
+	workingDir "$frontendDir"
+	inputs.dir "$frontendDir"
+	group = BasePlugin.BUILD_GROUP
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "audit", "fix"
+		commandLine 'npm.cmd', 'install' }
+	else {
+		commandLine "npm", "audit", "fix" commandLine 'npm', 'install'
+	}
+}
+
+task buildReact(type: Exec) {
+	dependsOn "installReact"
+	workingDir "$frontendDir"
+	inputs.dir "$frontendDir"
+	group = BasePlugin.BUILD_GROUP
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "run-script", "build"
+	} else {
+		commandLine "npm", "run-script", "build"
+	}
+}
+
+task copyReactBuildFiles(type: Copy) {
+	dependsOn "buildReact"
+	from "$frontendDir/build"
+	into "$projectDir/src/main/resources/static"
 }
