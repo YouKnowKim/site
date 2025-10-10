@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.yonseidairy.promo.mapper.LoginMapper">
+
+    <select id="selectLoginInfo" resultType="LoginDao">
+        SELECT
+	      a.teampersoncd as teamPersonCd
+	      , a.loginid as loginId
+	      , a.loginpw as loginPw
+	      , a.teampersonnm as teamPersonNm
+	      , a.teampersontype as teamPersonType
+	      , a.manageryn as managerYn
+	      , a.teamcd as teamCd
+	      , a.agencyyn as agencyYn
+	      , a.loginyn as loginYn	      
+	    FROM
+	      ysc.tc_teamperson A
+	    WHERE 1 = 1
+	    AND a.loginid = #{loginId}
+    </select>
+    	
+    <update id="updateIpBrowser" parameterType="LoginDao">
+    	UPDATE ysc.tc_teamperson
+    	SET loginip = #{loginIp}
+    		, loginbrowser = #{loginBrowser}
+    		, lastconnectdt = sysdate
+    	WHERE loginid = #{loginId}
+    </update>
+
+</mapper>

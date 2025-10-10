@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 const Header = () => {
 
   const navigate = useNavigate(); // ✅ Hook 사용
-  const name = sessionStorage.getItem('name');
+  const teamPersonNm = '' + sessionStorage.getItem('teamPersonNm') + '님';
 
   const handleLogoutClick = (e) => {
 
@@ -29,18 +29,22 @@ const Header = () => {
           </a>
 
           <Nav className="me-auto">
-            <NavDropdown title="판촉배치관리" id="basic-nav-dropdown">
-              <NavDropdown.Item as={Link} to="/Map">밀크방 파일 관리</NavDropdown.Item>
+            <NavDropdown title="판촉실적관리" id="basic-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/MilkFileMng">밀크방 파일 관리</NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/MapEdit">밀크방 미전송 대리점</NavDropdown.Item>
               {/* <NavDropdown.Divider />
               <NavDropdown.Item href="#">기타 항목</NavDropdown.Item> */}
             </NavDropdown>
             {/* <Nav.Link href="#">About</Nav.Link> */}
+            <NavDropdown title="대리점" id="basic-nav-dropdown">
+              <NavDropdown.Item as={Link} to="/Map">밀크방 파일 관리</NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/MapEdit">밀크방 미전송 대리점</NavDropdown.Item>
+            </NavDropdown>
           </Nav>
 
           <div className="text-start">
             {/* <button type="button" className="btn btn-outline-dark me-2" onClick={handleLoginClick}>Login</button> */}
-            <span className="fw-semibold text-dark text-nowrap me-3"> {name} </span>
+            <span className="fw-semibold text-dark text-nowrap me-3"> {teamPersonNm} </span>
             <button type="button" className="btn btn-primary" onClick={handleLogoutClick}>Logout</button>
           </div>
         </div>

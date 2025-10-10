@@ -14,6 +14,8 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="update"/>
+			<item value="확인"/>
 			<item value="insertMilkbang"/>
 			<item value="DuplicateYN"/>
 			<item value="OrderDT"/>
@@ -27,8 +29,6 @@
 			<item value="OrderStatus"/>
 			<item value="orderstatus"/>
 			<item value="findPeriodHC"/>
-			<item value="GoodsCD"/>
-			<item value="tc_agency_old"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>
