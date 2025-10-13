@@ -3,6 +3,8 @@ package com.yonseidairy.promo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +24,12 @@ public class LoginController {
 		LoginDao outLoginDao = loginService.getLoginInfo(inLoginDao); 
 		
 		return outLoginDao;
+	}
+	
+	@PostMapping("/changePassword")
+	public LoginDao changePassword(@RequestBody LoginDao inLoginDao) {
+		
+		return loginService.changePassword(inLoginDao); 
 	}
 	
 }

@@ -17,4 +17,5 @@
 
 .container {
   width: 70%;
+  min-width: 1200px;  /* 추가 */
 }

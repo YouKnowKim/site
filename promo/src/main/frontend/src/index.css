@@ -11,3 +11,61 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Tabulator 전체 글자 크기 */
+.tabulator {
+  font-size: 1.3rem !important;  /* 13px */
+}
+
+/* 헤더 스타일 */
+.tabulator .tabulator-header {
+  font-size: 0.9rem !important;
+  background-color: #f8f9fa;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  padding: 0px 0px !important;  /* 헤더 패딩 줄임 */
+  height: 40px !important;       /* 헤더 높이 줄임 */
+}
+
+/* 셀 스타일 */
+.tabulator .tabulator-cell {
+  padding: 4px 2px !important;   /* 셀 패딩 줄임 */
+  font-size: 0.8rem !important;
+  line-height: 1.3;              /* 줄 간격 */
+}
+
+/* 행 높이 */
+.tabulator .tabulator-row {
+  min-height: 22px !important;   /* 행 높이 줄임 */
+}
+
+.tabulator-row .tabulator-cell {
+  height: 27px !important;
+}
+
+/* 편집 가능한 셀 - 뚜렷한 박스 */
+.tabulator-cell.tabulator-editable {
+  border: 1.5px solid #adb5bd;
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+/* 호버 시 */
+.tabulator-cell.tabulator-editable:hover {
+  border: 1.5px solid #0d6efd;
+  background-color: #e7f1ff;
+  cursor: text;
+}
+
+.tabulator-cell.tabulator-editable:hover::after {
+  opacity: 1;
+  color: #0d6efd;
+}
+
+/* 편집 중 */
+.tabulator-cell.tabulator-editing {
+  border: 2px solid #0d6efd;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+}

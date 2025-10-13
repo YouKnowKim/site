@@ -12,4 +12,6 @@ public interface LoginMapper {
 	LoginDao selectLoginInfo(LoginDao inLoginDao);
 	
 	Integer updateIpBrowser(LoginDao inLoginDao);
+	
+	Integer updatePassword(LoginDao inLoginDao);
 }

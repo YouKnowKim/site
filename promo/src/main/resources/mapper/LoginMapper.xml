@@ -29,5 +29,12 @@
     		, lastconnectdt = sysdate
     	WHERE loginid = #{loginId}
     </update>
+    
+    <update id="updatePassword" parameterType="LoginDao">
+    	UPDATE ysc.tc_teamperson
+    	SET loginpw = #{loginPw}
+    		, lastconnectdt = sysdate
+    	WHERE loginid = #{loginId}
+    </update>
 
 </mapper>

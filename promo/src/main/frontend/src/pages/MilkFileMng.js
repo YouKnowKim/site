@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Container,
   Row,
@@ -12,160 +12,285 @@ import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList } from "react-icons/ci";
+import '../styles/MilkFileMng.css';
+import axios from 'axios';  // axios import 추가
+import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';  // 이 줄 추가
+
+// window.XLSX에 할당 (Tabulator가 사용할 수 있도록)
+window.XLSX = XLSX;
+
+// 오늘 날짜 구하기 (로컬 시간대)
+const getTodayDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 현재 월의 1일 구하기 (로컬 시간대)
+const getFirstDayOfMonth = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}-01`;
+};
+
+// 파일 다운로드 함수
+const handleFileDownload = async (rowData) => {
+  try {
+    console.log('다운로드 시작:', rowData);
+
+    // axios로 파일 다운로드
+    const response = await axios.get('/api/promo/downloadFile', {
+      params: { 
+        fileName: rowData.fileNm,
+        agencyCode: rowData.agencyCd 
+      },
+      responseType: 'blob'  // 중요: blob 타입으로 받기
+    });
+
+    // Blob을 이용한 파일 다운로드
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = rowData.fileNm;  // 다운로드될 파일명
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '파일 다운로드 실패.',
+        confirmButtonText: '확인'
+      });
+    
+    if (error.response?.status === 404) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '파일을 찾을 수 없습니다.',
+        confirmButtonText: '확인'
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '파일 다운로드에 실패했습니다.',
+        confirmButtonText: '확인'
+      });
+    }
+  }
+};
 
 
 const MilkFileMng = () => {
-  const [startDate, setStartDate] = useState('2025-10-01');
-  const [endDate, setEndDate] = useState('2025-10-10');
+  const [startDate, setStartDate] = useState(getFirstDayOfMonth());
+  const [endDate, setEndDate] = useState(getTodayDate());
   const [selectedAgency, setSelectedAgency] = useState('');
   const [tableData, setTableData] = useState([]);
+  const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
+  const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const tableRef = useRef(null);
+
+  // 컴포넌트 마운트 시 대리점 목록 조회
+  useEffect(() => {
+    fetchAgencyList();
+  }, []);
+
+  // 검색 조건 변경 시 자동 조회
+  // useEffect(() => {
+  //   handleSearch();
+  // }, [startDate, endDate, selectedAgency]);
+  
+  // 대리점 목록 조회 함수
+  const fetchAgencyList = async () => {
+    try {
+      const response = await axios.get('/api/promo/getAllAgency');  // API 엔드포인트 수정 필요
+      
+      // API 응답 구조에 따라 수정
+      // 예: response.data 또는 response.data.data
+      setAgencyList(response.data);
+      
+    } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '대리점 목록 조회 실패',
+        confirmButtonText: '확인'
+      });
+      console.error('대리점 목록 조회 실패:', error);
+      // 에러 시 빈 배열 설정
+      setAgencyList([]);
+    }
+  };
 
   // 테이블 컬럼 정의
   const columns = [
     {
       title: 'No',
       field: 'no',
-      width: 100,
+      width: 80,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '대리점코드',
-      field: 'agencyCode',
+      field: 'agencyCd',
       width: 140,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      editor: 'input'  // 텍스트 입력 가능
     },
     {
       title: '대리점명',
-      field: 'agencyName',
+      field: 'agencyNm',
       width: 150,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '파일명',
-      field: 'fileName',
-      width: 300,
+      field: 'fileNm',
+      width: 250,
       hozAlign: 'left',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        const value = cell.getValue();
+        return `<span style="color: #0066cc; cursor: pointer;" 
+                      class="file-download-link">${value}</span>`;
+      },
+      cellClick: function(e, cell) {
+        handleFileDownload(cell.getRow().getData());
+      }
     },
     {
       title: '대리점 전송일',
-      field: 'sendDate',
+      field: 'downloadDt',
       width: 180,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '업로드여부',
-      field: 'uploadYn',
-      width: 130,
+      field: 'uploadYnNm',
+      width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '업로드일',
-      field: 'uploadDate',
+      field: 'uploadDt',
       width: 180,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '비고',
-      field: 'remark',
+      field: 'fileStatusNm',
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
       formatter: function(cell) {
         const value = cell.getValue();
-        if (value === '정상반영') {
-          return `<span style="color: blue; cursor: pointer; text-decoration: underline;">${value}</span>`;
+        if (value === '정상파일') {
+          return `<span style="color: blue; cursor: pointer;">${value}</span>`;
         } else if (value === '파일내용없음') {
+          return `<span style="color: red;">${value}</span>`;
+        } else {
           return `<span style="color: red;">${value}</span>`;
         }
         return value;
       },
       cellClick: function(e, cell) {
         const value = cell.getValue();
-        if (value === '정상반영') {
+        if (value === '정상파일') {
           handleRemarkClick(cell.getRow().getData());
         }
       }
     }
   ];
 
+// 엑셀 다운로드 함수
+  const handleExcelDownload = () => { 
+
+    if (!tabulatorInstance) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '테이블이 준비되지 않았습니다.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    if (tableData.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '다운로드할 데이터가 없습니다.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    const today = getTodayDate().replace(/-/g, '');
+    const fileName = `밀크방파일관리_${today}.xlsx`;
+    
+    tabulatorInstance?.current.download("xlsx", fileName, {
+      sheetName: "밀크방파일관리"
+    });
+  };
+
   // 조회 버튼 클릭
   const handleSearch = async () => {
     try {
-      console.log('검색 조건:', {
-        startDate,
-        endDate,
-        selectedAgency
+      // 조회 API 호출
+      const response = await axios.get('/api/promo/getMilkbangFileList', {
+        params: { startDate : startDate,
+                  endDate : endDate,
+                  agencyCd: selectedAgency }
       });
 
-      // TODO: 실제 API 호출
-      // const response = await axios.get('/api/promo-files', {
-      //   params: { startDate, endDate, agencyCode: selectedAgency }
-      // });
+    // 데이터가 없는 경우 체크
+    if (!response.data || response.data.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: '알림',
+        text: '조회된 데이터가 없습니다.',
+        confirmButtonText: '확인'
+      });
+      setTableData([]);  // 빈 배열로 설정
+      return;
+    }
 
-      // 샘플 데이터
-      const sampleData = [
-        {
-          no: 1,
-          agencyCode: '10011',
-          agencyName: '은평',
-          fileName: '10011_은평_250901_0930.xls',
-          sendDate: '2025-10-10 10:46:23',
-          uploadYn: 'O',
-          uploadDate: '2025-10-10 12:05:44',
-          remark: '정상반영'
-        },
-        {
-          no: 2,
-          agencyCode: '10020',
-          agencyName: '관악',
-          fileName: '10020_관악_250901_0907.xls',
-          sendDate: '2025-10-01 13:18:42',
-          uploadYn: 'O',
-          uploadDate: '2025-10-05 23:24:24',
-          remark: '정상반영'
-        },
-        {
-          no: 3,
-          agencyCode: '10020',
-          agencyName: '관악',
-          fileName: '10020_관악_250908_0914.xls',
-          sendDate: '2025-10-01 13:19:06',
-          uploadYn: 'O',
-          uploadDate: '2025-10-05 23:24:28',
-          remark: '정상반영'
-        },
-        {
-          no: 9,
-          agencyCode: '10034',
-          agencyName: '',
-          fileName: '10034_경남_250901_0930.xls',
-          sendDate: '2025-10-02 14:51:05',
-          uploadYn: '',
-          uploadDate: '2025-10-06 23:33:51',
-          remark: '파일내용없음'
-        }
-      ];
-
-      setTableData(sampleData);
+      setTableData(response.data);
 
     } catch (error) {
       console.error('조회 실패:', error);
-      alert('데이터 조회에 실패했습니다.');
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '데이터 조회에 실패했습니다.',
+        confirmButtonText: '확인'
+      });
     }
   };
 
   // 비고 클릭 이벤트
   const handleRemarkClick = (rowData) => {
     console.log('클릭된 행:', rowData);
-    alert(`파일명: ${rowData.fileName}\n상세 정보를 표시합니다.`);
+
+    // Swal.fire({
+    //     icon: 'warning',
+    //     title: '오류',
+    //     text: `파일명: ${rowData.fileNm}\n상세 정보를 표시합니다.`,
+    //     confirmButtonText: '확인'
+    //   });
   };
 
   // Tabulator 옵션
@@ -173,73 +298,105 @@ const MilkFileMng = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '530px'
+    height: '570px'
   };
 
   return (
     <Container fluid className="mt-1">
       {/* 제목 */}
-      <Row className="mb-3">
+      <Row className="mb-1">
         <Col>
-          <h4>
-            <i className="bi bi-circle-fill text-warning me-2"></i>
-            <CiViewList />
+          <h5>
+            <i className="bi bi-circle-fill text-warning me-1"></i>
+            <CiViewList size={22} />
             밀크방 파일 관리
-          </h4>
+          </h5>
         </Col>
       </Row>
 
       {/* 검색 조건 */}
-      <Card className="mb-3">
-        <Card.Body>
+      <Card className="mb-2">
+        <Card.Body className="py-2">
           <Row className="align-items-end">
             {/* 날짜 범위 */}
-            <Col md={4}>
+            <Col md={5} style={{ minWidth: '400px', maxWidth: '450px' }}>
               <Form.Group>
-                <Form.Label className="fw-bold">대리점 전송일</Form.Label>
                 <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '90px' }}>
+                    대리점 전송일 :
+                  </Form.Label>
                   <Form.Control
                     type="date"
+                    size="sm"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                    }}
+                    style={{ width: '140px' }}  // 고정 크기
                   />
-                  <span>~</span>
+                  <span className="small">~</span>
                   <Form.Control
                     type="date"
+                    size="sm"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                    }}
+                    style={{ width: '140px' }}  // 고정 크기
                   />
                 </div>
               </Form.Group>
             </Col>
 
             {/* 대리점 선택 */}
-            <Col md={3}>
+            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
               <Form.Group>
-                <Form.Label className="fw-bold">대리점</Form.Label>
-                <Form.Select
-                  value={selectedAgency}
-                  onChange={(e) => setSelectedAgency(e.target.value)}
-                >
-                  <option value="">= 전체 =</option>
-                  <option value="10011">10011 - 은평</option>
-                  <option value="10020">10020 - 관악</option>
-                  <option value="10033">10033 - 연동</option>
-                  <option value="10034">10034 - 신정남</option>
-                  <option value="10035">10035 - 인천</option>
-                </Form.Select>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
+                    대리점 :
+                  </Form.Label>
+                  <Form.Select
+                    size="sm"
+                    value={selectedAgency}
+                    onChange={(e) => {
+                      setSelectedAgency(e.target.value);
+                    }}
+                    style={{ width: '150px' }}  // 고정 크기
+                  >
+                    <option value="">= 전체 =</option>
+                    {agencyList.map((agency) => (
+                      <option key={agency.agencyCd} value={agency.agencyCd}>
+                        {agency.agencyNm}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </div>
               </Form.Group>
             </Col>
 
             {/* 조회 버튼 */}
-            <Col md={2}>
+            <Col md={1} style={{ minWidth: '90px', maxWidth: '90px' }}>
               <Button
                 variant="primary"
+                size="sm"
                 className="w-100"
                 onClick={handleSearch}
               >
                 <i className="bi bi-search me-2"></i>
                 조회
+              </Button>
+            </Col>
+
+            {/* 엑셀 버튼 */}
+            <Col md={2} style={{ minWidth: '140px', maxWidth: '140px' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-100"
+                onClick={handleExcelDownload}
+              >
+                <i className="bi bi-search me-2"></i>
+                엑셀다운로드
               </Button>
             </Col>
           </Row>
@@ -255,12 +412,17 @@ const MilkFileMng = () => {
         <Card.Body>
           <ReactTabulator
             ref={tableRef}
+            onRef={(ref) => setTabulatorInstance(ref)}  // 이 줄 추가
             data={tableData}
             columns={columns}
             options={options}
             layout="fitColumns"
           />
         </Card.Body>
+        {/* Footer 추가 */}
+        <Card.Footer className="text-muted">
+          <small>총 <strong>{tableData.length}</strong>건의 데이터가 조회되었습니다.</small>
+        </Card.Footer>
       </Card>
     </Container>
   );

@@ -42,4 +42,17 @@ public class LoginService {
 		
 		return loginTmp;
 	}
+	
+	public LoginDao changePassword(LoginDao inLoginDao) {
+		
+		LoginDao outLoginDao = new LoginDao();
+		
+		if(loginMapper.updatePassword(inLoginDao) != 0) {
+			outLoginDao.setMsg("s");
+		} else {
+			outLoginDao.setMsg("f");
+		}
+		
+		return outLoginDao;
+	}
 }

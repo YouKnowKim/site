@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.yonseidairy.promo.mapper.PromoMapper">
+
+    <select id="selectAllAgency" resultType="AgencyDao">
+        select 
+			AGENCYCD AS agencyCd
+			, AGENCYNM AS agencyNm
+		from ysc.tc_agency
+		WHERE AGENCYTYPE = '1'
+		AND DELETEYN != '1'
+		ORDER BY AGENCYNM 
+    </select>
+    
+    <select id="selectMilkFile" resultType="PromoDao">
+        select 
+			AGENCYCD AS agencyCd
+			, AGENCYNM AS agencyNm
+		from ysc.tc_agency
+		WHERE AGENCYTYPE = '1'
+		AND DELETEYN != '1'
+		ORDER BY AGENCYNM 
+    </select>
+    
+    <select id="selectMilkbangFileList" resultType="MilkbangFileDao">
+	    SELECT
+			ROW_NUMBER() OVER (ORDER BY a.AGENCYCD, a.DOWNLOADDT DESC) AS no
+			, a.filenm AS fileNm
+			, a.fileUrl AS fileUrl
+			, a.DOWNLOADDT AS downloadDt
+			, a.AGENCYCD AS agencyCd
+			, b.AGENCYNM AS agencyNm
+			, a.UPLOADYN AS uploadYn
+			, CASE WHEN a.UPLOADYN = 1 THEN 'O' ELSE 'X' END AS uploadYnNm
+			, a.FILESTATUS AS fileStatus
+			, CASE WHEN a.FILESTATUS = 1 THEN '정상파일'
+				   WHEN a.FILESTATUS = 2 THEN '파일내용없음' 
+				   ELSE '파일깨짐' END AS fileStatusNm
+			, a.INSERTDT AS insertDt
+			, a.UPLOADDT AS uploadDt
+		FROM ysc.tc_milkbang_file a
+		LEFT JOIN ysc.tc_agency b ON a.AGENCYCD = b.AGENCYCD 
+		WHERE 1 = 1
+	    AND to_char(a.DOWNLOADDT, 'yyyymmdd') BETWEEN replace(#{startDate}, '-', '') AND replace(#{endDate}, '-', '')
+	    <if test="agencyCd != null and agencyCd != ''">
+	        AND a.AGENCYCD = #{agencyCd}
+	    </if>
+	    ORDER BY a.AGENCYCD, a.DOWNLOADDT DESC 
+	</select>
+
+</mapper>

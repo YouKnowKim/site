@@ -54,7 +54,6 @@ const Login = () => {
               }
     })
     .then(response => {
-      console.log("로그인 response : ", response);
       loginData = response.data;
     })
     .catch(error => {
@@ -63,7 +62,6 @@ const Login = () => {
         title: '로그인 오류',
         text: error
       });
-      console.error('로그인 에러 :', error);
     });
 
     if (loginData) {

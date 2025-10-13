@@ -5,6 +5,7 @@
   
   /* ✅ 가운데 90% 사용 */
   width: 90%;
+  min-width: 1200px;
   margin: 0 auto;          /* 좌우 가운데 정렬 */
 }
 
