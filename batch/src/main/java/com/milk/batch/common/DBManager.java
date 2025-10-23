@@ -12,16 +12,15 @@ public class DBManager {
 		String strError = "(DBManager) openDB 에러: ";
 		Connection con = null;
 		try {
-//			// 개발
-//			Class.forName("oracle.jdbc.OracleDriver");
-//			System.out.println("==== 오라클 드라이버 로드 성공 ====");
-//			con = DriverManager.getConnection("jdbc:oracle:thin:@192.168.135.34:1521:YSMT?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul", "apps", "apps21");
-//			System.out.println("==== 오라클 DB 연결 성공 ====");
 			
 			// 운영
 			Class.forName("oracle.jdbc.OracleDriver");
 			System.out.println("==== 오라클 드라이버 로드 성공 ====");
-			con = DriverManager.getConnection("jdbc:oracle:thin:@165.132.200.104:1521:YSMT?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul", "apps", "apps21");
+			con = DriverManager.getConnection(
+				    "jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=165.132.200.104)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=YSMT)))",
+				    "apps",
+				    "apps21"
+				);
 			System.out.println("==== 오라클 DB 연결 성공 ====");
 
 		} catch (Exception e) {
@@ -34,7 +33,7 @@ public class DBManager {
 		String strError = "(DBManager) openDB 에러 : ";
 		Connection con = null;
 		try {
-			con = openDB("RFLOGIX");
+			con = openDB("");
 		} catch (Exception e) {
 			System.out.println(strError + e.getMessage());
 		}

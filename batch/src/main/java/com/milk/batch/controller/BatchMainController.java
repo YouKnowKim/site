@@ -34,7 +34,7 @@ public class BatchMainController {
      * 4. 주문 데이터를 DB에 저장
      */
     @GetMapping({ "/batch/_milkbang_file" })
-    @Scheduled(fixedDelay = 50000L)
+    @Scheduled(fixedDelay = 3600000L)
     public void _milkbang_file() {
         try {
             // ======== 1단계: 초기 설정 ========
@@ -107,7 +107,7 @@ public class BatchMainController {
             int j = 0;
             int k = 0;
             String ORIGIN_DIR = "c:\\develop\\FILES\\Milkbang\\판촉자료";  // 원본 엑셀 경로
-            String TARGET_DIR = "c:\\develop\\FILES\\Milkbang\\temp";     // 변환된 엑셀 저장 경로
+            String TARGET_DIR = "c:\\operation\\temp";     // 변환된 엑셀 저장 경로
             
             // 새 DB 연결 및 상품 정보 조회
             this.conDB = DBManager.openDB();

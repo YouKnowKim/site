@@ -164,13 +164,30 @@ return (
             </a>
 
             <Nav className="me-auto">
-              <NavDropdown title="판촉실적관리" id="basic-nav-dropdown">
+              <NavDropdown title="판촉파일 관리" id="basic-nav-dropdown">
                 <NavDropdown.Item as={Link} to="/MilkFileMng">밀크방 파일 관리</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">밀크방 미전송 대리점</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MilkFileNotSubmit">밀크방 미전송 대리점</NavDropdown.Item>
               </NavDropdown>
-              <NavDropdown title="대리점" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/Map">밀크방 파일 관리</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">밀크방 미전송 대리점</NavDropdown.Item>
+              <NavDropdown title="판촉실적 정산" id="basic-nav-dropdown">
+                <NavDropdown.Item as={Link} to="/PromotionSettle">판촉실적 정산</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">판촉실적 마감</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown title="판촉팀별 실적" id="basic-nav-dropdown">
+                <NavDropdown.Item as={Link} to="/Map">판촉팀별 실적</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">판촉사원별 주간 실적</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown title="판촉실적 통계" id="basic-nav-dropdown">
+                <NavDropdown.Item as={Link} to="/Map">판촉 실적 보고(전체)</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">판촉 실적 보고(팀)</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">대리점별 주간 실적</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown title="해피콜 관리" id="basic-nav-dropdown">
+                <NavDropdown.Item as={Link} to="/Map">해피콜</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">해피콜 결과</NavDropdown.Item>
+              </NavDropdown>
+              <NavDropdown title="설정" id="basic-nav-dropdown">
+                <NavDropdown.Item as={Link} to="/Map">담당별 대리점 등록 관리</NavDropdown.Item>
+                <NavDropdown.Item as={Link} to="/MapEdit">판촉홉수 설정</NavDropdown.Item>
               </NavDropdown>
             </Nav>
 

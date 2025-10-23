@@ -11,7 +11,9 @@ import { ReactTabulator } from 'react-tabulator';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
-import { CiViewList } from "react-icons/ci";
+import { CiViewList} from "react-icons/ci";
+import { FaSearch } from "react-icons/fa";
+import { RiFileExcel2Line } from "react-icons/ri";
 import '../styles/MilkFileMng.css';
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -96,10 +98,13 @@ const MilkFileMng = () => {
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const tableRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const uploadRowDataRef = useRef(null);
 
   // 컴포넌트 마운트 시 대리점 목록 조회
   useEffect(() => {
     fetchAgencyList();
+    handleSearch();
   }, []);
 
   // 검색 조건 변경 시 자동 조회
@@ -143,8 +148,7 @@ const MilkFileMng = () => {
       field: 'agencyCd',
       width: 140,
       hozAlign: 'center',
-      headerHozAlign: 'center',
-      editor: 'input'  // 텍스트 입력 가능
+      headerHozAlign: 'center'
     },
     {
       title: '대리점명',
@@ -195,25 +199,139 @@ const MilkFileMng = () => {
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      vertAlign: 'middle',
       formatter: function(cell) {
         const value = cell.getValue();
         if (value === '정상파일') {
           return `<span style="color: blue; cursor: pointer;">${value}</span>`;
-        } else if (value === '파일내용없음') {
-          return `<span style="color: red;">${value}</span>`;
+        } else if (value === '파일내용없음' || value === '파일깨짐') {
+          return `<span style="color: red; cursor: pointer;">${value}</span>`;
         } else {
-          return `<span style="color: red;">${value}</span>`;
+          return `<span style="color: #ff8c00; cursor: pointer;">${value}</span>`;
         }
-        return value;
+        
       },
       cellClick: function(e, cell) {
         const value = cell.getValue();
-        if (value === '정상파일') {
-          handleRemarkClick(cell.getRow().getData());
-        }
+        console.log(cell.getRow().getData());
       }
     }
   ];
+
+  // 엑셀 업로드 함수
+  const handleExcelUpload = () => {
+
+    // 파일 선택 다이얼로그 열기
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // 파일 선택 시 처리 함수
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    
+    if (!file) {
+      return;
+    }
+
+    // 파일 확장자 체크
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    if (!['xls', 'xlsx'].includes(fileExtension)) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '엑셀 파일만 업로드 가능합니다. (.xls, .xlsx)',
+        confirmButtonText: '확인'
+      });
+      event.target.value = ''; // input 초기화
+      return;
+    }
+
+    // 파일 크기 체크 (예: 10MB 제한)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '파일 크기는 10MB를 초과할 수 없습니다.',
+        confirmButtonText: '확인'
+      });
+      event.target.value = ''; // input 초기화
+      return;
+    }
+
+    // 업로드 확인
+    const result = await Swal.fire({
+      icon: 'question',
+      title: '파일 업로드',
+      text: `${file.name} 파일을 업로드하시겠습니까?`,
+      showCancelButton: true,
+      confirmButtonText: '업로드',
+      cancelButtonText: '취소'
+    });
+
+    if (!result.isConfirmed) {
+      event.target.value = ''; // input 초기화
+      return;
+    }
+
+    try {
+      // FormData 생성
+      const formData = new FormData();
+
+      formData.append('file', file);
+
+      // 로딩 표시
+      Swal.fire({
+        title: '업로드 중...',
+        text: '파일을 업로드하고 있습니다.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // API 호출
+      const response = await axios.post('/api/promo/uploadMilkbangFile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // 성공 처리
+      Swal.fire({
+        icon: 'success',
+        title: '업로드 완료',
+        text: response.data.message || '파일이 성공적으로 업로드되었습니다.',
+        confirmButtonText: '확인'
+      }).then(() => {
+        // 업로드 후 목록 재조회
+        handleSearch();
+      });
+
+    } catch (error) {
+      console.error('업로드 실패:', error);
+      
+      // 에러 메시지 처리
+      let errorMessage = '파일 업로드에 실패했습니다.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: '업로드 실패',
+        text: errorMessage,
+        confirmButtonText: '확인'
+      });
+    } finally {
+      // input 초기화 (같은 파일 재선택 가능하도록)
+      event.target.value = '';
+    }
+  };
 
 // 엑셀 다운로드 함수
   const handleExcelDownload = () => { 
@@ -279,18 +397,6 @@ const MilkFileMng = () => {
         confirmButtonText: '확인'
       });
     }
-  };
-
-  // 비고 클릭 이벤트
-  const handleRemarkClick = (rowData) => {
-    console.log('클릭된 행:', rowData);
-
-    // Swal.fire({
-    //     icon: 'warning',
-    //     title: '오류',
-    //     text: `파일명: ${rowData.fileNm}\n상세 정보를 표시합니다.`,
-    //     confirmButtonText: '확인'
-    //   });
   };
 
   // Tabulator 옵션
@@ -375,30 +481,49 @@ const MilkFileMng = () => {
             </Col>
 
             {/* 조회 버튼 */}
-            <Col md={1} style={{ minWidth: '90px', maxWidth: '90px' }}>
+            <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button
                 variant="primary"
                 size="sm"
                 className="w-100"
                 onClick={handleSearch}
               >
-                <i className="bi bi-search me-2"></i>
-                조회
+                <i className="bi bi-search me-2">
+                    <FaSearch /> 조회
+                </i>
+                
+              </Button>
+            </Col>
+
+            {/* 엑셀 업로드 버튼 */}
+            <Col md={2} style={{ minWidth: '170px', maxWidth: '170px' }}>
+              <Button
+                variant="success"
+                size="sm"
+                className="w-100"
+                onClick={handleExcelUpload}
+              >
+                <i className="bi bi-search me-2">
+                    <RiFileExcel2Line /> 개별파일 업로드
+                </i>
+                
               </Button>
             </Col>
 
             {/* 엑셀 버튼 */}
-            <Col md={2} style={{ minWidth: '140px', maxWidth: '140px' }}>
+            {/* <Col md={2} style={{ minWidth: '160px', maxWidth: '160px' }}>
               <Button
                 variant="secondary"
                 size="sm"
                 className="w-100"
                 onClick={handleExcelDownload}
               >
-                <i className="bi bi-search me-2"></i>
-                엑셀다운로드
+                <i className="bi bi-search me-2">
+                    <RiFileExcel2Line /> 엑셀다운로드
+                </i>
+                
               </Button>
-            </Col>
+            </Col> */}
           </Row>
         </Card.Body>
       </Card>
@@ -424,6 +549,15 @@ const MilkFileMng = () => {
           <small>총 <strong>{tableData.length}</strong>건의 데이터가 조회되었습니다.</small>
         </Card.Footer>
       </Card>
+
+      {/* 숨겨진 파일 input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".xlsx,.xls"
+        onChange={handleFileChange}
+      />
     </Container>
   );
 };

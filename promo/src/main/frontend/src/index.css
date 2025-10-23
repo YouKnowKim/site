@@ -30,9 +30,10 @@ code {
 
 /* 셀 스타일 */
 .tabulator .tabulator-cell {
-  padding: 4px 2px !important;   /* 셀 패딩 줄임 */
+  padding: 4px 6px !important;   /* 셀 패딩 줄임 */
   font-size: 0.8rem !important;
   line-height: 1.3;              /* 줄 간격 */
+  box-sizing: border-box;  /* border가 전체 크기에 포함되도록 */
 }
 
 /* 행 높이 */
@@ -44,9 +45,9 @@ code {
   height: 27px !important;
 }
 
-/* 편집 가능한 셀 - 뚜렷한 박스 */
+/* border 대신 box-shadow 사용 */
 .tabulator-cell.tabulator-editable {
-  border: 1.5px solid #adb5bd;
+  box-shadow: inset 0 0 0 1.5px #adb5bd;
   background-color: #f8f9fa;
   position: relative;
 }

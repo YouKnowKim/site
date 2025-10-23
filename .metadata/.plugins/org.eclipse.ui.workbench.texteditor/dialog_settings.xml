@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="insertMilkbangFile"/>
+			<item value="uploadMilkbangFile"/>
+			<item value="readExcel_Milkbang"/>
+			<item value="selectMilkFile"/>
+			<item value="updateFileList"/>
+			<item value="insertFileList"/>
+			<item value="AgencyCD"/>
+			<item value="file"/>
+			<item value="FILE_BASE_PATH"/>
+			<item value="upload"/>
+			<item value="findGoodsHob"/>
+			<item value="openDB"/>
 			<item value="agencyCode"/>
 			<item value="update"/>
 			<item value="확인"/>
-			<item value="insertMilkbang"/>
-			<item value="DuplicateYN"/>
-			<item value="OrderDT"/>
-			<item value="findMilkbang"/>
-			<item value="findDuplicate"/>
-			<item value="selectMilkbangGoods"/>
-			<item value="hc"/>
-			<item value="AgencyHob"/>
-			<item value="expiredt"/>
-			<item value="promodt"/>
-			<item value="OrderStatus"/>
-			<item value="orderstatus"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

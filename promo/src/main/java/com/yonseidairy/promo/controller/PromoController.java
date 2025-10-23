@@ -1,5 +1,6 @@
 package com.yonseidairy.promo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.service.PromoService;
 
 import org.springframework.core.io.Resource;
@@ -45,6 +48,64 @@ public class PromoController {
 	public List<MilkbangFileDao> getMilkbangFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao){
 		
 		return promoService.getMilkbangFileList(inMilkbangFileDao);
+	}
+	
+	@GetMapping("/getAllTeamPerson")
+	public List<TeamPersonDao> getAllTeamPerson() {
+		
+		return promoService.getAllTeamPerson();
+	}
+	
+	@GetMapping("/getMilkNotSubmitFileList")
+	public List<MilkbangFileDao> getMilkNotSubmitFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao){
+		
+		return promoService.getMilkNotSubmitFileList(inMilkbangFileDao);
+	}
+	
+	@PostMapping("/uploadMilkbangFile")
+	public ResponseEntity<?> uploadMilkbangFile(
+	        @RequestParam("file") MultipartFile file,
+	        @RequestParam(value = "agencyCode", required = false) String agencyCd) {
+	    
+	    try {
+	        // 파일이 비어있는지 확인
+	        if (file.isEmpty()) {
+	            return ResponseEntity.badRequest().body("파일이 비어있습니다.");
+	        }
+	        
+	        // 원본 파일명
+	        String originalFileName = file.getOriginalFilename();
+	        
+	        // 파일 저장 경로 생성 (년월별 폴더)
+	        Path uploadPath = Paths.get(FILE_BASE_PATH);
+	        
+	        // 디렉토리가 없으면 생성
+	        if (!java.nio.file.Files.exists(uploadPath)) {
+	            java.nio.file.Files.createDirectories(uploadPath);
+	        }
+	        
+	        // 파일명 중복 방지를 위한 타임스탬프 추가
+//	        String timestamp = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+//	        String fileExtension = "";
+//	        if (originalFileName != null && originalFileName.contains(".")) {
+//	            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+//	        }
+	        String savedFileName = originalFileName;
+	        
+	        // DB 저장 로직
+	        promoService.mergeMilkbangFile(originalFileName);
+	        
+	        // 파일 저장
+	        Path targetLocation = uploadPath.resolve(savedFileName);
+	        file.transferTo(targetLocation.toFile());
+	        
+	        return ResponseEntity.ok().body("파일 업로드가 완료되었습니다.");
+	        
+	    } catch (IOException e) {
+	        return ResponseEntity.status(500).body("파일 업로드 중 오류가 발생했습니다: " + e.getMessage());
+	    } catch (Exception e) {
+	        return ResponseEntity.status(500).body("파일 정보 저장 중 오류가 발생했습니다: " + e.getMessage());
+	    }
 	}
 	
 	@GetMapping("/downloadFile")

@@ -9,6 +9,11 @@ public class MilkbangFileDao {
 	private String endDate;
 	private String selectedAgency;
 	
+	private String stdYear;
+	private String stdMonth;
+	private String stdWeek;
+	private String teamPersonCd;
+	
 	private String fileNm;
 	private String fileUrl;
 	private String downloadDt;
@@ -20,5 +25,8 @@ public class MilkbangFileDao {
 	private String uploadYnNm;
 	private String agencyCd;
 	private String agencyNm;
+	private String agencyType;
+	private String teamPersonNm;
+	private String deleteYn;
 	private Integer no;
 }

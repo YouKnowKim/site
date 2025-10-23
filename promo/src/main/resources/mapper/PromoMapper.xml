@@ -15,14 +15,26 @@
 		ORDER BY AGENCYNM 
     </select>
     
-    <select id="selectMilkFile" resultType="PromoDao">
+    <select id="selectAllMilkbangFileList" resultType="MilkbangFileDao">
+        SELECT ysc.tc_milkbang_file.*
+		FROM ysc.tc_milkbang_file
+		ORDER BY FileNM ASC
+    </select>
+    
+    <select id="selectCountMilkbangFile" resultType="Integer">
+        SELECT count(*)
+		FROM ysc.tc_milkbang_file a
+		WHERE UPPER(a.filenm) = UPPER(#{fileNm})
+    </select>
+    
+    <select id="selectAllTeamPerson" resultType="TeamPersonDao">
         select 
-			AGENCYCD AS agencyCd
-			, AGENCYNM AS agencyNm
-		from ysc.tc_agency
-		WHERE AGENCYTYPE = '1'
-		AND DELETEYN != '1'
-		ORDER BY AGENCYNM 
+			TEAMPERSONCD AS teamPersonCd
+			, TEAMPERSONNM AS teamPersonNm
+			, LOGINID AS loginId
+		from ysc.tc_teamperson
+		WHERE TEAMPERSONTYPE = '1'
+		ORDER BY TEAMPERSONCD 
     </select>
     
     <select id="selectMilkbangFileList" resultType="MilkbangFileDao">
@@ -38,7 +50,9 @@
 			, a.FILESTATUS AS fileStatus
 			, CASE WHEN a.FILESTATUS = 1 THEN '정상파일'
 				   WHEN a.FILESTATUS = 2 THEN '파일내용없음' 
-				   ELSE '파일깨짐' END AS fileStatusNm
+				   WHEN a.FILESTATUS = 3 THEN '파일깨짐'
+				   WHEN a.FILESTATUS = 4 THEN '업로드대기중' 
+				   ELSE '에러확인필요' END AS fileStatusNm
 			, a.INSERTDT AS insertDt
 			, a.UPLOADDT AS uploadDt
 		FROM ysc.tc_milkbang_file a
@@ -50,5 +64,65 @@
 	    </if>
 	    ORDER BY a.AGENCYCD, a.DOWNLOADDT DESC 
 	</select>
+	
+	<select id="selectMilkNotSubmitFile" resultType="MilkbangFileDao">
+        SELECT
+        	ROW_NUMBER() OVER (ORDER BY a.AGENCYNM) AS no
+			, a.AGENCYCD AS agencyCd
+			, a.AGENCYNM AS agencyNm
+			, a.AGENCYTYPE AS agencyType
+			, a.TEAMPERSONCD AS teamPersonCd
+			, c.TEAMPERSONNM AS teamPersonNm
+			, a.DELETEYN AS deleteYn
+			, '전송안됨' AS uploadYnNm
+			, count(*) AS cnt
+		FROM ysc.tc_agency a
+		LEFT JOIN ysc.tc_milkbang_file b
+			ON to_char(a.AGENCYCD) = to_char(b.AGENCYCD) 
+			AND to_char(b.DOWNLOADDT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
+		LEFT JOIN ysc.TC_TEAMPERSON c
+			ON a.TEAMPERSONCD = c.TEAMPERSONCD
+		WHERE 1 = 1
+		AND b.AGENCYCD IS NULL
+		AND a.DELETEYN = '0'
+		<if test="teamPersonCd != null and teamPersonCd != ''">
+			AND a.TEAMPERSONCD = #{teamPersonCd}
+		</if>
+		GROUP BY a.AGENCYCD, a.AGENCYNM, a.AGENCYTYPE, a.TEAMPERSONCD, c.TEAMPERSONNM, a.DELETEYN
+		ORDER BY a.AGENCYNM  
+    </select>
+    
+    <insert id="insertMilkbangFile" parameterType="MilkbangFileDao">
+	    INSERT INTO ysc.tc_milkbang_file (
+	        FILENM
+	        , FILEURL
+	        , DOWNLOADDT
+	        , AGENCYCD
+	        , UPLOADYN
+	        , UPLOADDT
+	        , FILESTATUS
+	        , INSERTDT
+	    ) VALUES (
+	        #{fileNm}
+	        , #{fileUrl}
+	        , SYSDATE
+	        , #{agencyCd}
+	        , #{uploadYn}
+	        , null
+	        , #{fileStatus}
+	        , null
+	    )
+	</insert>
+	
+	<!-- 밀크방 파일 정보 수정 -->
+	<update id="updateMilkbangFile" parameterType="MilkbangFileDao">
+	    UPDATE ysc.tc_milkbang_file
+	    SET
+	        DOWNLOADDT = SYSDATE
+	        , AGENCYCD = #{agencyCd}
+	        , UPLOADYN = #{uploadYn}
+	        , FILESTATUS = #{fileStatus}
+	    WHERE FILENM = #{fileNm}
+	</update>
 
 </mapper>
