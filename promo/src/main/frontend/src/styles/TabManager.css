@@ -1,0 +1,124 @@
+.tab-manager {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 탭 헤더 영역 */
+.tab-headers {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  padding: 0.5rem 1rem;
+  flex-shrink: 0;
+}
+
+.tab-headers .nav-item {
+  margin-right: 0.25rem;
+}
+
+.tab-header-item {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem !important;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-bottom: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  color: #495057;
+  transition: all 0.2s ease;
+}
+
+.tab-header-item:hover {
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+.tab-header-item.active {
+  background-color: white;
+  color: #0d6efd;
+  font-weight: 600;
+  border-color: #dee2e6;
+  border-bottom-color: white;
+  margin-bottom: -2px;
+  z-index: 1;
+}
+
+.tab-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* 탭 닫기 버튼 */
+.tab-close-btn {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.tab-close-btn:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.tab-close-btn:active {
+  transform: scale(0.9);
+}
+
+/* 탭 컨텐츠 영역 */
+.tab-content-area {
+  flex: 1;
+  overflow: auto;
+  background-color: white;
+  padding: 1.5rem;
+}
+
+.tab-content-area .tab-pane {
+  height: 100%;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .tab-title {
+    max-width: 100px;
+  }
+
+  .tab-header-item {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.875rem;
+  }
+
+  .tab-content-area {
+    padding: 1rem;
+  }
+}
+
+/* 스크롤바 스타일 (선택사항) */
+.tab-content-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tab-content-area::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tab-content-area::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.tab-content-area::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

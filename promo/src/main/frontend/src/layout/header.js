@@ -4,9 +4,12 @@ import logo from '../assets/images/logo.png'; // 상대경로
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { useNavigate } from 'react-router-dom';
 import { Nav, NavDropdown, Modal, Button, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import Home from '../pages/Home.js';
+import MilkFileMng from '../pages/MilkFileMng.js';
+import MilkFileNotSubmit from '../pages/MilkFileNotSubmit.js';
+import PromotionSettle from '../pages/PromotionSettle.js';
 
 const Header = () => {
 
@@ -20,6 +23,13 @@ const Header = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  // 메뉴 클릭 시 탭 추가
+  const handleMenuClick = (path, title, component) => {
+    if (window.tabManager && window.tabManager.addTab) {
+      window.tabManager.addTab(path, title, component);
+    }
+  };
 
   const handleLogoutClick = (e) => {
 
@@ -159,35 +169,39 @@ return (
         <div className="container">
           <div className="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             
-            <a href="/" className="d-flex align-items-center mb-2 mb-lg-0 text-black text-decoration-none me-4">
+            <div
+              className="d-flex align-items-center mb-2 mb-lg-0 text-black text-decoration-none me-4"
+              onClick={() => handleMenuClick('/', '홈', <Home />)}
+              style={{ cursor: 'pointer' }}
+            >
               <img src={logo} alt="연세우유 로고" width="140" height="auto" className="me-2" />
-            </a>
+            </div>
 
             <Nav className="me-auto">
               <NavDropdown title="판촉파일 관리" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/MilkFileMng">밀크방 파일 관리</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MilkFileNotSubmit">밀크방 미전송 대리점</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MilkFileMng', '밀크방 파일 관리', <MilkFileMng />)}>밀크방 파일 관리</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MilkFileNotSubmit', '밀크방 미전송 대리점', <MilkFileNotSubmit />)}>밀크방 미전송 대리점</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="판촉실적 정산" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/PromotionSettle">판촉실적 정산</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">판촉실적 마감</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/PromotionSettle', '판촉실적 정산', <PromotionSettle />)}>판촉실적 정산</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit', '판촉실적 마감', <div>판촉실적 마감 (개발 예정)</div>)}>판촉실적 마감</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="판촉팀별 실적" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/Map">판촉팀별 실적</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">판촉사원별 주간 실적</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/Map1', '판촉팀별 실적', <div>판촉팀별 실적 (개발 예정)</div>)}>판촉팀별 실적</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit2', '판촉사원별 주간 실적', <div>판촉사원별 주간 실적 (개발 예정)</div>)}>판촉사원별 주간 실적</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="판촉실적 통계" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/Map">판촉 실적 보고(전체)</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">판촉 실적 보고(팀)</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">대리점별 주간 실적</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/Map2', '판촉 실적 보고(전체)', <div>판촉 실적 보고(전체) (개발 예정)</div>)}>판촉 실적 보고(전체)</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit3', '판촉 실적 보고(팀)', <div>판촉 실적 보고(팀) (개발 예정)</div>)}>판촉 실적 보고(팀)</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit4', '대리점별 주간 실적', <div>대리점별 주간 실적 (개발 예정)</div>)}>대리점별 주간 실적</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="해피콜 관리" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/Map">해피콜</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">해피콜 결과</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/Map3', '해피콜', <div>해피콜 (개발 예정)</div>)}>해피콜</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit5', '해피콜 결과', <div>해피콜 결과 (개발 예정)</div>)}>해피콜 결과</NavDropdown.Item>
               </NavDropdown>
               <NavDropdown title="설정" id="basic-nav-dropdown">
-                <NavDropdown.Item as={Link} to="/Map">담당별 대리점 등록 관리</NavDropdown.Item>
-                <NavDropdown.Item as={Link} to="/MapEdit">판촉홉수 설정</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/Map4', '담당별 대리점 등록 관리', <div>담당별 대리점 등록 관리 (개발 예정)</div>)}>담당별 대리점 등록 관리</NavDropdown.Item>
+                <NavDropdown.Item onClick={() => handleMenuClick('/MapEdit6', '판촉홉수 설정', <div>판촉홉수 설정 (개발 예정)</div>)}>판촉홉수 설정</NavDropdown.Item>
               </NavDropdown>
             </Nav>
 
