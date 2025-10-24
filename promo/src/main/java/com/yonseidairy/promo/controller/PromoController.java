@@ -44,6 +44,12 @@ public class PromoController {
 		return promoService.getAllAgency(inAgencyDao);
 	}
 	
+	@GetMapping("/getMyAgencyList")
+	public List<AgencyDao> getMyAgencyList(@ModelAttribute AgencyDao inAgencyDao) {
+		
+		return promoService.getMyAgencyList(inAgencyDao);
+	}
+	
 	@GetMapping("/getMilkbangFileList")
 	public List<MilkbangFileDao> getMilkbangFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao){
 		

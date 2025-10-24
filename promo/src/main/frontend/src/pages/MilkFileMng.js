@@ -42,7 +42,6 @@ const getFirstDayOfMonth = () => {
 // 파일 다운로드 함수
 const handleFileDownload = async (rowData) => {
   try {
-    console.log('다운로드 시작:', rowData);
 
     // axios로 파일 다운로드
     const response = await axios.get('/api/promo/downloadFile', {
@@ -97,6 +96,7 @@ const MilkFileMng = () => {
   const [tableData, setTableData] = useState([]);
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const tableRef = useRef(null);
   const fileInputRef = useRef(null);
   const uploadRowDataRef = useRef(null);
@@ -104,13 +104,16 @@ const MilkFileMng = () => {
   // 컴포넌트 마운트 시 대리점 목록 조회
   useEffect(() => {
     fetchAgencyList();
-    handleSearch();
+    //handleSearch();
   }, []);
 
-  // 검색 조건 변경 시 자동 조회
-  // useEffect(() => {
-  //   handleSearch();
-  // }, [startDate, endDate, selectedAgency]);
+  // 초기 로드 시 1회만 자동 조회
+  useEffect(() => {
+    if (isInitialLoad && agencyList.length > 0) {
+      handleSearch();
+      setIsInitialLoad(false);
+    }
+  }, [isInitialLoad, agencyList]);
   
   // 대리점 목록 조회 함수
   const fetchAgencyList = async () => {
@@ -213,7 +216,6 @@ const MilkFileMng = () => {
       },
       cellClick: function(e, cell) {
         const value = cell.getValue();
-        console.log(cell.getRow().getData());
       }
     }
   ];
@@ -366,7 +368,15 @@ const MilkFileMng = () => {
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
+    
     try {
+
+      // 로딩 placeholder 설정
+      tabulatorInstance.current.setData([]);
+      tabulatorInstance.current.options.placeholder = 
+        '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem; animation-duration: 0.9s;"></div><div class="fw-bold text-primary fs-5">조회 중...</div></div>';
+      tabulatorInstance.current.redraw();
+
       // 조회 API 호출
       const response = await axios.get('/api/promo/getMilkbangFileList', {
         params: { startDate : startDate,
@@ -374,22 +384,29 @@ const MilkFileMng = () => {
                   agencyCd: selectedAgency }
       });
 
-    // 데이터가 없는 경우 체크
-    if (!response.data || response.data.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: '알림',
-        text: '조회된 데이터가 없습니다.',
-        confirmButtonText: '확인'
-      });
-      setTableData([]);  // 빈 배열로 설정
-      return;
-    }
+      // placeholder 원래대로 복원
+      tabulatorInstance.current.options.placeholder = '조회된 데이터가 없습니다.';
+
+      // 데이터가 없는 경우 체크
+      if (!response.data || response.data.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: '알림',
+          text: '조회된 데이터가 없습니다.',
+          confirmButtonText: '확인'
+        });
+        setTableData([]);  // 빈 배열로 설정
+        return;
+      }
 
       setTableData(response.data);
 
     } catch (error) {
       console.error('조회 실패:', error);
+
+      // placeholder 원래대로 복원
+      tabulatorInstance.current.options.placeholder = '조회된 데이터가 없습니다.';
+      
       Swal.fire({
         icon: 'warning',
         title: '오류',
@@ -485,7 +502,7 @@ const MilkFileMng = () => {
               <Button
                 variant="primary"
                 size="sm"
-                className="w-100"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
               >
                 <i className="bi bi-search me-2">
@@ -500,7 +517,7 @@ const MilkFileMng = () => {
               <Button
                 variant="success"
                 size="sm"
-                className="w-100"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleExcelUpload}
               >
                 <i className="bi bi-search me-2">

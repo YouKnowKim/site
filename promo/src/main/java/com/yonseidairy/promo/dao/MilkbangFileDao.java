@@ -29,4 +29,5 @@ public class MilkbangFileDao {
 	private String teamPersonNm;
 	private String deleteYn;
 	private Integer no;
+	private String sendYn;
 }

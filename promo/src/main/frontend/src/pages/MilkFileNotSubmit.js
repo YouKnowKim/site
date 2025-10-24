@@ -272,10 +272,21 @@ const MilkFileNotSubmit = () => {
     },
     {
       title: '전송여부',
-      field: 'uploadYnNm',
+      field: 'sendYn',
       width: 120,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        const value = cell.getValue();
+        if (value === '전송완료') {
+          return `<span style="color: blue; cursor: pointer;">${value}</span>`;
+        } else if (value === '미전송') {
+          return `<span style="color: red; cursor: pointer;">${value}</span>`;
+        } else {
+          return `<span style="color: #ff8c00; cursor: pointer;">${value}</span>`;
+        }
+        
+      }
     }
   ];
 
@@ -446,16 +457,17 @@ const MilkFileNotSubmit = () => {
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
+
     try {
+
+      // 로딩 placeholder 설정
+      tabulatorInstance.current.setData([]);
+      tabulatorInstance.current.options.placeholder = 
+        '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem; animation-duration: 0.9s;"></div><div class="fw-bold text-primary fs-5">조회 중...</div></div>';
+      tabulatorInstance.current.redraw();
 
       const [startDate, endDate] = stdWeek.split('|');
       // 조회 API 호출
-      console.log("확인 ", { stdYear : stdYear,
-                  stdMonth : stdMonth,
-                  stdWeek : stdWeek,
-                  startDate : startDate,
-                  endDate : endDate,
-                  teamPersonCd: selectedTeamPersonCd });
       const response = await axios.get('/api/promo/getMilkNotSubmitFileList', {
         params: { stdYear : stdYear,
                   stdMonth : stdMonth,
@@ -465,22 +477,29 @@ const MilkFileNotSubmit = () => {
                   teamPersonCd: selectedTeamPersonCd }
       });
 
-    // 데이터가 없는 경우 체크
-    if (!response.data || response.data.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: '알림',
-        text: '조회된 데이터가 없습니다.',
-        confirmButtonText: '확인'
-      });
-      setTableData([]);  // 빈 배열로 설정
-      return;
-    }
+      // placeholder 원래대로 복원
+      tabulatorInstance.current.options.placeholder = '조회된 데이터가 없습니다.';
+
+      // 데이터가 없는 경우 체크
+      if (!response.data || response.data.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: '알림',
+          text: '조회된 데이터가 없습니다.',
+          confirmButtonText: '확인'
+        });
+        setTableData([]);  // 빈 배열로 설정
+        return;
+      }
 
       setTableData(response.data);
 
     } catch (error) {
       console.error('조회 실패:', error);
+
+      // placeholder 원래대로 복원
+      tabulatorInstance.current.options.placeholder = '조회된 데이터가 없습니다.';
+      
       Swal.fire({
         icon: 'warning',
         title: '오류',
@@ -612,7 +631,7 @@ const MilkFileNotSubmit = () => {
               <Button
                 variant="primary"
                 size="sm"
-                className="w-100"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
               >
                 <i className="bi bi-search me-2">

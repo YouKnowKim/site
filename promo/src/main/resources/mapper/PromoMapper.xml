@@ -15,6 +15,19 @@
 		ORDER BY AGENCYNM 
     </select>
     
+    <select id="selectMyAgencyList" resultType="AgencyDao">
+        select 
+			a.AGENCYCD AS agencyCd
+			, a.AGENCYNM AS agencyNm
+		from ysc.tc_agency a
+		WHERE a.AGENCYTYPE = '1'
+		AND a.DELETEYN != '1'
+		<if test='managerYn != "1" and teamPersonCd != null and teamPersonCd != ""'>
+	      AND a.TEAMPERSONCD = #{teamPersonCd}
+	    </if>
+		ORDER BY a.AGENCYNM 
+    </select>
+    
     <select id="selectAllMilkbangFileList" resultType="MilkbangFileDao">
         SELECT ysc.tc_milkbang_file.*
 		FROM ysc.tc_milkbang_file
@@ -66,29 +79,31 @@
 	</select>
 	
 	<select id="selectMilkNotSubmitFile" resultType="MilkbangFileDao">
-        SELECT
-        	ROW_NUMBER() OVER (ORDER BY a.AGENCYNM) AS no
-			, a.AGENCYCD AS agencyCd
+        SELECT ROW_NUMBER() OVER (ORDER BY a.AGENCYNM) AS no
+        	, a.AGENCYCD AS agencyCd
 			, a.AGENCYNM AS agencyNm
-			, a.AGENCYTYPE AS agencyType
-			, a.TEAMPERSONCD AS teamPersonCd
-			, c.TEAMPERSONNM AS teamPersonNm
-			, a.DELETEYN AS deleteYn
-			, '전송안됨' AS uploadYnNm
-			, count(*) AS cnt
+			, d.TEAMPERSONCD AS teamPersonCd
+			, d.TEAMPERSONNM AS teamPersonNm
+			, CASE WHEN sum(c.QUANTITY) > 0 THEN '전송완료' ELSE '미전송' END sendYn
 		FROM ysc.tc_agency a
-		LEFT JOIN ysc.tc_milkbang_file b
-			ON to_char(a.AGENCYCD) = to_char(b.AGENCYCD) 
-			AND to_char(b.DOWNLOADDT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
-		LEFT JOIN ysc.TC_TEAMPERSON c
-			ON a.TEAMPERSONCD = c.TEAMPERSONCD
+		LEFT JOIN ysc.tc_milkbang b
+			ON a.AGENCYCD = b.AGENCYCD 
+		LEFT JOIN ysc.tc_milkbanggoods c
+			ON b.ORDERCD = c.ORDERCD 
+			AND to_char(c.PROMODT, 'yyyymmdd') BETWEEN replace(#{startDate}, '-', '') AND replace(#{endDate}, '-', '')  
+		LEFT JOIN ysc.TC_TEAMPERSON d
+			ON a.TEAMPERSONCD = d.TEAMPERSONCD
 		WHERE 1 = 1
-		AND b.AGENCYCD IS NULL
-		AND a.DELETEYN = '0'
+		AND a.AGENCYTYPE = '1'
+		AND a.DELETEYN != '1'
+		AND d.TEAMPERSONTYPE = '1'
 		<if test="teamPersonCd != null and teamPersonCd != ''">
 			AND a.TEAMPERSONCD = #{teamPersonCd}
-		</if>
-		GROUP BY a.AGENCYCD, a.AGENCYNM, a.AGENCYTYPE, a.TEAMPERSONCD, c.TEAMPERSONNM, a.DELETEYN
+		</if>	
+		GROUP BY a.AGENCYCD 
+			, a.AGENCYNM 
+			, d.TEAMPERSONCD 
+			, d.TEAMPERSONNM
 		ORDER BY a.AGENCYNM  
     </select>
     

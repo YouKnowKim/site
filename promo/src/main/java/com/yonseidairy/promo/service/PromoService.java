@@ -22,6 +22,11 @@ public class PromoService {
 		return promoMapper.selectAllAgency();
 	}
 	
+	public List<AgencyDao> getMyAgencyList(AgencyDao inAgencyDao) {
+
+		return promoMapper.selectMyAgencyList(inAgencyDao);
+	}
+	
 	public List<MilkbangFileDao> getAllMilkbangFileList() {
 
 		return promoMapper.selectAllMilkbangFileList();

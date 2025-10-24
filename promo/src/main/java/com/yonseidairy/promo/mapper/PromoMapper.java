@@ -16,6 +16,8 @@ public interface PromoMapper {
 	
 	List<AgencyDao> selectAllAgency();
 	
+	List<AgencyDao> selectMyAgencyList(AgencyDao inAgencyDao);
+	
 	List<MilkbangFileDao> selectAllMilkbangFileList();
 	
 	Integer selectCountMilkbangFile(MilkbangFileDao inMilkbangFileDao);
