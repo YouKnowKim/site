@@ -660,7 +660,7 @@ const PromotionSettle = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '450px'
+    height: '435px'
   };
 
   return (
@@ -797,6 +797,25 @@ const PromotionSettle = () => {
                 </div>
               </Form.Group>
             </Col>
+
+            {/* 판촉사원 입력 */}
+            <Col md={1} style={{ minWidth: '200px', maxWidth: '250px' }}>
+              <Form.Group>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '70px' }}>
+                    판촉사원 :
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    size="sm"
+                    value={promotionEmployee}
+                    onChange={(e) => setPromotionEmployee(e.target.value)}
+                    placeholder="판촉사원명 입력"
+                    style={{ width: '120px' }}
+                  />
+                </div>
+              </Form.Group>
+            </Col>
           </Row>
 
           {/* 두 번째 줄: 조회 버튼 */}
@@ -857,17 +876,17 @@ const PromotionSettle = () => {
             </Col>
 
             {/* 대리점 선택 */}
-            <Col md={3} style={{ minWidth: '250px', maxWidth: '250px' }}>
+            <Col md={3} style={{ minWidth: '220px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '140px' }}>
-                    담당 해피콜 결과확인 :
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '103px' }}>
+                    해피콜 결과확인 :
                   </Form.Label>
                   <Form.Select
                     size="sm"
                     value={selectedHcActionStatus}
                     onChange={(e) => setSelectedHcActionStatus(e.target.value)}
-                    style={{ width: '160px' }}
+                    style={{ width: '90px' }}
                   >
                     <option value="">= 전체 =</option>
                     <option value="10">미확인</option>
@@ -880,18 +899,43 @@ const PromotionSettle = () => {
                 </div>
               </Form.Group>
             </Col>
+            {/* 대리점 선택 */}
+            <Col md={1} style={{ minWidth: '200px', maxWidth: '220px' }}>
+              <Form.Group>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '70px' }}>
+                    특이사항 :
+                  </Form.Label>
+                  <Form.Select
+                    size="sm"
+                    value={selectedAddCondition}
+                    onChange={(e) => setSelectedAddCondition(e.target.value)}
+                    style={{ width: '120px' }}
+                  >
+                    <option value="">없음</option>
+                    <option value="1">이중기재</option>
+                    <option value="2">유치원</option>
+                    <option value="3">전화번호</option>
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            </Col>
           </Row>
 
           {/* 세 번째 줄: 조회 버튼 */}
           <Row className="align-items-end mb-2">
+            
+
+            
+
             {/* 날짜 범위 */}
-            <Col md={5} style={{ minWidth: '500px', maxWidth: '550px' }}>
+            <Col md={2} style={{ minWidth: '250px', maxWidth: '300px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '45px'}}>
+                  {/* <Form.Label className="fw-bold small mb-0" style={{ minWidth: '20px'}}>
                     구분 : 
-                  </Form.Label>
-                  <Form.Select
+                  </Form.Label> */}
+                  {/* <Form.Select
                     size="sm"
                     value={selectedGubun}
                     onChange={(e) => setSelectedGubun(e.target.value)}
@@ -900,9 +944,12 @@ const PromotionSettle = () => {
                     <option value="">전체</option>
                     <option value="1">일반</option>
                     <option value="2">프리미엄</option>
-                  </Form.Select>
+                  </Form.Select> */}
 
                   {/* 마감여부 체크박스 */}
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '20px'}}>
+                    마감 : 
+                  </Form.Label>
                   <Form.Check
                     type="checkbox"
                     id="closedCheck"
@@ -928,50 +975,6 @@ const PromotionSettle = () => {
               </Form.Group>
             </Col>
 
-            {/* 판촉사원 입력 */}
-            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
-              <Form.Group>
-                <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '80px' }}>
-                    판촉사원 :
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    size="sm"
-                    value={promotionEmployee}
-                    onChange={(e) => setPromotionEmployee(e.target.value)}
-                    placeholder="판촉사원명 입력"
-                    style={{ width: '130px' }}
-                  />
-                </div>
-              </Form.Group>
-            </Col>
-
-            {/* 대리점 선택 */}
-            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
-              <Form.Group>
-                <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '140px' }}>
-                    특이사항 :
-                  </Form.Label>
-                  <Form.Select
-                    size="sm"
-                    value={selectedAddCondition}
-                    onChange={(e) => setSelectedAddCondition(e.target.value)}
-                    style={{ width: '160px' }}
-                  >
-                    <option value="">없음</option>
-                    <option value="1">이중기재</option>
-                    <option value="2">유치원</option>
-                    <option value="3">전화번호</option>
-                  </Form.Select>
-                </div>
-              </Form.Group>
-            </Col>
-          </Row>
-
-          {/* 네 번째 줄: 조회 버튼 */}
-          <Row className="align-items-end">
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button
@@ -1009,7 +1012,7 @@ const PromotionSettle = () => {
                 </i>
                 
               </Button>
-            </Col>
+            </Col>            
           </Row>
         </Card.Body>
       </Card>

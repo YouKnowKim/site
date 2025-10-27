@@ -14,6 +14,7 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="goods"/>
 			<item value="getAllAgency"/>
 			<item value="selectAllAgency"/>
 			<item value="insertMilkbangFile"/>
@@ -28,7 +29,6 @@
 			<item value="upload"/>
 			<item value="findGoodsHob"/>
 			<item value="openDB"/>
-			<item value="agencyCode"/>
 		</list>
 		<list key="replacehistory">
 			<item value="JAVA"/>

@@ -1,14 +1,106 @@
-/* App.css */
-.app {
-  padding-top: 60px;        /* Header 높이만큼 패딩 */
-  padding-bottom: 20px;     /* Footer 높이만큼 패딩 */
-  
-  /* ✅ 가운데 90% 사용 */
-  width: 90%;
-  min-width: 1200px;
-  margin: 0 auto;          /* 좌우 가운데 정렬 */
+/* ===================================
+   전역 설정
+   =================================== */
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
 }
 
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===================================
+   멀티탭 시스템 레이아웃
+   =================================== */
+
+/* 앱 최상위 컨테이너 */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  
+  /* ✅ fixed 헤더를 위한 패딩 추가 */
+  padding-top: 60px;         /* 헤더 높이만큼 */
+  
+  /* 기존 스타일 유지 - 가운데 90% 사용 */
+  width: 95%;
+  min-width: 1200px;
+  margin: 0 auto;            /* 좌우 가운데 정렬 */
+}
+
+/* 헤더 영역 */
+.header {
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+/* 메인 콘텐츠 영역 */
 .content {
-  padding: 20px;
+  flex: 1;                   /* 남은 공간 모두 차지 */
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;           /* 상하 패딩 */
+  overflow: hidden;          /* 오버플로우 제어 */
+  min-height: 0;             /* Flexbox 오버플로우 버그 방지 */
+}
+
+/* 탭 매니저 영역 */
+.tab-manager {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;             /* Flexbox 오버플로우 버그 방지 */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;          /* 자식 요소 오버플로우 제어 */
+}
+
+/* 푸터 영역 (필요시) */
+.footer {
+  flex-shrink: 0;
+  padding-bottom: 20px;
+}
+
+/* ===================================
+   반응형 디자인
+   =================================== */
+
+/* 태블릿 크기 */
+@media (max-width: 1400px) {
+  .app {
+    width: 95%;
+    min-width: 1000px;
+  }
+}
+
+/* 작은 화면 */
+@media (max-width: 1200px) {
+  .app {
+    width: 98%;
+    min-width: 900px;
+  }
+  
+  .content {
+    padding: 15px 0;
+  }
+}
+
+/* 모바일 (최소 지원) */
+@media (max-width: 900px) {
+  .app {
+    width: 100%;
+    min-width: 100%;
+    margin: 0;
+    padding-top: 60px;       /* 모바일에서도 헤더 높이 유지 */
+  }
+  
+  .content {
+    padding: 10px 0;
+  }
 }

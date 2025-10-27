@@ -18,6 +18,7 @@
     "react-scripts": "5.0.1",
     "react-tabular": "^0.0.3",
     "react-tabulator": "^0.21.0",
+    "recoil": "^0.7.7",
     "sweetalert2": "^11.25.1",
     "tabulator-tables": "^6.3.1",
     "web-vitals": "^2.1.4",
