@@ -14,23 +14,24 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="goods"/>
-			<item value="getAllAgency"/>
-			<item value="selectAllAgency"/>
-			<item value="insertMilkbangFile"/>
-			<item value="uploadMilkbangFile"/>
-			<item value="readExcel_Milkbang"/>
-			<item value="selectMilkFile"/>
-			<item value="updateFileList"/>
-			<item value="insertFileList"/>
-			<item value="AgencyCD"/>
-			<item value="file"/>
-			<item value="FILE_BASE_PATH"/>
-			<item value="upload"/>
-			<item value="findGoodsHob"/>
-			<item value="openDB"/>
+			<item value="HCACTIONSTATUS"/>
+			<item value="agencyCd"/>
+			<item value="Long"/>
+			<item value="Integer"/>
+			<item value="hcdt"/>
+			<item value="b.hchob"/>
+			<item value="stop"/>
+			<item value="orderkind"/>
+			<item value="promoTeamNm"/>
+			<item value="promoteamnm"/>
+			<item value="promodt"/>
+			<item value="a.agencycd"/>
+			<item value="row_num"/>
+			<item value="resulttype"/>
+			<item value="promopersonnm"/>
 		</list>
 		<list key="replacehistory">
+			<item value="String"/>
 			<item value="JAVA"/>
 			<item value="RegionMapper"/>
 		</list>

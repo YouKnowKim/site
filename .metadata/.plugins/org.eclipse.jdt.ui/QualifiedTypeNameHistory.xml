@@ -27,4 +27,5 @@
     <fullyQualifiedTypeName name="org.springframework.web.bind.annotation.GetMapping"/>
     <fullyQualifiedTypeName name="com.yonseidairy.promo.dao.MilkbangFileDao"/>
     <fullyQualifiedTypeName name="java.lang.Exception"/>
+    <fullyQualifiedTypeName name="com.yonseidairy.promo.dao.MilkbangDetailDao"/>
 </qualifiedTypeNameHistroy>

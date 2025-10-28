@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.yonseidairy.promo.dao.AgencyDao;
+import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.service.PromoService;
@@ -66,6 +67,12 @@ public class PromoController {
 	public List<MilkbangFileDao> getMilkNotSubmitFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao){
 		
 		return promoService.getMilkNotSubmitFileList(inMilkbangFileDao);
+	}
+	
+	@GetMapping("/getMilkbangDetailList")
+	public List<MilkbangDetailDao> getMilkbangDetailList(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao){
+		
+		return promoService.getMilkbangDetailList(inMilkbangDetailDao);
 	}
 	
 	@PostMapping("/uploadMilkbangFile")

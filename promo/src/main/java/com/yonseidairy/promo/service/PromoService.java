@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.yonseidairy.promo.dao.AgencyDao;
+import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.mapper.PromoMapper;
@@ -45,6 +46,11 @@ public class PromoService {
 	public List<MilkbangFileDao> getMilkNotSubmitFileList(MilkbangFileDao inMilkbangFileDao) {
 
 		return promoMapper.selectMilkNotSubmitFile(inMilkbangFileDao);
+	}
+	
+	public List<MilkbangDetailDao> getMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao) {
+
+		return promoMapper.selectMilkbangDetailList(inMilkbangDetailDao);
 	}
 	
 	public Integer mergeMilkbangFile(String originalFileName) throws Exception {

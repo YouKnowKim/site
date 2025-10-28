@@ -19,20 +19,20 @@ code {
 
 /* 헤더 스타일 */
 .tabulator .tabulator-header {
-  font-size: 0.9rem !important;
+  font-size: 0.75rem !important;
   background-color: #f8f9fa;
 }
 
 .tabulator .tabulator-header .tabulator-col {
   padding: 0px 0px !important;  /* 헤더 패딩 줄임 */
-  height: 40px !important;       /* 헤더 높이 줄임 */
+  height: 50px !important;       /* 헤더 높이 줄임 */
 }
 
 /* 셀 스타일 */
 .tabulator .tabulator-cell {
   padding: 4px 6px !important;   /* 셀 패딩 줄임 */
   font-size: 0.8rem !important;
-  line-height: 1.3;              /* 줄 간격 */
+  line-height: 1;              /* 줄 간격 */
   box-sizing: border-box;  /* border가 전체 크기에 포함되도록 */
 }
 

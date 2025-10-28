@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
 import com.yonseidairy.promo.dao.AgencyDao;
+import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.PromoDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
@@ -31,5 +32,7 @@ public interface PromoMapper {
 	Integer insertMilkbangFile(MilkbangFileDao inMilkbangFileDao);
 	
 	Integer updateMilkbangFile(MilkbangFileDao inMilkbangFileDao);
+	
+	List<MilkbangDetailDao> selectMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao);
 
 }

@@ -10,9 +10,10 @@ import {
 import { ReactTabulator } from 'react-tabulator';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
+import '../styles/PromotionSettle.css'
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
-import { FaSearch, FaSave } from "react-icons/fa";
+import { FaSearch, FaSave, FaSearchPlus } from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -20,6 +21,114 @@ import * as XLSX from 'xlsx';  // 이 줄 추가
 
 // window.XLSX에 할당 (Tabulator가 사용할 수 있도록)
 window.XLSX = XLSX;
+
+/**
+ * 마감홉수 상세 조회 핸들러 (API 연동)
+ * @param {Object} rowData - 클릭한 행의 데이터
+ */
+const handleActualHobDetail = async (rowData) => {
+  try {
+    // ✅ 로딩 표시
+    Swal.fire({
+      title: '조회 중...',
+      text: '마감홉수 상세 정보를 조회하고 있습니다.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    // ✅ API 호출
+    const response = await axios.get('/api/promo/getActualHobDetail', {
+      params: {
+        orderCd: rowData.orderCd,
+        orderSeq: rowData.orderSeq,
+        // 필요한 다른 파라미터 추가
+        promoDt: rowData.promoDt,
+        teamPersonCd: rowData.teamPersonCd
+      }
+    });
+    
+    const detailData = response.data;
+    
+    // ✅ 상품 리스트 HTML 생성
+    let itemsHtml = '';
+    if (detailData.items && detailData.items.length > 0) {
+      detailData.items.forEach(item => {
+        const qtyText = item.quantity > 1 ? ` (${item.quantity}개)` : '';
+        itemsHtml += `${item.goodsName}${qtyText} - ${item.weekRemark} : ${item.hob}홉<br/>`;
+      });
+    } else {
+      itemsHtml = '상품 정보가 없습니다.';
+    }
+    
+    // ✅ 팝업 표시
+    Swal.fire({
+      title: '마감홉수 상세정보',
+      html: `
+        <div style="
+          text-align: left; 
+          padding: 15px; 
+          font-family: 'Malgun Gothic', sans-serif;
+          line-height: 1.8;
+          font-size: 14px;
+        ">
+          <div style="margin-bottom: 10px; font-size: 15px;">
+            <strong>신규 ${detailData.newCount || 0} 건 :</strong>
+          </div>
+          <div style="
+            margin-left: 10px; 
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 13px;
+          ">
+            ${itemsHtml}
+          </div>
+          <div style="
+            border-top: 2px dashed #999; 
+            padding-top: 12px;
+            margin-top: 12px;
+          ">
+            <strong style="color: #0d6efd; font-size: 15px;">
+              계산된 홉수 : ${detailData.totalHob || 0} 홉
+            </strong>
+          </div>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: '확인',
+      confirmButtonColor: '#8B4513',  // 갈색 버튼
+      width: '450px',
+      customClass: {
+        popup: 'actual-hob-detail-popup'
+      }
+    });
+    
+  } catch (error) {
+    console.error('마감홉수 상세 조회 실패:', error);
+    
+    // 에러 메시지 처리
+    let errorMessage = '마감홉수 상세 정보를 조회하는 중 오류가 발생했습니다.';
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+    
+    Swal.fire({
+      icon: 'error',
+      title: '조회 실패',
+      text: errorMessage,
+      confirmButtonText: '확인'
+    });
+  }
+};
+
+// 숫자 천단위 콤마 포맷 함수
+const formatNumberWithComma = (value) => {
+  if (value == null || value === '') return '';
+  const number = Number(value);
+  if (isNaN(number)) return value;
+  return number.toLocaleString('ko-KR');
+};
 
 // 오늘 날짜 구하기 (로컬 시간대)
 const getTodayDate = () => {
@@ -143,7 +252,7 @@ const PromotionSettle = () => {
   const [stdWeek, setStdWeek] = useState(getCurrentWeek());  // 주차 저장
   const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
   const [selectedGubun, setSelectedGubun] = useState('');
-  const [isClosed, setIsClosed] = useState(false);  // 마감여부 체크박스 state 추가
+  const [isClosed, setIsClosed] = useState('');  // 마감여부 체크박스 state 추가
   const [tableData, setTableData] = useState([]);
   const [teamPersonList, setTeamPersonList] = useState([]);  // 대리점 목록 state 추가
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
@@ -154,6 +263,8 @@ const PromotionSettle = () => {
   const [selectedAgency, setSelectedAgency] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [subEndDate, setSubEndDate] = useState('');
+  const [subStartDate, setSubStartDate] = useState('');
   const [promotionEmployee, setPromotionEmployee] = useState('');
   const [selectedHcStatus, setSelectedHcStatus] = useState('');
   const [selectedHcActionStatus, setSelectedHcActionStatus] = useState('');
@@ -275,16 +386,13 @@ const PromotionSettle = () => {
 
   // 테이블 컬럼 정의
   const columns = [
-    // {
-    //   formatter: "rowSelection",  // 체크박스 추가
-    //   titleFormatter: "rowSelection",
-    //   hozAlign: "center",
-    //   headerSort: false,
-    //   width: 50,
-    //   cellClick: function(e, cell) {
-    //     cell.getRow().toggleSelect();
-    //   }
-    // },
+    {
+      formatter: "rowSelection",  // 체크박스 추가
+      titleFormatter: "rowSelection",
+      hozAlign: "center",
+      headerSort: false,
+      width: 50
+    },
     {
       title: 'No',
       field: 'no',
@@ -293,23 +401,296 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '대리점코드',
-      field: 'agencyCd',
-      width: 140,
+      title: '판촉일 (투입일)',
+      field: 'promoDt',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '판촉일<br/>(투입일)';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '대리점',
+      field: 'agencyNm',
+      width: 85,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '대리점명',
-      field: 'agencyNm',
-      width: 150,
+      title: '판촉팀',
+      field: 'promoTeamNm',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '판촉사원',
+      field: 'promoPersonNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '고객',
+      field: 'orderUserNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '전화',
+      field: 'orderCellPhone',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '주소',
+      field: 'orderAddress1',
+      width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
       title: '담당자',
       field: 'teamPersonNm',
-      width: 180,
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '상품',
+      field: 'goodsOptionNm',
+      width: 200,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '단가',
+      field: 'unitPrice',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter: function(cell) {  // ✅ formatter 추가
+        const value = cell.getValue();
+        return formatNumberWithComma(value);
+       }
+    },
+    {
+      title: '1회투입수량',
+      field: 'quantity',
+      width: 90,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '1회투입<br/>수량';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '배송요일',
+      field: 'weekRemark',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '주간 총수량',
+      field: 'weekQty',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '주간<br/>총수량';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '계약',
+      field: 'orderKind',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '계약구분',
+      field: 'orderKindCd',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '계약<br/>구분';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '개월',
+      field: 'contractPeriod',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '대리점홉',
+      field: 'agencyHob',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '본사홉',
+      field: 'hqHob',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '마감홉수',
+      field: 'actualHob',
+      width: 110,  // ✅ 버튼 공간 확보
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'input',  // ✅ 편집 가능
+      editable: true,
+      formatter: function(cell) {
+        // ✅ 값과 버튼을 함께 렌더링
+        const value = cell.getValue() || '';
+        return `
+          <div style="display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; height: 100%;">
+            <input 
+              type="text" 
+              class="actual-hob-input" 
+              value="${value}" 
+              readonly
+              style="
+                width: 60px;
+                text-align: center;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                padding: 2px 4px;
+                background: white;
+                cursor: text;
+              "
+            />
+            <button 
+              class="actual-hob-detail-btn" 
+              style="
+                border: none;
+                background: transparent;
+                color: #0d6efd;
+                cursor: pointer;
+                font-size: 16px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+              "
+              title="상세보기"
+            >
+              🔍
+            </button>
+          </div>
+        `;
+      },
+      cellClick: function(e, cell) {
+        // ✅ 돋보기 버튼 클릭 시
+        if (e.target.classList.contains('actual-hob-detail-btn') || 
+            e.target.closest('.actual-hob-detail-btn')) {
+          const rowData = cell.getRow().getData();
+          handleActualHobDetail(rowData);
+          e.stopPropagation();  // 편집 모드 진입 방지
+          return;
+        }
+        
+        // ✅ input 영역 클릭 시 편집 모드로 진입
+        if (e.target.classList.contains('actual-hob-input')) {
+          // Tabulator의 기본 편집 동작 허용
+          return;
+        }
+      }
+    },
+    {
+      title: '해피콜 조정홉수',
+      field: 'hcHob',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '마감홉수 수정사유',
+      field: 'SaveRemark',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '마감홉수<br/>수정사유';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '계약선물',
+      field: 'promoGiftNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '중단일',
+      field: 'stopDt',
+      width: 90,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '중단사유',
+      field: 'stopReason',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '해피콜 날짜',
+      field: 'hcDt',
+      width: 90,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜<br/>날짜';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '해피콜 결과',
+      field: 'hcStatus',
+      width: 90,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜<br/>결과';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '해피콜 상담내용',
+      field: 'hcContent',
+      width: 200,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter:"html",
+      vertAlign: "top",
+      variableHeight: true
+    },
+    {
+      title: '담당 해피콜 결과확인',
+      field: 'hcActionStatus',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '담당 해피콜<br/>결과확인';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '담당 의견/대리점 소명',
+      field: 'hcAction',
+      width: 200,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
@@ -508,16 +889,86 @@ const PromotionSettle = () => {
       tabulatorInstance.current.options.placeholder = 
         '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem; animation-duration: 0.9s;"></div><div class="fw-bold text-primary fs-5">조회 중...</div></div>';
       tabulatorInstance.current.redraw();
+      let [startDate, endDate] = stdWeek.split('|');
 
-      const [startDate, endDate] = stdWeek.split('|');
+      if (subStartDate !== '' || subEndDate !== '') {
+        startDate = '';
+        endDate = '';
+      }
+      console.log("params : ", {
+          // 기본 년월주차
+          stdYear: stdYear,
+          stdMonth: stdMonth,
+          stdWeek: stdWeek,
+          
+          // 날짜 범위 (우선 적용)
+          startDate: startDate,
+          endDate: endDate,
+          
+          // 담당자
+          teamPersonCd: selectedTeamPersonCd,
+          
+          // 대리점
+          agencyCd: selectedAgency,
+          
+          // 판촉사원
+          promoPersonNm: promotionEmployee,
+          
+          // 해피콜 결과
+          hcStatus: selectedHcStatus,
+          
+          // 해피콜 결과확인
+          hcActionStatus: selectedHcActionStatus,
+          
+          // 마감여부
+          masterCloseYn: isClosed,
+          
+          // 특이사항 (필요시 추가)
+          addCondition: selectedAddCondition,
+
+          subStartDate: subStartDate,
+
+          subEndDate: subEndDate
+        });
+
+      // const [startDate, endDate] = stdWeek.split('|');
       // 조회 API 호출
-      const response = await axios.get('/api/promo/getMilkNotSubmitFileList', {
-        params: { stdYear : stdYear,
-                  stdMonth : stdMonth,
-                  stdWeek : stdWeek,
-                  startDate : startDate,
-                  endDate : endDate,
-                  teamPersonCd: selectedTeamPersonCd }
+      const response = await axios.get('/api/promo/getMilkbangDetailList', {
+        params: {
+          // 기본 년월주차
+          stdYear: stdYear,
+          stdMonth: stdMonth,
+          stdWeek: stdWeek,
+          
+          // 날짜 범위 (우선 적용)
+          startDate: startDate,
+          endDate: endDate,
+          
+          // 담당자
+          teamPersonCd: selectedTeamPersonCd,
+          
+          // 대리점
+          agencyCd: selectedAgency,
+          
+          // 판촉사원
+          promoPersonNm: promotionEmployee,
+          
+          // 해피콜 결과
+          hcStatus: selectedHcStatus,
+          
+          // 해피콜 결과확인
+          hcActionStatus: selectedHcActionStatus,
+          
+          // 마감여부
+          masterCloseYn: isClosed,
+          
+          // 특이사항 (필요시 추가)
+          addCondition: selectedAddCondition,
+
+          subStartDate: subStartDate,
+
+          subEndDate: subEndDate
+        }
       });
 
       // placeholder 원래대로 복원
@@ -830,9 +1281,9 @@ const PromotionSettle = () => {
                   <Form.Control
                     type="date"
                     size="sm"
-                    value={startDate}
+                    value={subStartDate}
                     onChange={(e) => {
-                      setStartDate(e.target.value);
+                      setSubStartDate(e.target.value);
                     }}
                     style={{ width: '130px' }}  // 고정 크기
                   />
@@ -840,9 +1291,9 @@ const PromotionSettle = () => {
                   <Form.Control
                     type="date"
                     size="sm"
-                    value={endDate}
+                    value={subEndDate}
                     onChange={(e) => {
-                      setEndDate(e.target.value);
+                      setSubEndDate(e.target.value);
                     }}
                     style={{ width: '130px' }}  // 고정 크기
                   />
@@ -850,7 +1301,7 @@ const PromotionSettle = () => {
               </Form.Group>
             </Col>
 
-            {/* 담당자 선택 */}
+            {/* 해피콜 결과 선택 */}
             <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
@@ -875,7 +1326,7 @@ const PromotionSettle = () => {
               </Form.Group>
             </Col>
 
-            {/* 대리점 선택 */}
+            {/* 해피콜 결과확인 선택 */}
             <Col md={3} style={{ minWidth: '220px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
@@ -899,7 +1350,7 @@ const PromotionSettle = () => {
                 </div>
               </Form.Group>
             </Col>
-            {/* 대리점 선택 */}
+            {/* 특이사항 선택 */}
             <Col md={1} style={{ minWidth: '200px', maxWidth: '220px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
@@ -924,53 +1375,22 @@ const PromotionSettle = () => {
 
           {/* 세 번째 줄: 조회 버튼 */}
           <Row className="align-items-end mb-2">
-            
-
-            
-
-            {/* 날짜 범위 */}
             <Col md={2} style={{ minWidth: '250px', maxWidth: '300px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
-                  {/* <Form.Label className="fw-bold small mb-0" style={{ minWidth: '20px'}}>
-                    구분 : 
-                  </Form.Label> */}
-                  {/* <Form.Select
-                    size="sm"
-                    value={selectedGubun}
-                    onChange={(e) => setSelectedGubun(e.target.value)}
-                    style={{ width: '130px' }}
-                  >
-                    <option value="">전체</option>
-                    <option value="1">일반</option>
-                    <option value="2">프리미엄</option>
-                  </Form.Select> */}
-
-                  {/* 마감여부 체크박스 */}
+                  {/* 마감여부 */}
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '20px'}}>
                     마감 : 
                   </Form.Label>
-                  <Form.Check
-                    type="checkbox"
-                    id="closedCheck"
-                    checked={isClosed}
-                    onChange={(e) => setIsClosed(e.target.checked)}
-                    className="mb-0 ms-4"
-                    style={{ 
-                      transform: 'scale(1.2)',  // 체크박스 크기 1.2배
-                      cursor: 'pointer' 
-                    }}
-                  />
-                  <Form.Label 
-                    htmlFor="closedCheck" 
-                    className="mb-0 text-muted"  // 회색
-                    style={{ 
-                      cursor: 'pointer',
-                      marginLeft: '5px'  // 체크박스와 라벨 간격
-                    }}
+                   <Form.Select
+                    size="sm"
+                    value={isClosed}
+                    onChange={(e) => setIsClosed(e.target.value)}
+                    style={{ width: '130px' }}
                   >
-                    마감여부
-                  </Form.Label>
+                    <option value="">전체</option>
+                    <option value="1">마감</option>
+                  </Form.Select>
                 </div>
               </Form.Group>
             </Col>
