@@ -88,6 +88,8 @@ public class MilkbangDetailDao {
 
 	/** 저장 여부 (밀크방) */
 	private String saveYn;
+	
+	private String totStatus;
 
 	/** PG 타입 */
 	private String pgType;

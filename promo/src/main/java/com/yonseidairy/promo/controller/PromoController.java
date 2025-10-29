@@ -1,7 +1,9 @@
 package com.yonseidairy.promo.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.service.PromoService;
 
@@ -73,6 +76,73 @@ public class PromoController {
 	public List<MilkbangDetailDao> getMilkbangDetailList(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao){
 		
 		return promoService.getMilkbangDetailList(inMilkbangDetailDao);
+	}
+	
+	@GetMapping("/getMilkbangDetail")
+	public List<MilkbangDetailDao> getMilkbangDetail(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao){
+		
+		return promoService.getMilkbangDetail(inMilkbangDetailDao);
+	}
+	
+	@GetMapping("/getAllPromoTeam")
+	public List<PromoTeamDao> getAllPromoTeam(@ModelAttribute PromoTeamDao inPromoTeamDao){
+		
+		return promoService.getAllPromoTeam(inPromoTeamDao);
+	}
+	
+	@PostMapping("/savePromo")
+	public ResponseEntity<Map<String, Object>> savePromo(@RequestBody List<MilkbangDetailDao> dataList) {
+	    
+	    try {
+	        System.out.println("=== 판촉실적 저장 시작 ===");
+	        System.out.println("변경된 데이터 개수: {}" + dataList != null ? dataList.size() : 0);
+	        
+	        // 데이터 유효성 검증
+	        if (dataList == null || dataList.isEmpty()) {
+	        	System.out.println("저장할 데이터가 없습니다.");
+	            
+	            Map<String, Object> errorResponse = new HashMap<>();
+	            errorResponse.put("success", false);
+	            errorResponse.put("message", "저장할 데이터가 없습니다.");
+	            errorResponse.put("savedCount", 0);
+	            
+	            return ResponseEntity.badRequest().body(errorResponse);
+	        }
+	        
+	        // 서비스 호출
+	        int savedCount = promoService.savePromo(dataList);
+	        
+	        System.out.println("저장 완료 - 성공: {}건" + savedCount);
+	        System.out.println("=== 판촉실적 저장 완료 ===");
+	        
+	        // ✅ 성공 응답 (Map)
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("success", true);
+	        response.put("message", savedCount + "건의 데이터가 성공적으로 저장되었습니다.");
+	        response.put("savedCount", savedCount);
+	        
+	        return ResponseEntity.ok(response);
+	        
+	    } catch (IllegalArgumentException e) {
+	    	System.out.println("잘못된 요청 데이터: {}" + e.getMessage());
+	        
+	        Map<String, Object> errorResponse = new HashMap<>();
+	        errorResponse.put("success", false);
+	        errorResponse.put("message", e.getMessage());
+	        errorResponse.put("savedCount", 0);
+	        
+	        return ResponseEntity.badRequest().body(errorResponse);
+	        
+	    } catch (Exception e) {
+	    	System.out.println("판촉실적 저장 중 오류 발생" + e);
+	        
+	        Map<String, Object> errorResponse = new HashMap<>();
+	        errorResponse.put("success", false);
+	        errorResponse.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
+	        errorResponse.put("savedCount", 0);
+	        
+	        return ResponseEntity.status(500).body(errorResponse);
+	    }
 	}
 	
 	@PostMapping("/uploadMilkbangFile")

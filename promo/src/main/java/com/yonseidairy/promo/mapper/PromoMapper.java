@@ -9,6 +9,7 @@ import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.PromoDao;
+import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 
 @Mapper
@@ -34,5 +35,11 @@ public interface PromoMapper {
 	Integer updateMilkbangFile(MilkbangFileDao inMilkbangFileDao);
 	
 	List<MilkbangDetailDao> selectMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao);
+	
+	List<MilkbangDetailDao> selectMilkbangDetail(MilkbangDetailDao inMilkbangDetailDao);
+	
+	List<PromoTeamDao> selectAllPromoTeam(PromoTeamDao inPromoTeamDao);
+	
+	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);
 
 }

@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.mapper.PromoMapper;
 
@@ -51,6 +53,30 @@ public class PromoService {
 	public List<MilkbangDetailDao> getMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao) {
 
 		return promoMapper.selectMilkbangDetailList(inMilkbangDetailDao);
+	}
+	
+	public List<MilkbangDetailDao> getMilkbangDetail(MilkbangDetailDao inMilkbangDetailDao) {
+
+		return promoMapper.selectMilkbangDetail(inMilkbangDetailDao);
+	}
+	
+	public List<PromoTeamDao> getAllPromoTeam(PromoTeamDao inPromoTeamDao) {
+
+		return promoMapper.selectAllPromoTeam(inPromoTeamDao);
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public Integer savePromo(List<MilkbangDetailDao> dataList) throws Exception {
+		
+		Integer result = 0;
+		
+		for(MilkbangDetailDao data : dataList) {
+			
+			promoMapper.mergePromo(data);
+			result++;
+		}
+		
+		return result;
 	}
 	
 	public Integer mergeMilkbangFile(String originalFileName) throws Exception {

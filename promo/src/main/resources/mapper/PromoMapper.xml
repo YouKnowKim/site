@@ -140,9 +140,17 @@
 	    WHERE FILENM = #{fileNm}
 	</update>
 	
+	<update id="mergePromo" parameterType="MilkbangDetailDao">
+	    UPDATE ysc.TC_MILKBANGGOODS
+	    SET
+	        ACTUALHOB = #{actualHob}
+	    WHERE ORDERCD = #{orderCd}
+	    AND ORDERSEQ = #{orderSeq}
+	</update>
+	
 	<select id="selectMilkbangDetailList" resultType="MilkbangDetailDao">
 		SELECT
-			row_number() over(order by a.AGENCYCD, b.PROMODT) as no,
+			row_number() over(order by a.ordercd, b.orderseq, a.agencycd) as no,
 		    a.ORDERCD AS orderCd,
 		    a.ORDERDT AS orderDt,
 		    a.ORDERTYPE AS orderType,
@@ -175,7 +183,8 @@
 		    b.ORDERSEQ AS orderSeq,
 		    b.GOODSCD AS goodsCd,
 		    b.GOODSOPTIONCD AS goodsOptionCd,
-		    b.GOODSOPTIONNM AS goodsOptionNm,
+		    case when b.GOODSCD = -1 then b.GOODSOPTIONNM || '-' || b.GOODSOPTIONNM_ORIGIN
+				 else b.GOODSOPTIONNM end AS goodsOptionNm,
 		    b.QUANTITY AS quantity,
 		    b.CONTRACTPERIOD AS contractPeriod,
 		    b.WEEKQTY AS weekQty,
@@ -183,7 +192,7 @@
 		    b.UNITPRICE AS unitPrice,
 		    b.ORDERPRICE AS orderPrice,
 		    to_char(b.PROMODT,'yyyy-mm-dd') AS promoDt,
-		    b.PUTDT AS putDt,
+		    to_char(b.PUTDT, 'yyyy-mm-dd') AS putDt,
 		    b.EXPIREDT AS expireDt,
 		    b.GOODSOPTIONCD_ORIGIN AS goodsOptionCdOrigin,
 		    b.GOODSOPTIONNM_ORIGIN AS goodsOptionNmOrigin,
@@ -200,8 +209,8 @@
 		    b.GIVEPERSONNM AS givePersonNm,
 		    to_char(b.STOPDT, 'yyyy-mm-dd') AS stopDt,
 		    b.STOPREASON AS stopReason,
-		    b.SAVEYN AS goodsSaveYn,
-		    b.SAVEDT AS goodsSaveDt,
+		    b.SAVEYN AS saveYn,
+		    b.SAVEDT AS saveDt,
 		    b.SAVEREMARK AS saveRemark,
 		    b.MASTERCLOSEYN AS masterCloseYn,
 		    b.MASTERCLOSEDT AS masterCloseDt,
@@ -244,7 +253,7 @@
 		    				when '15' then '내용변경' 
 		    				else '없음' end AS hcActionStatus,
 		    b.HCACTION AS hcAction,
-		    b.HCHOB AS hcHob,
+		    nvl(b.HCHOB, 0) AS hcHob,
 		    b.HCCHECKHOB AS hcCheckHob,
 		    b.INSERTDT AS goodsInsertDt,
 		    b.UPDATEDT AS goodsUpdateDt,
@@ -255,9 +264,14 @@
 		    
 		    d.TEAMNM AS teamNm,
 		    
+		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
+		    
 		    f.AGENCYNM AS agencyNm,
+		    
+		    case when b.MASTERCLOSEYN = 1 then '마감'
+		    	 when b.saveyn = 1 then '저장'
+		    		  else '미저장' end as totStatus
 		 
-		 	e.PROMOTEAMNM AS promoTeamNm
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
@@ -297,7 +311,154 @@
 		    <if test="addCondition != null and addCondition != ''">
 		    	AND 1 = 1
 		    </if>
-		 ORDER BY a.AGENCYCD, b.PROMODT
+		 ORDER BY a.ordercd, b.orderseq, a.agencycd
+	</select>
+	
+	<select id="selectMilkbangDetail" resultType="MilkbangDetailDao">
+		SELECT
+		    a.ORDERCD AS orderCd,
+		    a.ORDERDT AS orderDt,
+		    a.ORDERTYPE AS orderType,
+		    a.ORDERUSERNM AS orderUserNm,
+		    a.ORDERHOMEPHONE AS orderHomePhone,
+		    a.ORDERCELLPHONE AS orderCellPhone,
+		    a.ORDERADDRESS1 AS orderAddress1,
+		    a.RECEIVEUSERNM AS receiveUserNm,
+		    a.RECEIVEHOMEPHONE AS receiveHomePhone,
+		    a.RECEIVECELLPHONE AS receiveCellPhone,
+		    a.RECEIVEADDRESS1 AS receiveAddress1,
+		    a.RECEIVEADDRESS2 AS receiveAddress2,
+		    a.TOTALORDERPRICE AS totalOrderPrice,
+		    a.TOTALPAYPRICE AS totalPayPrice,
+		    a.DELETEYN AS deleteYn,
+		    a.MILKBANGFILENM AS milkbangFileNm,
+		    a.AGENCYCD AS agencyCd,
+		    a.AGENCYTEL AS agencyTel,
+		    a.AGENCYDELIVERYYN AS agencyDeliveryYn,
+		    a.PROMOPERSONNM AS promoPersonNm,
+		    a.PROMOPERSONNM_ORIGIN AS promoPersonNmOrigin,
+		    a.POSTAREA AS postArea,
+		    a.PG_TYPE AS pgType,
+		    a.PG_PAYYN AS pgPayYn,
+		    a.PG_PAYTYPE AS pgPayType,
+		    a.PG_PAYDT AS pgPayDt,
+		    a.DUPLICATEYN AS duplicateYn,
+		    a.DUPLORDERCD AS duplOrderCd,
+		    
+		    b.ORDERSEQ AS orderSeq,
+		    b.GOODSCD AS goodsCd,
+		    b.GOODSOPTIONCD AS goodsOptionCd,
+		    case when b.GOODSCD = -1 then b.GOODSOPTIONNM || '-' || b.GOODSOPTIONNM_ORIGIN
+				 else b.GOODSOPTIONNM end AS goodsOptionNm,
+		    b.QUANTITY AS quantity,
+		    b.CONTRACTPERIOD AS contractPeriod,
+		    b.WEEKQTY AS weekQty,
+		    b.WEEKREMARK AS weekRemark,
+		    b.UNITPRICE AS unitPrice,
+		    b.ORDERPRICE AS orderPrice,
+		    to_char(b.PROMODT,'yyyy-mm-dd') AS promoDt,
+		    to_char(b.PUTDT, 'yyyy-mm-dd') AS putDt,
+		    b.EXPIREDT AS expireDt,
+		    b.GOODSOPTIONCD_ORIGIN AS goodsOptionCdOrigin,
+		    b.GOODSOPTIONNM_ORIGIN AS goodsOptionNmOrigin,
+		    case when b.ORDERKINDCD = '1' then '신규'
+		         when b.ORDERKINDCD = '2' then '재계약'
+		         when b.ORDERKINDCD = '3' then '무계약'
+		         else '없음' end AS orderKindCd,
+		    b.ORDERKIND AS orderKind,
+		    b.AGENCYHOB AS agencyHob,
+		    b.HQHOB AS hqHob,
+		    b.ACTUALHOB AS actualHob,
+		    b.PROMOGIFTNM AS promoGiftNm,
+		    b.GIVEDT AS giveDt,
+		    b.GIVEPERSONNM AS givePersonNm,
+		    to_char(b.STOPDT, 'yyyy-mm-dd') AS stopDt,
+		    b.STOPREASON AS stopReason,
+		    b.SAVEYN AS saveYn,
+		    b.SAVEDT AS saveDt,
+		    b.SAVEREMARK AS saveRemark,
+		    b.MASTERCLOSEYN AS masterCloseYn,
+		    b.MASTERCLOSEDT AS masterCloseDt,
+		    b.MASTERCLOSEREMARK AS masterCloseRemark,
+		    b.PROMOTEAMCD AS promoTeamCd,
+		    b.TEAMPERSONCD AS teamPersonCd,
+		    b.TEAMCD AS teamCd,
+		    b.FORCEADDYN AS goodsForceAddYn,
+		    b.TM_SMS_MESSAGECD AS tmSmsMessageCd,
+		    b.TM_SMS_SENDYN AS tmSmsSendYn,
+		    b.TM_MAIL_MESSAGECD AS tmMailMessageCd,
+		    b.TM_MAIL_SENDYN AS tmMailSendYn,
+		    b.TM_ORDERYN AS tmOrderYn,
+		    b.TM_TEL_STATUS AS tmTelStatus,
+		    b.TM_TEL_RESULT AS tmTelResult,
+		    b.TM_TEL_REMARK AS tmTelRemark,
+		    b.TM_TEL_DT AS tmTelDt,
+		    b.OPENMARKETORDERCD AS openMarketOrderCd,
+		    b.OPENMARKETORDERSEQ AS openMarketOrderSeq,
+		    b."SAVEPOINT" AS savePoint,
+		    b.SAVESTAFFPOINT AS saveStaffPoint,
+		    b.SAVEHOMEPOINT AS saveHomePoint,
+		    b.SAVESHOPPOINT AS saveShopPoint,
+		    b.CAPACITY AS capacity,
+		    to_char(b.HCDT, 'yyyy-mm-dd') AS hcDt,
+		    b.HCTEAMPERSONCD AS hcTeamPersonCd,
+		    case to_char(b.HCSTATUS) when '10' then '미확인'
+		    				when '11' then '정상'
+		    				when '12' then '부재중'
+		    				when '13' then '상이건'
+		    				when '14' then '결번'
+		    				when '15' then '내용변경' 
+		    				else '없음' end AS hcStatus,
+		    b.HCCONTENT AS hcContent,
+		    case to_char(b.HCACTIONSTATUS) when '10' then '미확인'
+		    				when '11' then '정상'
+		    				when '12' then '부재중'
+		    				when '13' then '상이건'
+		    				when '14' then '결번'
+		    				when '15' then '내용변경' 
+		    				else '없음' end AS hcActionStatus,
+		    b.HCACTION AS hcAction,
+		    nvl(b.HCHOB, 0) AS hcHob,
+		    b.HCCHECKHOB AS hcCheckHob,
+		    b.INSERTDT AS goodsInsertDt,
+		    b.UPDATEDT AS goodsUpdateDt,
+		    
+		    c.TEAMPERSONNM AS teamPersonNm,
+		    c.TEAMPERSONTYPE AS teamPersonType,
+		    c.MANAGERYN AS managerYn,
+		    
+		    d.TEAMNM AS teamNm,
+		    
+		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
+		    
+		    f.AGENCYNM AS agencyNm,
+		    
+		    case when b.MASTERCLOSEYN = 1 then '마감'
+		    	 when b.saveyn = 1 then '저장'
+		    		  else '미저장' end as totStatus
+		 
+		FROM ysc.tc_milkbang a
+		INNER JOIN ysc.TC_MILKBANGGOODS b
+		    ON a.ORDERCD = b.ORDERCD
+		INNER JOIN ysc.TC_TEAMPERSON c
+		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
+		INNER JOIN ysc.TC_TEAM d
+		    ON b.TEAMCD = d.TEAMCD
+		LEFT JOIN ysc.TC_PROMOTEAM e
+			ON b.PROMOTEAMCD = e.PROMOTEAMCD
+		INNER JOIN ysc.TC_AGENCY f
+		    ON a.AGENCYCD = f.AGENCYCD		    
+		WHERE 1 = 1
+		AND   a.ordercd = #{orderCd}
+		ORDER BY b.orderseq
+	</select>
+	
+	<select id="selectAllPromoTeam" resultType="PromoTeamDao">
+		select
+			a.PROMOTEAMCD AS promoTeamCd,
+			a.PROMOTEAMNM AS promoTeamNm,
+			a.PROMOTYPE AS promoType
+		from ysc.TC_PROMOTEAM a
 	</select>
 
 </mapper>
