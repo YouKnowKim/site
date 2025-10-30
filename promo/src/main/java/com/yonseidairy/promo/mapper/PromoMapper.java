@@ -41,5 +41,7 @@ public interface PromoMapper {
 	List<PromoTeamDao> selectAllPromoTeam(PromoTeamDao inPromoTeamDao);
 	
 	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);
+	
+	Integer mergePromoDetail(MilkbangDetailDao inMilkbangDetailDao);
 
 }

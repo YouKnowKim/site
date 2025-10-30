@@ -98,106 +98,6 @@ const handleHcActionDetail = (rowData) => {
   });
 };
 
-/**
- * 마감홉수 상세 조회 핸들러 (API 연동)
- * @param {Object} rowData - 클릭한 행의 데이터
- */
-const handleActualHobDetail = async (rowData) => {
-  try {
-    // ✅ 로딩 표시
-    Swal.fire({
-      title: '조회 중...',
-      text: '마감홉수 상세 정보를 조회하고 있습니다.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-    
-    // ✅ API 호출
-    const response = await axios.get('/api/promo/getActualHobDetail', {
-      params: {
-        orderCd: rowData.orderCd,
-        orderSeq: rowData.orderSeq,
-        // 필요한 다른 파라미터 추가
-        promoDt: rowData.promoDt,
-        teamPersonCd: rowData.teamPersonCd
-      }
-    });
-    
-    const detailData = response.data;
-    
-    // ✅ 상품 리스트 HTML 생성
-    let itemsHtml = '';
-    if (detailData.items && detailData.items.length > 0) {
-      detailData.items.forEach(item => {
-        const qtyText = item.quantity > 1 ? ` (${item.quantity}개)` : '';
-        itemsHtml += `${item.goodsName}${qtyText} - ${item.weekRemark} : ${item.hob}홉<br/>`;
-      });
-    } else {
-      itemsHtml = '상품 정보가 없습니다.';
-    }
-    
-    // ✅ 팝업 표시
-    Swal.fire({
-      title: '마감홉수 상세정보',
-      html: `
-        <div style="
-          text-align: left; 
-          padding: 15px; 
-          font-family: 'Malgun Gothic', sans-serif;
-          line-height: 1.8;
-          font-size: 14px;
-        ">
-          <div style="margin-bottom: 10px; font-size: 15px;">
-            <strong>신규 ${detailData.newCount || 0} 건 :</strong>
-          </div>
-          <div style="
-            margin-left: 10px; 
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 13px;
-          ">
-            ${itemsHtml}
-          </div>
-          <div style="
-            border-top: 2px dashed #999; 
-            padding-top: 12px;
-            margin-top: 12px;
-          ">
-            <strong style="color: #0d6efd; font-size: 15px;">
-              계산된 홉수 : ${detailData.totalHob || 0} 홉
-            </strong>
-          </div>
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonText: '확인',
-      confirmButtonColor: '#8B4513',  // 갈색 버튼
-      width: '450px',
-      customClass: {
-        popup: 'actual-hob-detail-popup'
-      }
-    });
-    
-  } catch (error) {
-    console.error('마감홉수 상세 조회 실패:', error);
-    
-    // 에러 메시지 처리
-    let errorMessage = '마감홉수 상세 정보를 조회하는 중 오류가 발생했습니다.';
-    if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    }
-    
-    Swal.fire({
-      icon: 'error',
-      title: '조회 실패',
-      text: errorMessage,
-      confirmButtonText: '확인'
-    });
-  }
-};
-
 // 숫자 천단위 콤마 포맷 함수
 const formatNumberWithComma = (value) => {
   if (value == null || value === '') return '';
@@ -357,7 +257,10 @@ const PromotionSettle = () => {
     totalHob: 0,        // 전체홉수
     contractHob: 0,     // 계약홉수
     noContractHob: 0,   // 무계약홉수
-    reContractHob: 0    // 재계약홉수
+    reContractHob: 0,   // 재계약홉수
+    totalCount: 0,      // ✅ 전체 건수
+    savedCount: 0,      // ✅ 저장 건수
+    closedCount: 0      // ✅ 마감 건수
   });
 
   // 컴포넌트 마운트 시 대리점 목록 조회
@@ -415,7 +318,10 @@ const PromotionSettle = () => {
         totalHob: 0,
         contractHob: 0,
         noContractHob: 0,
-        reContractHob: 0
+        reContractHob: 0,
+        totalCount: 0,      // ✅ 추가
+        savedCount: 0,      // ✅ 추가
+        closedCount: 0      // ✅ 추가
       });
       return;
     }
@@ -424,6 +330,8 @@ const PromotionSettle = () => {
     let contractHob = 0;      // 신규 계약
     let noContractHob = 0;    // 무계약
     let reContractHob = 0;    // 재계약
+    let savedCount = 0;       // ✅ 저장 건수
+    let closedCount = 0;      // ✅ 마감 건수
 
     tableData.forEach(row => {
       // actualHob (마감홉수)를 기준으로 합계 계산
@@ -433,22 +341,36 @@ const PromotionSettle = () => {
       // orderKind 또는 orderKindCd 기준으로 분류
       // 실제 데이터 구조에 맞게 조건 수정 필요
       const orderKind = row.orderKind || '';
-      const orderKindCd = row.orderKindCd || '';
+      const orderKindCdNm = row.orderKindCdNm || '';
 
-      if (orderKind === '신규' || orderKindCd === '신규') {
+      if (orderKind === '신규' || orderKindCdNm === '신규') {
         contractHob += hob;
-      } else if (orderKind === '무계약' || orderKindCd === '무계약') {
+      } else if (orderKind === '무계약' || orderKindCdNm === '무계약') {
         noContractHob += hob;
-      } else if (orderKind === '재계약' || orderKindCd === '재계약') {
+      } else if (orderKind === '재계약' || orderKindCdNm === '재계약') {
         reContractHob += hob;
       }
+
+      // ✅ 저장 건수 계산 (saveYn이 '1' 또는 1인 경우)
+      if (row.saveYn === '1' || row.saveYn === 1) {
+        savedCount++;
+      }
+
+      // ✅ 마감 건수 계산 (masterCloseYn이 '1' 또는 1인 경우)
+      if (row.masterCloseYn === '1' || row.masterCloseYn === 1) {
+        closedCount++;
+      }
+
     });
 
     setSummaryData({
       totalHob: totalHob,
       contractHob: contractHob,
       noContractHob: noContractHob,
-      reContractHob: reContractHob
+      reContractHob: reContractHob,
+      totalCount: tableData.length,  // ✅ 전체 건수
+      savedCount: savedCount,        // ✅ 저장 건수
+      closedCount: closedCount       // ✅ 마감 건수
     });
   };
 
@@ -608,11 +530,98 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
+      title: '대리점',
+      field: 'agencyNm',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '판촉팀',
+      field: 'promoTeamNm',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '고객',
+      field: 'orderUserNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '상품',
+      field: 'goodsOptionNm',
+      width: 200,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '주간수량',
+      field: 'weekQty',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '주간<br/>총수량';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '개월',
+      field: 'contractPeriod',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '계약선물',
+      field: 'promoGiftNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
       title: '상태',
       field: 'totStatus',
       width: 80,
       hozAlign: 'center',
       headerHozAlign: 'center'
+    },
+    {
+      title: '마감홉수',
+      field: 'actualHob',
+      width: 110,  // ✅ 버튼 공간 확보
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'input',  // ✅ 편집 가능
+      editable: true,
+      // ✅ 숫자 유효성 검사
+      validator: [
+        "numeric",           // 숫자만 허용
+        "min:0",            // 최소값 0
+        "max:999.9"         // 최대값 999.9
+      ],
+      formatter: function(cell) {
+        const value = cell.getValue();
+        // null, undefined, 빈 문자열 처리
+        if (value === null || value === undefined || value === '') {
+          return '';
+        }
+        // 숫자로 변환
+        const number = parseFloat(value);
+        if (isNaN(number)) {
+          return value;  // 숫자가 아니면 원본 값 반환
+        }
+        // 소수점 한 자리로 포맷 (예: 123.5, 100.0)
+        return number.toFixed(1);
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const number = parseFloat(value);
+        return isNaN(number) ? null : number;
+      }
     },
     {
       title: '판촉일',
@@ -654,20 +663,6 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '대리점',
-      field: 'agencyNm',
-      width: 85,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '판촉팀',
-      field: 'promoTeamNm',
-      width: 85,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
       title: '판촉사원',
       field: 'promoPersonNm',
       width: 100,
@@ -675,11 +670,66 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '고객',
-      field: 'orderUserNm',
+      title: '제품코드',
+      field: 'misCd',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
+    },
+    {
+      title: '제품코드(밀크방)',
+      field: 'goodsOptionCdOrigin',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '제품코드<br/>(밀크방)';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '단가',
+      field: 'unitPrice',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter: function(cell) {  // ✅ formatter 추가
+        const value = cell.getValue();
+        return formatNumberWithComma(value);
+       }
+    },
+    {
+      title: '배송요일',
+      field: 'weekRemark',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '계약',
+      field: 'orderKind',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '계약구분',
+      field: 'orderKindCdNm',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '계약<br/>구분';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '해피콜 조정홉수',
+      field: 'hcHob',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
+      }
     },
     {
       title: '전화',
@@ -696,177 +746,8 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '상품',
-      field: 'goodsOptionNm',
-      width: 200,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '단가',
-      field: 'unitPrice',
-      width: 80,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      formatter: function(cell) {  // ✅ formatter 추가
-        const value = cell.getValue();
-        return formatNumberWithComma(value);
-       }
-    },
-    {
-      title: '1회투입수량',
-      field: 'quantity',
-      width: 90,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '1회투입<br/>수량';  // HTML로 줄바꿈
-      }
-    },
-    {
-      title: '배송요일',
-      field: 'weekRemark',
-      width: 95,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '주간 총수량',
-      field: 'weekQty',
-      width: 85,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '주간<br/>총수량';  // HTML로 줄바꿈
-      }
-    },
-    {
-      title: '계약',
-      field: 'orderKind',
-      width: 80,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '계약구분',
-      field: 'orderKindCd',
-      width: 80,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '계약<br/>구분';  // HTML로 줄바꿈
-      }
-    },
-    {
-      title: '개월',
-      field: 'contractPeriod',
-      width: 80,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '대리점홉',
-      field: 'agencyHob',
-      width: 95,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '본사홉',
-      field: 'hqHob',
-      width: 85,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '마감홉수',
-      field: 'actualHob',
-      width: 110,  // ✅ 버튼 공간 확보
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      editor: 'input',  // ✅ 편집 가능
-      editable: true,
-      formatter: function(cell) {
-         // ✅ 값이 없거나 null인 경우 0으로 처리하고, 소수점 첫째 자리까지 고정
-        const value = cell.getValue() || 0;
-        const formattedValue = parseFloat(value).toFixed(1);
-
-        return `
-          <div style="display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; height: 100%;">
-            <input 
-              type="text" 
-              class="actual-hob-input" 
-              value="${formattedValue}" 
-              readonly
-              style="
-                width: 60px;
-                text-align: center;
-                border: 1px solid #ddd;
-                border-radius: 3px;
-                padding: 2px 4px;
-                background: white;
-                cursor: text;
-              "
-            />
-            <button 
-              class="actual-hob-detail-btn" 
-              style="
-                border: none;
-                background: transparent;
-                color: #0d6efd;
-                cursor: pointer;
-                font-size: 16px;
-                padding: 0;
-                display: flex;
-                align-items: center;
-              "
-              title="상세보기"
-            >
-              🔍
-            </button>
-          </div>
-        `;
-      },
-      cellClick: function(e, cell) {
-        // ✅ 돋보기 버튼 클릭 시
-        if (e.target.classList.contains('actual-hob-detail-btn') || 
-            e.target.closest('.actual-hob-detail-btn')) {
-          const rowData = cell.getRow().getData();
-          handleActualHobDetail(rowData);
-          e.stopPropagation();  // 편집 모드 진입 방지
-          return;
-        }
-        
-        // ✅ input 영역 클릭 시 편집 모드로 진입
-        if (e.target.classList.contains('actual-hob-input')) {
-          // Tabulator의 기본 편집 동작 허용
-          return;
-        }
-      }
-    },
-    {
-      title: '해피콜 조정홉수',
-      field: 'hcHob',
-      width: 95,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
-      }
-    },
-    {
-      title: '마감홉수 수정사유',
+      title: '수정사유',
       field: 'SaveRemark',
-      width: 100,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '마감홉수<br/>수정사유';  // HTML로 줄바꿈
-      }
-    },
-    {
-      title: '계약선물',
-      field: 'promoGiftNm',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
@@ -897,7 +778,7 @@ const PromotionSettle = () => {
     },
     {
       title: '해피콜 결과',
-      field: 'hcStatus',
+      field: 'hcStatusNm',
       width: 90,
       hozAlign: 'center',
       headerHozAlign: 'center',
@@ -944,7 +825,7 @@ const PromotionSettle = () => {
     },
     {
       title: '담당 해피콜 결과확인',
-      field: 'hcActionStatus',
+      field: 'hcActionStatusNm',
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
@@ -988,6 +869,64 @@ const PromotionSettle = () => {
         const rowData = cell.getRow().getData();
         handleHcActionDetail(rowData);
       }
+    },
+    {
+      title: '해피콜 담당확인 홉수',
+      field: 'hcCheckHob',
+      width: 110,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜 담당<br/>확인 홉수';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '담당자',
+      field: 'teamPersonNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '팀',
+      field: 'teamNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '주차',
+      field: 'teamNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '1회투입수량',
+      field: 'quantity',
+      width: 90,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '1회투입<br/>수량';  // HTML로 줄바꿈
+      },
+      visible: false
+    },
+    {
+      title: '대리점홉',
+      field: 'agencyHob',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      visible: false
+    },
+    {
+      title: '본사홉',
+      field: 'hqHob',
+      width: 85,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      visible: false
     }
   ];
 
@@ -1733,29 +1672,7 @@ const PromotionSettle = () => {
                 >
                   계약: {summaryData.contractHob.toFixed(1)}
                 </Badge>
-                
-                <Badge 
-                  bg="warning" 
-                  text="dark"
-                  style={{ 
-                    fontSize: '13px', 
-                    padding: '6px 12px',
-                    fontWeight: '600'
-                  }}
-                >
-                  무계약: {summaryData.noContractHob.toFixed(1)}
-                </Badge>
-                
-                <Badge 
-                  bg="info" 
-                  style={{ 
-                    fontSize: '13px', 
-                    padding: '6px 12px',
-                    fontWeight: '600'
-                  }}
-                >
-                  재계약: {summaryData.reContractHob.toFixed(1)}
-                </Badge>
+
               </div>
             </Col>
           </Row>

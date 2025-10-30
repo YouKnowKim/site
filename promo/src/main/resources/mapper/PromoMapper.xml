@@ -142,10 +142,28 @@
 	
 	<update id="mergePromo" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANGGOODS
-	    SET
-	        ACTUALHOB = #{actualHob}
+	    <set>
+	        ACTUALHOB = #{actualHob},
+	        <if test="promoTeamCd != null and promoTeamCd != ''">
+	            PROMOTEAMCD = #{promoTeamCd},
+	        </if>
+	        <if test="orderKindCd != null and orderKindCd != ''">
+	            ORDERKINDCD = #{orderKindCd},
+	        </if>
+	        SAVEYN = 1,
+	        SAVEDT = SYSDATE
+	    </set>
 	    WHERE ORDERCD = #{orderCd}
 	    AND ORDERSEQ = #{orderSeq}
+	</update>
+	
+	<update id="mergePromoDetail" parameterType="MilkbangDetailDao">
+	    UPDATE ysc.TC_MILKBANG
+	    <set>
+	        PROMOPERSONNM = #{promoPersonNm},
+	        UPDATEDT = SYSDATE
+	    </set>
+	    WHERE ORDERCD = #{orderCd}
 	</update>
 	
 	<select id="selectMilkbangDetailList" resultType="MilkbangDetailDao">
@@ -196,10 +214,11 @@
 		    b.EXPIREDT AS expireDt,
 		    b.GOODSOPTIONCD_ORIGIN AS goodsOptionCdOrigin,
 		    b.GOODSOPTIONNM_ORIGIN AS goodsOptionNmOrigin,
+		    b.ORDERKINDCD as orderKindCd,
 		    case when b.ORDERKINDCD = '1' then '신규'
 		         when b.ORDERKINDCD = '2' then '재계약'
 		         when b.ORDERKINDCD = '3' then '무계약'
-		         else '없음' end AS orderKindCd,
+		         else '없음' end AS orderKindCdNm,
 		    b.ORDERKIND AS orderKind,
 		    b.AGENCYHOB AS agencyHob,
 		    b.HQHOB AS hqHob,
@@ -243,15 +262,17 @@
 		    				when '13' then '상이건'
 		    				when '14' then '결번'
 		    				when '15' then '내용변경' 
-		    				else '없음' end AS hcStatus,
+		    				else '없음' end AS hcStatusNm,
+		    b.HCSTATUS as hcStatus,
 		    b.HCCONTENT AS hcContent,
+		    b.HCACTIONSTATUS as hcActionStatus,
 		    case to_char(b.HCACTIONSTATUS) when '10' then '미확인'
 		    				when '11' then '정상'
 		    				when '12' then '부재중'
 		    				when '13' then '상이건'
 		    				when '14' then '결번'
 		    				when '15' then '내용변경' 
-		    				else '없음' end AS hcActionStatus,
+		    				else '없음' end AS hcActionStatusNm,
 		    b.HCACTION AS hcAction,
 		    nvl(b.HCHOB, 0) AS hcHob,
 		    b.HCCHECKHOB AS hcCheckHob,
@@ -270,8 +291,9 @@
 		    
 		    case when b.MASTERCLOSEYN = 1 then '마감'
 		    	 when b.saveyn = 1 then '저장'
-		    		  else '미저장' end as totStatus
-		 
+		    		  else '미저장' end as totStatus,
+		 	
+		 	g.MISCD as misCd
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
@@ -282,7 +304,9 @@
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD
 		INNER JOIN ysc.TC_AGENCY f
-		    ON a.AGENCYCD = f.AGENCYCD		    
+		    ON a.AGENCYCD = f.AGENCYCD
+		LEFT JOIN ysc.TC_GOODSOPTION g 
+			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD		    
 		WHERE 1 = 1
 			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
@@ -343,6 +367,7 @@
 		    a.PG_PAYTYPE AS pgPayType,
 		    a.PG_PAYDT AS pgPayDt,
 		    a.DUPLICATEYN AS duplicateYn,
+		    case when a.DUPLICATEYN = 1 then '이중기재' else '' end AS duplicateNm,
 		    a.DUPLORDERCD AS duplOrderCd,
 		    
 		    b.ORDERSEQ AS orderSeq,
@@ -361,10 +386,11 @@
 		    b.EXPIREDT AS expireDt,
 		    b.GOODSOPTIONCD_ORIGIN AS goodsOptionCdOrigin,
 		    b.GOODSOPTIONNM_ORIGIN AS goodsOptionNmOrigin,
+		    b.ORDERKINDCD AS orderKindCd,
 		    case when b.ORDERKINDCD = '1' then '신규'
 		         when b.ORDERKINDCD = '2' then '재계약'
 		         when b.ORDERKINDCD = '3' then '무계약'
-		         else '없음' end AS orderKindCd,
+		         else '없음' end AS orderKindCdNm,
 		    b.ORDERKIND AS orderKind,
 		    b.AGENCYHOB AS agencyHob,
 		    b.HQHOB AS hqHob,
@@ -402,21 +428,23 @@
 		    b.CAPACITY AS capacity,
 		    to_char(b.HCDT, 'yyyy-mm-dd') AS hcDt,
 		    b.HCTEAMPERSONCD AS hcTeamPersonCd,
+		    b.HCSTATUS as hcStatus,
 		    case to_char(b.HCSTATUS) when '10' then '미확인'
 		    				when '11' then '정상'
 		    				when '12' then '부재중'
 		    				when '13' then '상이건'
 		    				when '14' then '결번'
 		    				when '15' then '내용변경' 
-		    				else '없음' end AS hcStatus,
+		    				else '없음' end AS hcStatusNm,
 		    b.HCCONTENT AS hcContent,
+		    b.HCACTIONSTATUS as hcActionStatus,
 		    case to_char(b.HCACTIONSTATUS) when '10' then '미확인'
 		    				when '11' then '정상'
 		    				when '12' then '부재중'
 		    				when '13' then '상이건'
 		    				when '14' then '결번'
 		    				when '15' then '내용변경' 
-		    				else '없음' end AS hcActionStatus,
+		    				else '없음' end AS hcActionStatusNm,
 		    b.HCACTION AS hcAction,
 		    nvl(b.HCHOB, 0) AS hcHob,
 		    b.HCCHECKHOB AS hcCheckHob,

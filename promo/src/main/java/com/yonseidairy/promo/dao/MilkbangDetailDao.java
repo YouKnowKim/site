@@ -16,6 +16,16 @@ public class MilkbangDetailDao {
 	
 	private String no;
 	private String promoTeamNm;
+	
+	private String orderKindCdNm;
+	
+	private String hcStatusNm;
+	
+	private String hcActionStatusNm;
+	
+	private String misCd;
+	
+	private String duplicateNm;
 
 	/** 주문 코드 */
 	private String orderCd;

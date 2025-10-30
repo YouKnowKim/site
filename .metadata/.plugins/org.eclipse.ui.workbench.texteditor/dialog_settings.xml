@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="agencyCd"/>
-			<item value="ordercd"/>
+			<item value="teamNm"/>
+			<item value="origin"/>
+			<item value="checkGoodsOptionNM"/>
 			<item value="goods"/>
-			<item value="매칭"/>
-			<item value="masterclse"/>
-			<item value="status"/>
-			<item value="save"/>
-			<item value="SAVEYN"/>
-			<item value="saveyn"/>
-			<item value="hcHob"/>
-			<item value="b.put"/>
-			<item value="HCACTIONSTATUS"/>
-			<item value="Long"/>
-			<item value="Integer"/>
-			<item value="hcdt"/>
+			<item value="good"/>
+			<item value="findGoodsOption"/>
+			<item value="findGoodsList"/>
+			<item value="gift"/>
+			<item value="orderKindCd"/>
+			<item value="nm"/>
+			<item value="hcStatusNm"/>
+			<item value="hcActionStatusNm"/>
+			<item value="hcActionstatus"/>
+			<item value="selectMilkbang"/>
+			<item value="hcStatus"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

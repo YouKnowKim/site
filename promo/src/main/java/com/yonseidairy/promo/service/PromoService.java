@@ -79,6 +79,21 @@ public class PromoService {
 		return result;
 	}
 	
+	@Transactional(rollbackFor = Exception.class)
+	public Integer savePromoDetail(List<MilkbangDetailDao> dataList) throws Exception {
+		
+		Integer result = 0;
+		
+		for(MilkbangDetailDao data : dataList) {
+			
+			promoMapper.mergePromo(data);
+			promoMapper.mergePromoDetail(data);
+			result++;
+		}
+		
+		return result;
+	}
+	
 	public Integer mergeMilkbangFile(String originalFileName) throws Exception {
 		
 		String agencyCd = extractAgencyCodeFromFileName(originalFileName);

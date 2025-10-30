@@ -1,8 +1,9 @@
 // components/PromotionDetailModal.jsx
-import React, { useState, useEffect, useMemo } from 'react';
-import { Modal, Button, Form, Row, Col, Table, ButtonGroup } from 'react-bootstrap';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Modal, Button, Form, Row, Col, Table, ModalDialog, ButtonGroup } from 'react-bootstrap';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 
 /**
  * 판촉실적 상세 팝업 컴포넌트
@@ -14,10 +15,68 @@ import Swal from 'sweetalert2';
  */
 const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave }) => {
   // ✅ 상태 관리
-  const [detailData, setDetailData] = useState(null);
+  const [detailData, setDetailData] = useState([{
+    agencyNm: '',
+    agencyCd: '',
+    teamPersonNm: '',
+    orderCd: '',
+    orderUserNm: '',
+    orderAddress1: '',
+    orderCellPhone: '',
+    orderDt: '',
+    duplicateNm: '',
+    duplicateYn: '',
+    saveYn: '',
+    masterCloseYn: '',
+    promoTeamCd: '',
+    promoPersonNm: '',
+    goodsOptionNm: '',
+    quantity: '',
+    weekRemark: '',
+    weekQty: '',
+    contractPeriod: '',
+    stopReason: '',
+    promoGiftNm: ''
+  }]);
   const [loading, setLoading] = useState(false);
   const [currentOrderCd, setCurrentOrderCd] = useState('');  // ✅ 현재 조회 중인 orderCd
   const [currentIndex, setCurrentIndex] = useState(-1);  // ✅ orderCdList에서의 현재 인덱스
+  const [promoTeamList, setPromoTeamList] = useState([]);  // 판촉팀 목록 state 추가
+  const [selectedPromoTeamCd, setSelectedPromoTeamCd] = useState('');
+  const [selectedPromoPersonNm, setSelectedPromoPersonNm] = useState('');
+
+  // 컴포넌트 마운트 시 대리점 목록 조회
+  useEffect(() => {
+    fetchPromoTeamList();
+  }, []);
+
+  // 대리점 목록 조회 함수
+  const fetchPromoTeamList = async () => {
+    try {
+
+      const response = await axios.get('/api/promo/getAllPromoTeam', {
+        params: {
+          teamPersonCd: sessionStorage.getItem("teamPersonCd"),
+          managerYn: sessionStorage.getItem("managerYn")
+        }
+      });  // API 엔드포인트 수정 필요
+      
+      // API 응답 구조에 따라 수정
+      // 예: response.data 또는 response.data.data
+      setPromoTeamList(response.data);
+      
+    } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '판촉팀 목록 조회 실패',
+        confirmButtonText: '확인'
+      });
+      console.error('판촉팀 목록 조회 실패:', error);
+      // 에러 시 빈 배열 설정
+      setPromoTeamList([]);
+    }
+  };
   
   // ✅ 편집 가능한 필드 상태
   const [editableData, setEditableData] = useState({
@@ -44,8 +103,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
     
     // 중복 제거 (순서 유지)
     const uniqueOrderCds = [...new Set(orderCds)];
-    
-    console.log('✅ orderCdList 생성:', uniqueOrderCds);
+
     return uniqueOrderCds;
   }, [originalData]);
 
@@ -60,8 +118,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
       // orderCdList에서 현재 orderCd의 인덱스 찾기
       const index = orderCdList.findIndex(cd => cd === orderCd);
       setCurrentIndex(index);
-      
-      console.log(`✅ 현재 orderCd: ${orderCd}, 인덱스: ${index}/${orderCdList.length}`);
       
       // 상세 데이터 조회
       fetchDetailData(rowData);
@@ -85,18 +141,40 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
         }
       });
       
-      setDetailData(response.data);
+      const dataArray = Array.isArray(response.data) ? response.data : [response.data];
+      setDetailData(dataArray);
+
+      // ✅ 첫 번째 데이터에서 판촉팀 코드 추출하여 select에 세팅
+      if (dataArray.length > 0 && dataArray[0].promoTeamCd) {
+        setSelectedPromoTeamCd(dataArray[0].promoTeamCd);
+      } else {
+        // 데이터가 없거나 판촉팀 정보가 없으면 초기화
+        setSelectedPromoTeamCd('');
+      }
+
+      // ✅ 첫 번째 데이터에서 판촉팀 코드 추출하여 select에 세팅
+      if (dataArray.length > 0 && dataArray[0].promoPersonNm) {
+        setSelectedPromoPersonNm(dataArray[0].promoPersonNm);
+      } else {
+        // 데이터가 없거나 판촉팀 정보가 없으면 초기화
+        setSelectedPromoPersonNm('');
+      }
       
-      // ✅ 편집 가능한 필드 초기화
-      setEditableData({
-        actualHob: response.data.actualHob || '',
-        saveRemark: response.data.saveRemark || '',
-        hcHob: response.data.hcHob || '',
-        hcStatus: response.data.hcStatus || '',
-        hcContent: response.data.hcContent || '',
-        hcActionStatus: response.data.hcActionStatus || '',
-        hcAction: response.data.hcAction || ''
-      });
+      // ✅ 편집 가능한 필드 초기화 - 배열의 각 항목에 대해
+      const initialEditableData = dataArray.map(item => ({
+        orderCd: item.orderCd,           // ✅ 필수: 주문코드
+        orderSeq: item.orderSeq,         // ✅ 필수: 주문순번
+        actualHob: item.actualHob || '',
+        orderKindCd: item.orderKindCd || '1',
+        saveRemark: item.saveRemark || '',
+        hcHob: item.hcHob || '',
+        hcStatus: item.hcStatus || '',
+        hcContent: item.hcContent || '',
+        hcActionStatus: item.hcActionStatus || '',
+        hcAction: item.hcAction || ''
+      }));
+      
+      setEditableData(initialEditableData);
       
     } catch (error) {
       console.error('상세 데이터 조회 실패:', error);
@@ -122,8 +200,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
     const prevIndex = currentIndex - 1;
     const prevOrderCd = orderCdList[prevIndex];
     
-    console.log(`⬅️ 이전 버튼: ${currentIndex} → ${prevIndex}, orderCd: ${prevOrderCd}`);
-    
     // originalData에서 해당 orderCd의 첫 번째 데이터 찾기
     const prevRowData = originalData.find(item => item.orderCd === prevOrderCd);
     
@@ -145,8 +221,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
     const nextIndex = currentIndex + 1;
     const nextOrderCd = orderCdList[nextIndex];
     
-    console.log(`➡️ 다음 버튼: ${currentIndex} → ${nextIndex}, orderCd: ${nextOrderCd}`);
-    
     // originalData에서 해당 orderCd의 첫 번째 데이터 찾기
     const nextRowData = originalData.find(item => item.orderCd === nextOrderCd);
     
@@ -160,12 +234,16 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
   /**
    * 입력값 변경 핸들러
    */
-  const handleInputChange = (field, value) => {
-    setEditableData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const handleInputChange = (index, field, value) => {
+     setEditableData(prev => {
+       const newData = [...prev];
+       newData[index] = {
+         ...newData[index],
+         [field]: value
+       };
+       return newData;
+     });
+   };
 
   /**
    * 저장 버튼 클릭
@@ -196,12 +274,13 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
         }
       });
 
-      // ✅ API 호출
-      const saveData = {
-        orderCd: detailData.orderCd,  // ✅ detailData 사용
-        orderSeq: detailData.orderSeq,
-        ...editableData
-      };
+      // ✅ editableData 배열의 각 항목에 판촉팀 정보 추가
+      // 모든 제품에 대해 동일한 판촉팀과 판촉사원 정보가 적용됨
+      const saveData = editableData.map(item => ({
+        ...item,                                    // 기존 편집 데이터 (orderCd, orderSeq, actualHob 등)
+        promoTeamCd: selectedPromoTeamCd,            // 선택된 판촉팀 코드
+        promoPersonNm: selectedPromoPersonNm        // 입력된 판촉사원 이름
+      }));
 
       await axios.post('/api/promo/savePromoDetail', saveData);
 
@@ -212,7 +291,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
         text: '판촉실적이 성공적으로 저장되었습니다.',
         confirmButtonText: '확인'
       }).then(() => {
-        onSave(); // 목록 재조회
+        //onSave(); // 목록 재조회
         // ✅ 모달을 닫지 않고 현재 데이터만 다시 조회
         const currentRowData = originalData.find(item => item.orderCd === currentOrderCd);
         if (currentRowData) {
@@ -243,20 +322,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
   const isPreviousDisabled = currentIndex <= 0 || loading;
   const isNextDisabled = currentIndex >= orderCdList.length - 1 || loading;
 
-  // ✅ 데이터가 없으면 로딩 표시
-  if (loading || !detailData) {
-    return (
-      <Modal show={show} onHide={onHide} size="xl" centered>
-        <Modal.Body className="text-center py-5">
-          <div className="spinner-border text-primary mb-3" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <div>데이터를 불러오는 중...</div>
-        </Modal.Body>
-      </Modal>
-    );
-  }
-
   return (
     <Modal 
       show={show} 
@@ -273,37 +338,55 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
           <small className="text-muted ms-3" style={{ fontSize: '14px' }}>
             ({currentIndex + 1} / {orderCdList.length})
           </small>
+          {/* ✅ 조회 중 표시 - 로딩 상태일 때만 표시 */}
+          {loading && (
+            <small className="ms-3 text-primary" style={{ fontSize: '14px' }}>
+              <span 
+                className="spinner-border spinner-border-sm me-1" 
+                role="status" 
+                style={{ 
+                  width: '0.9rem', 
+                  height: '0.9rem',
+                  borderWidth: '0.15em',
+                  verticalAlign: 'middle'
+                }}
+              />
+              <span style={{ verticalAlign: 'middle' }}>조회 중...</span>
+            </small>
+          )}
         </Modal.Title>
-        
-        {/* ✅ 이전/다음 버튼 추가 */}
-        <div className="ms-auto me-3">
-          <ButtonGroup size="sm">
-            <Button 
-              variant="outline-primary" 
-              onClick={handlePrevious}
-              disabled={isPreviousDisabled}
-              title="이전 주문건"
-            >
-              <i className="bi bi-chevron-left"></i> 이전
-            </Button>
-            <Button 
-              variant="outline-primary" 
-              onClick={handleNext}
-              disabled={isNextDisabled}
-              title="다음 주문건"
-            >
-              다음 <i className="bi bi-chevron-right"></i>
-            </Button>
-          </ButtonGroup>
-        </div>
       </Modal.Header>
 
-      <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+      <Modal.Body style={{ maxHeight: '75vh', overflowY: 'auto' }}>
         {/* ✅ 대리점 및 판촉팀 정보 */}
         <div className="border rounded p-3 mb-3 bg-light">
           <h6 className="fw-bold mb-3">
             <i className="bi bi-building me-2"></i>
             대리점 및 판촉팀 정보
+            {/* ✅ 저장/마감 상태 표시 */}
+            {detailData && detailData.length > 0 && (
+              <>
+                {/* 저장완료 표시 */}
+                {detailData[0].saveYn === '1' && (
+                  <span className="badge bg-success ms-2" style={{ fontSize: '12px' }}>
+                    저장완료
+                  </span>
+                )}
+                
+                {/* 마감 표시 */}
+                {detailData[0].masterCloseYn === '1' && (
+                  <>
+                    {/* 저장완료가 있으면 구분자 추가 */}
+                    {detailData[0].saveYn === '1' && (
+                      <span className="text-muted mx-1" style={{ fontSize: '12px' }}> / </span>
+                    )}
+                    <span className="badge bg-danger ms-1" style={{ fontSize: '12px'}}>
+                      마감
+                    </span>
+                  </>
+                )}
+              </>
+            )}
           </h6>
           <Row>
             <Col md={3}>
@@ -312,7 +395,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={`${detailData.agencyNm || ''} (${detailData.agencyCd || ''})`}
+                  value={`${detailData[0].agencyNm || ''} (${detailData[0].agencyCd || ''})`}
                   readOnly
                   className="bg-white"
                 />
@@ -324,7 +407,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.teamPersonNm || ''}
+                  value={detailData[0].teamPersonNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -333,13 +416,23 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
             <Col md={3}>
               <Form.Group className="mb-2">
                 <Form.Label className="small fw-bold mb-1">판촉팀</Form.Label>
-                <Form.Control
-                  type="text"
+                <Form.Select
                   size="sm"
-                  value={detailData.promoTeamNm || ''}
-                  readOnly
-                  className="bg-white"
-                />
+                  value={selectedPromoTeamCd}
+                  onChange={(e) => {
+                    setSelectedPromoTeamCd(e.target.value);
+                  }}
+                  style={{
+                    borderColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#dc3545' : '',
+                    backgroundColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#fff5f5' : ''
+                  }}
+                >
+                  {promoTeamList.map((promoTeam) => (
+                    <option key={promoTeam.promoTeamCd} value={promoTeam.promoTeamCd}>
+                      {promoTeam.promoTeamNm}
+                    </option>
+                  ))}
+                </Form.Select>
               </Form.Group>
             </Col>
             <Col md={3}>
@@ -348,8 +441,10 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.promoPersonNm || ''}
-                  readOnly
+                  value={selectedPromoPersonNm}
+                  onChange={(e) => {
+                    setSelectedPromoPersonNm(e.target.value);
+                  }}
                   className="bg-white"
                 />
               </Form.Group>
@@ -370,7 +465,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.orderCd || ''}
+                  value={detailData[0].orderCd || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -382,7 +477,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.orderUserNm || ''}
+                  value={detailData[0].orderUserNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -394,7 +489,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.orderAddress1 || ''}
+                  value={detailData[0].orderAddress1 || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -406,9 +501,41 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData.orderCellPhone || ''}
+                  value={detailData[0].orderCellPhone || ''}
                   readOnly
                   className="bg-white"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row>
+            <Col md={3}>
+              <Form.Group className="mb-2">
+                <Form.Label className="small fw-bold mb-1">주문일자</Form.Label>
+                <Form.Control
+                  type="text"
+                  size="sm"
+                  value={detailData[0].orderDt || ''}
+                  readOnly
+                  className="bg-white"
+                />
+              </Form.Group>
+            </Col>
+            <Col md={3}>
+              <Form.Group className="mb-2">
+                <Form.Label className="small fw-bold mb-1">이중기재 여부</Form.Label>
+                <Form.Control
+                  type="text"
+                  size="sm"
+                  value={detailData[0].duplicateNm || ''}
+                  readOnly
+                  className="bg-white"
+                  style={{
+                    borderColor: (detailData[0].duplicateYn === '1') ? '#dc3545' : '',
+                    backgroundColor: (detailData[0].duplicateYn === '1') ? '#fff5f5' : '',
+                    color: (detailData[0].duplicateYn === '1') ? '#dc3545' : '',
+                    fontWeight: (detailData[0].duplicateYn === '1') ? 'bold' : 'normal'
+                  }}
                 />
               </Form.Group>
             </Col>
@@ -424,162 +551,137 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
           <div className="table-responsive">
             <Table bordered hover size="sm" className="mb-0">
               <thead className="table-light">
-                <tr className="text-center small">
-                  <th style={{ width: '150px' }}>상품</th>
-                  <th style={{ width: '80px' }}>1회<br/>투입<br/>수량</th>
-                  <th style={{ width: '80px' }}>주간<br/>총수량</th>
-                  <th style={{ width: '100px' }}>용품기간</th>
-                  <th style={{ width: '100px' }}>계약구분</th>
-                  <th style={{ width: '80px' }}>판촉홉<br/>/중담품</th>
-                  <th style={{ width: '80px' }}>본사홉<br/>/대리점홉</th>
-                  <th style={{ width: '100px' }}>마감홉수</th>
-                  <th style={{ width: '80px' }}>해피콜<br/>조정홉수</th>
-                  <th style={{ width: '120px' }}>수정사유</th>
-                  <th style={{ width: '100px' }}>해피콜<br/>날짜/결과</th>
+                <tr className="text-center align-middle small">
+                  <th style={{ width: '220px' }}>상품</th>
+                  <th style={{ width: '50px' }}>1회<br/>투입<br/>수량</th>
+                  <th style={{ width: '80px' }}>배송요일</th>
+                  <th style={{ width: '50px' }}>주간<br/>총수량</th>
+                  <th style={{ width: '70px' }}>음용기간</th>
+                  <th style={{ width: '60px' }}>계약구분</th>
+                  <th style={{ width: '120px' }}>판촉물 / 중단일<br/>(중단사유)</th>
+                  <th style={{ width: '80px' }}>마감홉수</th>
+                  
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{detailData.goodsOptionNm || ''}</td>
-                  <td className="text-center">{detailData.quantity || ''}</td>
-                  <td className="text-center">{detailData.weekQty || ''}</td>
-                  <td className="text-center">{detailData.contractPeriod || ''}개월</td>
-                  <td className="text-center">{detailData.orderKindCd || ''}</td>
-                  <td className="text-center">{detailData.agencyHob || ''}</td>
-                  <td className="text-center">{detailData.hqHob || ''}</td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      step="0.1"
+                {/* ✅ detailData 배열을 map으로 반복 렌더링 */}
+                {detailData.map((item, index) => (
+                  <tr key={index}>
+                  <td className="text-center">{item.goodsOptionNm || ''}</td>
+                  <td className="text-center">{item.quantity || ''}</td>
+                  <td className="text-center">{item.weekRemark || ''}</td>
+                  <td className="text-center">{item.weekQty || ''}</td>
+                  <td className="text-center">{item.contractPeriod || ''} 개월</td>
+                  <td className="text-center">
+                    <Form.Select
                       size="sm"
-                      value={editableData.actualHob}
-                      onChange={(e) => handleInputChange('actualHob', e.target.value)}
-                      className="text-center"
-                    />
+                      value={editableData[index]?.orderKindCd || '1'}
+                      onChange={(e) => handleInputChange(index, 'orderKindCd', e.target.value)}
+                      style={{ 
+                        fontSize: '14px',
+                        padding: '2px 6px'
+                      }}
+                    >
+                      <option value="1">신규</option>
+                      <option value="2">재계약</option>
+                      <option value="3">무계약</option>
+                    </Form.Select>
                   </td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      step="0.1"
-                      size="sm"
-                      value={editableData.hcHob}
-                      onChange={(e) => handleInputChange('hcHob', e.target.value)}
-                      className="text-center"
-                    />
+                  {/* <td className="text-center">
+                    {item.stopReason && item.promoGiftNm ? `${item.stopReason} / ${item.promoGiftNm}` : item.stopReason || item.promoGiftNm || ''}
+                  </td> */}
+                  <td className="text-center">
+                    {
+                      // ✅ promoGiftNm / stopDt / stopReason 을 배열로 만들고
+                      // 값이 있는 것만 필터링한 후 / 로 연결
+                      [
+                        item.promoGiftNm,
+                        item.stopDt,
+                        item.stopReason
+                      ]
+                      .filter(value => value)  // 빈 값 제거 (null, undefined, '' 제외)
+                      .join(' / ')             // / 로 연결
+                      || ''                     // 모두 없으면 빈 문자열
+                    }
                   </td>
                   <td>
                     <Form.Control
                       as="textarea"
                       rows={1}
                       size="sm"
-                      value={editableData.saveRemark}
-                      onChange={(e) => handleInputChange('saveRemark', e.target.value)}
-                      placeholder="수정사유 입력"
+                      value={editableData[index]?.actualHob || ''}
+                      onChange={(e) => handleInputChange(index, 'actualHob', e.target.value)}
+                      type="number"
+                      className="text-center"
+                      style={{ 
+                        textAlign: 'center',
+                        MozAppearance: 'textfield'  // Firefox에서 스피너 제거
+                      }}
                     />
                   </td>
-                  <td className="text-center small">
-                    {detailData.hcDt || ''}<br/>
-                    <Form.Select
-                      size="sm"
-                      value={editableData.hcStatus}
-                      onChange={(e) => handleInputChange('hcStatus', e.target.value)}
-                      style={{ fontSize: '11px' }}
-                    >
-                      <option value="">선택</option>
-                      <option value="10">미확인</option>
-                      <option value="11">정상</option>
-                      <option value="12">부재중</option>
-                      <option value="13">상이건</option>
-                      <option value="14">결번</option>
-                      <option value="15">내용변경</option>
-                    </Form.Select>
-                  </td>
                 </tr>
+                ))}
+                
               </tbody>
             </Table>
           </div>
         </div>
-
-        {/* ✅ 해피콜 상세 정보 */}
-        <div className="border rounded p-3">
-          <h6 className="fw-bold mb-3">
-            <i className="bi bi-telephone me-2"></i>
-            해피콜 상세 정보
-          </h6>
-          <Row>
-            <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label className="small fw-bold mb-1">해피콜 상담내용</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  size="sm"
-                  value={editableData.hcContent}
-                  onChange={(e) => handleInputChange('hcContent', e.target.value)}
-                  placeholder="해피콜 상담내용 입력"
-                />
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-2">
-                <Form.Label className="small fw-bold mb-1">담당 해피콜 결과확인</Form.Label>
-                <Form.Select
-                  size="sm"
-                  value={editableData.hcActionStatus}
-                  onChange={(e) => handleInputChange('hcActionStatus', e.target.value)}
-                >
-                  <option value="">선택</option>
-                  <option value="10">미확인</option>
-                  <option value="11">정상</option>
-                  <option value="12">부재중</option>
-                  <option value="13">상이건</option>
-                  <option value="14">결번</option>
-                  <option value="15">내용변경</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={3}>
-              <Form.Group className="mb-2">
-                <Form.Label className="small fw-bold mb-1">중단일</Form.Label>
-                <Form.Control
-                  type="text"
-                  size="sm"
-                  value={detailData.stopDt || ''}
-                  readOnly
-                  className="bg-white"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-          <Row>
-            <Col md={12}>
-              <Form.Group>
-                <Form.Label className="small fw-bold mb-1">담당 의견/대리점 소명</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  size="sm"
-                  value={editableData.hcAction}
-                  onChange={(e) => handleInputChange('hcAction', e.target.value)}
-                  placeholder="담당 의견 또는 대리점 소명 입력"
-                />
-              </Form.Group>
-            </Col>
-          </Row>
-        </div>
       </Modal.Body>
 
       <Modal.Footer className="bg-light">
-        <Button variant="secondary" onClick={onHide}>
-          <i className="bi bi-x-circle me-1"></i>
-          닫기
-        </Button>
-        <Button variant="primary" onClick={handleSave}>
-          <i className="bi bi-save me-1"></i>
-          저장
-        </Button>
+        <div className="d-flex justify-content-between align-items-center w-100">
+          {/* 왼쪽: 이전/다음 버튼 */}
+          <div className="d-flex gap-2">
+            <Button 
+              variant="outline-secondary" 
+              onClick={handlePrevious}
+              disabled={isPreviousDisabled}
+              title="이전 주문건"
+              style={{ width: '120px' }}
+            >
+              <i className="bi bi-chevron-double-left me-1">
+                <FaAngleDoubleLeft className="me-1" />
+                이전
+              </i>
+            </Button>
+            <Button 
+              variant="outline-secondary" 
+              onClick={handleNext}
+              disabled={isNextDisabled}
+              title="다음 주문건"
+              style={{ width: '120px' }}
+            >
+              
+              <i className="bi bi-chevron-double-right ms-1">
+                <FaAngleDoubleRight className="me-1" />
+                다음 
+              </i>
+            </Button>
+          </div>
+          
+          {/* 오른쪽: 닫기/저장 버튼 */}
+          <div className="d-flex gap-2">
+            <Button 
+              variant="secondary" 
+              onClick={onHide}
+              style={{ width: '120px' }}
+            >
+              <i className="bi bi-x-circle me-1"></i>
+              닫기
+            </Button>
+            <Button 
+              variant="primary" 
+              onClick={handleSave}
+              style={{ width: '120px' }}
+            >
+              <i className="bi bi-save me-1"></i>
+              저장
+            </Button>
+          </div>
+        </div>
       </Modal.Footer>
     </Modal>
+
   );
 };
 
