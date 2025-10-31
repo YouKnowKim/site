@@ -50,6 +50,24 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
     fetchPromoTeamList();
   }, []);
 
+  /**
+   * ✅ promoTeamList가 로드된 후 판촉팀 코드 설정
+   * detailData가 있고, promoTeamList가 로드되었을 때만 실행
+   */
+  useEffect(() => {
+    // ✅ 판촉팀 목록과 상세 데이터가 모두 준비되었을 때
+    if (promoTeamList.length > 0 && detailData.length > 0) {
+      const promoTeamCd = detailData[0].promoTeamCd;
+      
+      // ✅ null, undefined, 빈 문자열인 경우 '-1'(배치X)로 처리
+      if (!promoTeamCd || promoTeamCd === '' || promoTeamCd === null || promoTeamCd === undefined) {
+        setSelectedPromoTeamCd('-1');
+      } else {
+        setSelectedPromoTeamCd(promoTeamCd);
+      }
+    }
+  }, [promoTeamList, detailData]);  // ✅ 두 값이 변경될 때마다 실행
+
   // 대리점 목록 조회 함수
   const fetchPromoTeamList = async () => {
     try {
@@ -144,13 +162,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
       const dataArray = Array.isArray(response.data) ? response.data : [response.data];
       setDetailData(dataArray);
 
-      // ✅ 첫 번째 데이터에서 판촉팀 코드 추출하여 select에 세팅
-      if (dataArray.length > 0 && dataArray[0].promoTeamCd) {
-        setSelectedPromoTeamCd(dataArray[0].promoTeamCd);
-      } else {
-        // 데이터가 없거나 판촉팀 정보가 없으면 초기화
-        setSelectedPromoTeamCd('');
-      }
 
       // ✅ 첫 번째 데이터에서 판촉팀 코드 추출하여 select에 세팅
       if (dataArray.length > 0 && dataArray[0].promoPersonNm) {
@@ -232,38 +243,87 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
   };
 
   /**
-   * 입력값 변경 핸들러
+   * ✅ 마감홉수 입력값 변경 핸들러 (숫자만 허용)
+   * @param {number} index - 배열 인덱스
+   * @param {string} field - 필드명
+   * @param {string} value - 입력값
    */
   const handleInputChange = (index, field, value) => {
-     setEditableData(prev => {
-       const newData = [...prev];
-       newData[index] = {
-         ...newData[index],
-         [field]: value
-       };
-       return newData;
-     });
-   };
+    // ✅ actualHob 필드인 경우 숫자 검증
+    if (field === 'actualHob') {
+      // 빈 값은 허용
+      if (value === '') {
+        setEditableData(prev => {
+          const newData = [...prev];
+          newData[index] = {
+            ...newData[index],
+            [field]: ''
+          };
+          return newData;
+        });
+        return;
+      }
+
+      // ✅ 숫자와 소수점만 허용하는 정규식
+      const numberRegex = /^[0-9]*\.?[0-9]*$/;
+      
+      // 정규식 통과하지 못하면 무시
+      if (!numberRegex.test(value)) {
+        return;
+      }
+
+      // ✅ 소수점 첫째자리까지만 허용
+      const parts = value.split('.');
+      if (parts.length > 2) {
+        return; // 소수점이 2개 이상이면 무시
+      }
+      if (parts[1] && parts[1].length > 1) {
+        return; // 소수점 둘째자리 입력 시도 무시
+      }
+
+      // ✅ 최대값 검증 (999.9)
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue) && numValue > 999.9) {
+        Swal.fire({
+          icon: 'warning',
+          title: '입력 오류',
+          text: '마감홉수는 999.9를 초과할 수 없습니다.',
+          confirmButtonText: '확인'
+        });
+        return;
+      }
+    }
+
+    // ✅ 값 업데이트
+    setEditableData(prev => {
+      const newData = [...prev];
+      newData[index] = {
+        ...newData[index],
+        [field]: value
+      };
+      return newData;
+    });
+  };
 
   /**
    * 저장 버튼 클릭
    */
   const handleSave = async () => {
     try {
-      // ✅ 저장 확인
-      const result = await Swal.fire({
-        icon: 'question',
-        title: '저장 확인',
-        text: '수정된 내용을 저장하시겠습니까?',
-        showCancelButton: true,
-        confirmButtonText: '저장',
-        cancelButtonText: '취소',
-        confirmButtonColor: '#28a745'
-      });
+      // // ✅ 저장 확인
+      // const result = await Swal.fire({
+      //   icon: 'question',
+      //   title: '저장 확인',
+      //   text: '수정된 내용을 저장하시겠습니까?',
+      //   showCancelButton: true,
+      //   confirmButtonText: '저장',
+      //   cancelButtonText: '취소',
+      //   confirmButtonColor: '#28a745'
+      // });
 
-      if (!result.isConfirmed) {
-        return;
-      }
+      // if (!result.isConfirmed) {
+      //   return;
+      // }
 
       // ✅ 로딩 표시
       Swal.fire({
@@ -289,7 +349,9 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
         icon: 'success',
         title: '저장 완료',
         text: '판촉실적이 성공적으로 저장되었습니다.',
-        confirmButtonText: '확인'
+        confirmButtonText: '확인',
+        timer: 2000,  // ✅ 0.5초 후 자동 종료 (밀리초 단위)
+        timerProgressBar: true  // ✅ 타이머 진행 바 표시 (선택사항)
       }).then(() => {
         //onSave(); // 목록 재조회
         // ✅ 모달을 닫지 않고 현재 데이터만 다시 조회
@@ -331,7 +393,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
       backdrop="static"
     >
       <Modal.Header closeButton className="bg-light">
-        <Modal.Title>
+        <Modal.Title style={{ fontSize: '1.3rem' }}>
           <i className="bi bi-card-checklist me-2"></i>
           판촉실적 내역
           {/* ✅ 현재 위치 표시 */}
@@ -424,7 +486,9 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                   }}
                   style={{
                     borderColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#dc3545' : '',
-                    backgroundColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#fff5f5' : ''
+                    backgroundColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#fff5f5' : '',
+                    borderWidth: '2px',
+                    boxShadow: '0 0 0 0.2rem rgba(0, 102, 204, 0.15)'  // 외곽 광선 효과
                   }}
                 >
                   {promoTeamList.map((promoTeam) => (
@@ -446,6 +510,11 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                     setSelectedPromoPersonNm(e.target.value);
                   }}
                   className="bg-white"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderWidth: '2px',
+                    boxShadow: '0 0 0 0.2rem rgba(0, 102, 204, 0.15)'  // 외곽 광선 효과
+                  }}
                 />
               </Form.Group>
             </Col>
@@ -552,13 +621,13 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
             <Table bordered hover size="sm" className="mb-0">
               <thead className="table-light">
                 <tr className="text-center align-middle small">
-                  <th style={{ width: '220px' }}>상품</th>
+                  <th style={{ width: '200px' }}>상품</th>
                   <th style={{ width: '50px' }}>1회<br/>투입<br/>수량</th>
                   <th style={{ width: '80px' }}>배송요일</th>
                   <th style={{ width: '50px' }}>주간<br/>총수량</th>
                   <th style={{ width: '70px' }}>음용기간</th>
                   <th style={{ width: '60px' }}>계약구분</th>
-                  <th style={{ width: '120px' }}>판촉물 / 중단일<br/>(중단사유)</th>
+                  <th style={{ width: '140px' }}>판촉물 / 중단일<br/>(중단사유)</th>
                   <th style={{ width: '80px' }}>마감홉수</th>
                   
                 </tr>

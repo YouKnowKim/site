@@ -460,11 +460,15 @@ const MilkFileNotSubmit = () => {
 
     try {
 
-      // 로딩 placeholder 설정
-      tabulatorInstance.current.setData([]);
-      tabulatorInstance.current.options.placeholder = 
-        '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem; animation-duration: 0.9s;"></div><div class="fw-bold text-primary fs-5">조회 중...</div></div>';
-      tabulatorInstance.current.redraw();
+      // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
+      if (tabulatorInstance && tabulatorInstance.current) {
+        tabulatorInstance.current.alert(
+          '<div class="text-center py-4">' +
+            '<div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>' +
+            '<div class="fw-bold text-primary fs-5">데이터 조회 중...</div>' +
+          '</div>'
+        );
+      }
 
       const [startDate, endDate] = stdWeek.split('|');
       // 조회 API 호출
@@ -506,6 +510,11 @@ const MilkFileNotSubmit = () => {
         text: '데이터 조회에 실패했습니다.',
         confirmButtonText: '확인'
       });
+    } finally {
+      // ✅ 3. alert 제거
+      if (tabulatorInstance && tabulatorInstance.current) {
+        tabulatorInstance.current.clearAlert();
+      }
     }
   };
 

@@ -246,6 +246,9 @@ const PromotionSettle = () => {
   const [selectedHcActionStatus, setSelectedHcActionStatus] = useState('');
   const [selectedAddCondition, setSelectedAddCondition] = useState('');
   const [originalData, setOriginalData] = useState([]);  // 조회 시점의 원본 데이터 저장
+  // ✅ 1. 현재 선택된 주차의 label을 저장할 state 추가
+  const [currentWeekLabel, setCurrentWeekLabel] = useState('');
+
   // ✅ 모달 관련 state 추가
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
@@ -259,6 +262,7 @@ const PromotionSettle = () => {
     noContractHob: 0,   // 무계약홉수
     reContractHob: 0,   // 재계약홉수
     totalCount: 0,      // ✅ 전체 건수
+    unSavedCount: 0,      // ✅ 저장 건수
     savedCount: 0,      // ✅ 저장 건수
     closedCount: 0      // ✅ 마감 건수
   });
@@ -309,6 +313,22 @@ const PromotionSettle = () => {
     calculateSummary();
   }, [tableData]);
 
+  // ✅ stdWeek 변경 시 해당 label 찾아서 저장
+  useEffect(() => {
+    // ✅ 날짜 검색을 사용하는 경우 label 비우기
+    if (subStartDate || subEndDate) {
+      setCurrentWeekLabel('');
+      return;
+    }
+    
+    if (stdWeek && weekOptions.length > 0) {
+      const selectedWeek = weekOptions.find(week => week.dateRange === stdWeek);
+      if (selectedWeek) {
+        setCurrentWeekLabel(selectedWeek.label);
+      }
+    }
+  }, [stdWeek, weekOptions, subStartDate, subEndDate]);  // ✅ 의존성 배열에 추가
+
   /**
    * 홉수 합계 계산 함수
    */
@@ -320,6 +340,7 @@ const PromotionSettle = () => {
         noContractHob: 0,
         reContractHob: 0,
         totalCount: 0,      // ✅ 추가
+        unSavedCount: 0,      // ✅ 추가
         savedCount: 0,      // ✅ 추가
         closedCount: 0      // ✅ 추가
       });
@@ -330,6 +351,7 @@ const PromotionSettle = () => {
     let contractHob = 0;      // 신규 계약
     let noContractHob = 0;    // 무계약
     let reContractHob = 0;    // 재계약
+    let unSavedCount = 0;       // ✅ 저장 건수
     let savedCount = 0;       // ✅ 저장 건수
     let closedCount = 0;      // ✅ 마감 건수
 
@@ -351,14 +373,13 @@ const PromotionSettle = () => {
         reContractHob += hob;
       }
 
-      // ✅ 저장 건수 계산 (saveYn이 '1' 또는 1인 경우)
-      if (row.saveYn === '1' || row.saveYn === 1) {
-        savedCount++;
-      }
-
-      // ✅ 마감 건수 계산 (masterCloseYn이 '1' 또는 1인 경우)
+      // ✅ 마감, 저장, 미저장 건수 계산
       if (row.masterCloseYn === '1' || row.masterCloseYn === 1) {
         closedCount++;
+      } else if (row.saveYn === '1' || row.saveYn === 1) {
+        savedCount++;
+      } else {
+        unSavedCount++;
       }
 
     });
@@ -369,6 +390,7 @@ const PromotionSettle = () => {
       noContractHob: noContractHob,
       reContractHob: reContractHob,
       totalCount: tableData.length,  // ✅ 전체 건수
+      unSavedCount: unSavedCount,        // ✅ 저장 건수
       savedCount: savedCount,        // ✅ 저장 건수
       closedCount: closedCount       // ✅ 마감 건수
     });
@@ -519,7 +541,6 @@ const PromotionSettle = () => {
       formatter: "rowSelection",  // 체크박스 추가
       titleFormatter: "rowSelection",
       hozAlign: "center",
-      headerSort: false,
       width: 50
     },
     {
@@ -534,26 +555,86 @@ const PromotionSettle = () => {
       field: 'agencyNm',
       width: 85,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        // ✅ 클릭 가능한 스타일 적용
+        const value = cell.getValue() || '';
+        return `
+          <div style="
+            cursor: pointer;
+            color: #0d6efd;
+            text-decoration: underline;
+            font-weight: 500;
+          " 
+          class="promo-dt-cell"
+          title="클릭하여 상세 보기">
+            ${value}
+          </div>
+        `;
+      },
+      cellClick: function(e, cell) {
+        // ✅ 판촉일 클릭 시 상세 팝업 열기
+        const rowData = cell.getRow().getData();
+        handlePromoDtClick(rowData);
+      },
     },
     {
       title: '판촉팀',
       field: 'promoTeamNm',
       width: 85,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '';
+        }
+        
+        // "이중기재" 텍스트가 포함되어 있는지 확인
+        if (value.includes('배치X')) {
+          cell.getElement().style.color = '#dc3545';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      }
     },
     {
       title: '고객',
       field: 'orderUserNm',
       width: 100,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '';
+        }
+        
+        // "이중기재" 텍스트가 포함되어 있는지 확인
+        if (value.includes('이중기재')) {
+          // ✅ 방법 1: HTML 반환 (권장)
+          // return `<span style="color: #dc3545; font-weight: bold;">${value}</span>`;
+          
+          // ✅ 방법 2: cell element의 스타일 직접 수정 (대안)
+          cell.getElement().style.color = '#dc3545';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      }
     },
     {
       title: '상품',
       field: 'goodsOptionNm',
-      width: 200,
+      width: 220,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
@@ -565,6 +646,22 @@ const PromotionSettle = () => {
       headerHozAlign: 'center',
       titleFormatter: function() {
         return '주간<br/>총수량';  // HTML로 줄바꿈
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
+      }
+    },
+    {
+      title: '계약구분',
+      field: 'orderKindCdNm',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '계약<br/>구분';  // HTML로 줄바꿈
       }
     },
     {
@@ -572,7 +669,13 @@ const PromotionSettle = () => {
       field: 'contractPeriod',
       width: 80,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
+      }
     },
     {
       title: '계약선물',
@@ -586,7 +689,36 @@ const PromotionSettle = () => {
       field: 'totStatus',
       width: 80,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '';
+        }
+        
+        if (value === '저장') {
+          cell.getElement().style.color = '#28a745';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+
+        if (value === '마감') {
+          cell.getElement().style.color = '#6c757d';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+
+        if (value === '미저장') {
+          cell.getElement().style.color = '#fd7e14';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      }
     },
     {
       title: '마감홉수',
@@ -618,9 +750,9 @@ const PromotionSettle = () => {
       },
       // ✅ 엑셀 다운로드 시 숫자로 저장
       accessorDownload: function(value) {
-        if (value === null || value === undefined || value === '') return null;
+        if (value === null || value === undefined || value === '') return 0;
         const number = parseFloat(value);
-        return isNaN(number) ? null : number;
+        return isNaN(number) ? 0 : number;
       }
     },
     {
@@ -670,20 +802,23 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '제품코드',
+      title: '제품코드(본사)',
       field: 'misCd',
       width: 100,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '제품코드<br/>(본사)';  // HTML로 줄바꿈
+      }
     },
     {
-      title: '제품코드(밀크방)',
+      title: '제품코드(대리점)',
       field: 'goodsOptionCdOrigin',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center',
       titleFormatter: function() {
-        return '제품코드<br/>(밀크방)';  // HTML로 줄바꿈
+        return '제품코드<br/>(대리점)';  // HTML로 줄바꿈
       }
     },
     {
@@ -695,7 +830,13 @@ const PromotionSettle = () => {
       formatter: function(cell) {  // ✅ formatter 추가
         const value = cell.getValue();
         return formatNumberWithComma(value);
-       }
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
+      }
     },
     {
       title: '배송요일',
@@ -709,17 +850,8 @@ const PromotionSettle = () => {
       field: 'orderKind',
       width: 80,
       hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '계약구분',
-      field: 'orderKindCdNm',
-      width: 80,
-      hozAlign: 'center',
       headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '계약<br/>구분';  // HTML로 줄바꿈
-      }
+      visible:false
     },
     {
       title: '해피콜 조정홉수',
@@ -729,6 +861,12 @@ const PromotionSettle = () => {
       headerHozAlign: 'center',
       titleFormatter: function() {
         return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
       }
     },
     {
@@ -741,7 +879,7 @@ const PromotionSettle = () => {
     {
       title: '주소',
       field: 'orderAddress1',
-      width: 100,
+      width: 250,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
@@ -878,6 +1016,12 @@ const PromotionSettle = () => {
       headerHozAlign: 'center',
       titleFormatter: function() {
         return '해피콜 담당<br/>확인 홉수';  // HTML로 줄바꿈
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
       }
     },
     {
@@ -895,11 +1039,27 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '주차',
-      field: 'teamNm',
+      title: '대리점코드',
+      field: 'agencyCd',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
+    },
+    {
+      title: '주차',
+      field: 'weekNum',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        // ✅ 현재 선택된 주차 label 표시
+        return currentWeekLabel ? currentWeekLabel.substring(0, 3) : '';
+      },
+      // ✅ 엑셀 다운로드 시에도 동일한 형식으로 출력
+      accessorDownload: function(value, data, type, params, column) {
+        // 현재 선택된 주차 label의 앞 3글자 반환 (예: "1주차")
+        return currentWeekLabel ? currentWeekLabel.substring(0, 3) : '';
+      }
     },
     {
       title: '1회투입수량',
@@ -927,8 +1087,21 @@ const PromotionSettle = () => {
       hozAlign: 'center',
       headerHozAlign: 'center',
       visible: false
+    },
+    {
+      title: 'orderCd',
+      field: 'orderCd',
+      visible: false
+    },
+    {
+      title: 'orderSeq',
+      field: 'orderSeq',
+      visible: false
     }
   ];
+
+  // ✅ 한 줄로 모든 컬럼의 정렬 비활성화
+  columns.forEach(col => col.headerSort = false);
 
   // 엑셀 업로드 함수
   const handleExcelUpload = () => {
@@ -1100,11 +1273,15 @@ const PromotionSettle = () => {
 
     try {
 
-      // 로딩 placeholder 설정
-      tabulatorInstance.current.setData([]);
-      tabulatorInstance.current.options.placeholder = 
-        '<div class="text-center py-5"><div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem; animation-duration: 0.9s;"></div><div class="fw-bold text-primary fs-5">조회 중...</div></div>';
-      tabulatorInstance.current.redraw();
+      // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
+      if (tabulatorInstance && tabulatorInstance.current) {
+        tabulatorInstance.current.alert(
+          '<div class="text-center py-4">' +
+            '<div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>' +
+            '<div class="fw-bold text-primary fs-5">데이터 조회 중...</div>' +
+          '</div>'
+        );
+      }
       let [startDate, endDate] = stdWeek.split('|');
 
       if (subStartDate !== '' || subEndDate !== '') {
@@ -1183,6 +1360,11 @@ const PromotionSettle = () => {
         text: '데이터 조회에 실패했습니다.',
         confirmButtonText: '확인'
       });
+    } finally {
+      // ✅ 3. alert 제거
+      if (tabulatorInstance && tabulatorInstance.current) {
+        tabulatorInstance.current.clearAlert();
+      }
     }
   };
 
@@ -1211,34 +1393,102 @@ const PromotionSettle = () => {
       return;
     }
 
-    // ✅ 변경된 데이터만 추출
+    // ✅ 1. 변경된 데이터 추출
     const changedData = getChangedData(originalData, currentData);
 
-    // ✅ 변경된 데이터가 없으면 경고
-    if (changedData.length === 0) {
+    // ✅ 2. 체크박스로 선택된 데이터 추출
+    const selectedRows = tabulatorInstance.current.getSelectedData();
+
+    // ✅ 3. 두 가지 데이터를 합치고 중복 제거
+    // Map을 사용하여 orderCd + orderSeq를 키로 중복 제거
+    const saveDataMap = new Map();
+
+    // 변경된 데이터 추가
+    changedData.forEach(row => {
+      const key = `${row.orderCd}_${row.orderSeq}`;
+      saveDataMap.set(key, {
+        ...row,
+        isChanged: true,
+        isSelected: false
+      });
+    });
+
+    // 선택된 데이터 추가 (이미 변경된 데이터는 isSelected를 true로 업데이트)
+    selectedRows.forEach(row => {
+      const key = `${row.orderCd}_${row.orderSeq}`;
+      if (saveDataMap.has(key)) {
+        // 이미 변경된 데이터인 경우 선택 플래그만 추가
+        const existingRow = saveDataMap.get(key);
+        saveDataMap.set(key, {
+          ...existingRow,
+          isSelected: true
+        });
+      } else {
+        // 변경되지 않았지만 선택된 데이터
+        saveDataMap.set(key, {
+          ...row,
+          isChanged: false,
+          isSelected: true
+        });
+      }
+    });
+
+    console.log("saveDataMap : ", saveDataMap);
+
+    // ✅ 4. 최종 저장할 데이터 배열 생성
+    const dataToSave = Array.from(saveDataMap.values());
+
+    // ✅ 저장할 데이터가 없으면 경고
+    if (dataToSave.length === 0) {
       Swal.fire({
         icon: 'info',
         title: '알림',
-        text: '변경된 데이터가 없습니다.',
+        text: '변경되거나 선택된 데이터가 없습니다.',
         confirmButtonText: '확인'
       });
       return;
     }
 
-    // ✅ 변경 내역 표시와 함께 확인 다이얼로그
+    // ✅ 5. 통계 계산
+    const changedCount = dataToSave.filter(row => row.isChanged).length;
+    const selectedOnlyCount = dataToSave.filter(row => !row.isChanged && row.isSelected).length;
+    const bothCount = dataToSave.filter(row => row.isChanged && row.isSelected).length;
+
+    // ✅ 6. 상세 정보와 함께 확인 다이얼로그
     const result = await Swal.fire({
       icon: 'question',
       title: '저장 확인',
       html: `
-        <div style="text-align: left;">
-          <p><strong>총 ${currentData.length}건</strong> 중 <strong style="color: #dc3545;">${changedData.length}건</strong>이 변경되었습니다.</p>
-          <p>변경된 데이터만 저장하시겠습니까?</p>
+        <div style="text-align: left; padding: 10px;">
+          <p style="margin-bottom: 15px; font-size: 15px;">
+            <strong>총 ${dataToSave.length}건</strong>의 데이터를 저장하시겠습니까?
+          </p>
+          <div style="background-color: #f8f9fa; padding: 12px; border-radius: 5px; margin-bottom: 10px;">
+            <p style="margin: 5px 0; font-size: 14px;">
+              • 변경된 데이터: <strong style="color: #dc3545;">${changedCount}건</strong>
+            </p>
+            <p style="margin: 5px 0; font-size: 14px;">
+              • 체크박스 선택: <strong style="color: #0d6efd;">${selectedRows.length}건</strong>
+            </p>
+            ${bothCount > 0 ? `
+            <p style="margin: 5px 0; font-size: 14px; color: #6c757d;">
+              ※ 변경 + 선택: ${bothCount}건 (중복 제거됨)
+            </p>
+            ` : ''}
+          </div>
+          ${selectedOnlyCount > 0 ? `
+          <p style="color: #856404; background-color: #fff3cd; padding: 8px; border-radius: 5px; font-size: 13px; margin-top: 10px;">
+            <i class="bi bi-info-circle-fill"></i>
+            변경되지 않았지만 체크박스로 선택된 ${selectedOnlyCount}건도 함께 저장됩니다.
+          </p>
+          ` : ''}
         </div>
       `,
       showCancelButton: true,
       confirmButtonText: '저장',
       cancelButtonText: '취소',
-      confirmButtonColor: '#28a745'
+      confirmButtonColor: '#28a745',
+      width: '500px'
     });
 
     if (!result.isConfirmed) {
@@ -1256,12 +1506,22 @@ const PromotionSettle = () => {
       });
 
       // ✅ API 호출 - 변경된 데이터만 전송
-      const response = await axios.post('/api/promo/savePromo', changedData);
+      const response = await axios.post('/api/promo/savePromo', dataToSave);
 
       Swal.fire({
         icon: 'success',
         title: '저장 완료',
-        text: `${changedData.length}건의 데이터가 성공적으로 저장되었습니다.`,
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p style="font-size: 15px; margin-bottom: 10px;">
+              <strong>${dataToSave.length}건</strong>의 데이터가 성공적으로 저장되었습니다.
+            </p>
+            <div style="font-size: 13px; color: #6c757d;">
+              <p style="margin: 3px 0;">• 변경된 데이터: ${changedCount}건</p>
+              <p style="margin: 3px 0;">• 선택된 데이터: ${selectedRows.length}건</p>
+            </div>
+          </div>
+        `,
         confirmButtonText: '확인'
       }).then(() => {
         // ✅ 저장 후 목록 재조회 (원본 데이터도 갱신됨)
@@ -1292,7 +1552,8 @@ const PromotionSettle = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '435px'
+    height: '435px',
+    headerSort: false  // ✅ 전체 정렬 비활성화
   };
 
   return (
@@ -1640,39 +1901,73 @@ const PromotionSettle = () => {
               <div style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '15px',
+                fontSize: '15px'
               }}>
                 <span style={{ 
-                  color: '#495057', 
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                  marginRight: '5px'
+                  color: '#6c757d', 
+                  fontWeight: 'bold'
                 }}>
                   |
                 </span>
                 
-                <Badge 
-                  bg="primary" 
-                  style={{ 
-                    fontSize: '13px', 
-                    padding: '6px 12px',
-                    fontWeight: '600'
-                  }}
-                >
-                  전체홉수: {summaryData.totalHob.toFixed(1)}
-                </Badge>
-                
-                <Badge 
-                  bg="success" 
-                  style={{ 
-                    fontSize: '13px', 
-                    padding: '6px 12px',
-                    fontWeight: '600'
-                  }}
-                >
-                  계약: {summaryData.contractHob.toFixed(1)}
-                </Badge>
+                {/* 홉수 정보 */}
+                <span style={{ color: '#0d6efd', fontWeight: '500' }}>
+                  전체홉수: <strong>{summaryData.totalHob.toFixed(1)}</strong> 홉
+                </span>
 
+                <span style={{fontWeight: '500' }}>
+                  <strong>{'('}</strong>
+                </span>
+                
+                <span style={{fontWeight: '500' }}>
+                  신규: <strong>{summaryData.contractHob.toFixed(1)}</strong> 홉
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  재계약: <strong>{summaryData.reContractHob.toFixed(1)}</strong> 홉
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  무계약: <strong>{summaryData.noContractHob.toFixed(1)}</strong> 홉
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  <strong>{')'}</strong>
+                </span>
+
+                <span style={{ 
+                  color: '#6c757d', 
+                  fontWeight: 'bold',
+                  margin: '0 5px'
+                }}>
+                  |
+                </span>
+
+                {/* 건수 정보 */}
+                <span style={{ color: '#0d6efd', fontWeight: '500' }}>
+                  전체: <strong>{summaryData.totalCount}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  <strong>{'('}</strong>
+                </span>
+
+                <span style={{ color: '#fd7e14', fontWeight: '500' }}>
+                  미저장: <strong>{summaryData.unSavedCount}</strong> 건
+                </span>
+
+                <span style={{ color: '#28a745', fontWeight: '500' }}>
+                  저장: <strong>{summaryData.savedCount}</strong> 건
+                </span>
+
+                <span style={{ color: '#6c757d', fontWeight: '500' }}>
+                  마감: <strong>{summaryData.closedCount}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  <strong>{')'}</strong>
+                </span>
               </div>
             </Col>
           </Row>

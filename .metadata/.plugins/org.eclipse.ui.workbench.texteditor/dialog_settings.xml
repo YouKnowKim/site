@@ -14,6 +14,12 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="promoPersonNm"/>
+			<item value="update"/>
+			<item value="updateFileList"/>
+			<item value="미저장"/>
+			<item value="detailList"/>
+			<item value="AGENCYHOB"/>
 			<item value="teamNm"/>
 			<item value="origin"/>
 			<item value="checkGoodsOptionNM"/>
@@ -23,12 +29,6 @@
 			<item value="findGoodsList"/>
 			<item value="gift"/>
 			<item value="orderKindCd"/>
-			<item value="nm"/>
-			<item value="hcStatusNm"/>
-			<item value="hcActionStatusNm"/>
-			<item value="hcActionstatus"/>
-			<item value="selectMilkbang"/>
-			<item value="hcStatus"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

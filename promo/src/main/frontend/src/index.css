@@ -70,3 +70,32 @@ code {
   background-color: #fff;
   box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
 }
+
+/* ============================================
+   Tabulator 세로 구분선 강제 적용
+   ============================================ */
+
+/* 헤더 세로 구분선 */
+.tabulator .tabulator-header .tabulator-col {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* 데이터 셀 세로 구분선 */
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row .tabulator-cell {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* hover 상태에서도 세로선 유지 */
+.tabulator .tabulator-row:hover .tabulator-cell {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* 선택된 행에서도 세로선 유지 */
+.tabulator .tabulator-row.tabulator-selected .tabulator-cell {
+  border-right: 1px solid #dee2e6 !important;
+}
+
+/* 편집 중인 셀도 세로선 유지 */
+.tabulator .tabulator-row .tabulator-cell.tabulator-editing {
+  border-right: 1px solid #dee2e6 !important;
+}

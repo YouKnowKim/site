@@ -160,7 +160,7 @@
 	<update id="mergePromoDetail" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANG
 	    <set>
-	        PROMOPERSONNM = #{promoPersonNm},
+	        PROMOPERSONNM = REPLACE(#{promoPersonNm}, ' ', ''),
 	        UPDATEDT = SYSDATE
 	    </set>
 	    WHERE ORDERCD = #{orderCd}
@@ -172,7 +172,7 @@
 		    a.ORDERCD AS orderCd,
 		    a.ORDERDT AS orderDt,
 		    a.ORDERTYPE AS orderType,
-		    a.ORDERUSERNM AS orderUserNm,
+		    case when duplicateYn = 1 then a.ORDERUSERNM || '-이중기재' else a.ORDERUSERNM end AS orderUserNm,
 		    a.ORDERHOMEPHONE AS orderHomePhone,
 		    a.ORDERCELLPHONE AS orderCellPhone,
 		    a.ORDERADDRESS1 AS orderAddress1,
