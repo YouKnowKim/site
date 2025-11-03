@@ -200,6 +200,83 @@ public class PromoController {
 	    }
 	}
 	
+	/**
+	 * 판촉실적 삭제
+	 * @param dataList 삭제할 데이터 목록 (orderCd, orderSeq 필수)
+	 * @return 삭제 결과
+	 */
+	@PostMapping("/deletePromo")
+	public ResponseEntity<Map<String, Object>> deletePromo(@RequestBody List<MilkbangDetailDao> dataList) {
+	    
+	    try {
+	        System.out.println("=== 판촉실적 삭제 시작 ===");
+	        System.out.println("삭제 요청 데이터 개수: " + (dataList != null ? dataList.size() : 0));
+	        
+	        // ✅ 데이터 유효성 검증
+	        if (dataList == null || dataList.isEmpty()) {
+	            System.out.println("삭제할 데이터가 없습니다.");
+	            
+	            Map<String, Object> errorResponse = new HashMap<>();
+	            errorResponse.put("success", false);
+	            errorResponse.put("message", "삭제할 데이터가 없습니다.");
+	            errorResponse.put("deletedCount", 0);
+	            
+	            return ResponseEntity.badRequest().body(errorResponse);
+	        }
+	        
+	        // ✅ orderCd, orderSeq 필수 값 체크
+	        for (MilkbangDetailDao data : dataList) {
+	            if (data.getOrderCd() == null || data.getOrderCd().isEmpty() ||
+	                data.getOrderSeq() == null || data.getOrderSeq().isEmpty()) {
+	                
+	                System.out.println("필수 값(orderCd, orderSeq)이 누락되었습니다.");
+	                
+	                Map<String, Object> errorResponse = new HashMap<>();
+	                errorResponse.put("success", false);
+	                errorResponse.put("message", "삭제할 데이터의 식별자(orderCd, orderSeq)가 누락되었습니다.");
+	                errorResponse.put("deletedCount", 0);
+	                
+	                return ResponseEntity.badRequest().body(errorResponse);
+	            }
+	        }
+	        
+	        // ✅ 서비스 호출
+	        int deletedCount = promoService.deletePromo(dataList);
+	        
+	        System.out.println("삭제 완료 - 성공: " + deletedCount + "건");
+	        System.out.println("=== 판촉실적 삭제 완료 ===");
+	        
+	        // ✅ 성공 응답
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("success", true);
+	        response.put("message", deletedCount + "건의 데이터가 성공적으로 삭제되었습니다.");
+	        response.put("deletedCount", deletedCount);
+	        
+	        return ResponseEntity.ok(response);
+	        
+	    } catch (IllegalArgumentException e) {
+	        System.out.println("잘못된 요청 데이터: " + e.getMessage());
+	        
+	        Map<String, Object> errorResponse = new HashMap<>();
+	        errorResponse.put("success", false);
+	        errorResponse.put("message", e.getMessage());
+	        errorResponse.put("deletedCount", 0);
+	        
+	        return ResponseEntity.badRequest().body(errorResponse);
+	        
+	    } catch (Exception e) {
+	        System.out.println("판촉실적 삭제 중 오류 발생: " + e.getMessage());
+	        e.printStackTrace();
+	        
+	        Map<String, Object> errorResponse = new HashMap<>();
+	        errorResponse.put("success", false);
+	        errorResponse.put("message", "데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
+	        errorResponse.put("deletedCount", 0);
+	        
+	        return ResponseEntity.status(500).body(errorResponse);
+	    }
+	}
+	
 	@PostMapping("/uploadMilkbangFile")
 	public ResponseEntity<?> uploadMilkbangFile(
 	        @RequestParam("file") MultipartFile file,

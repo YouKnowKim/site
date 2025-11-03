@@ -14,7 +14,7 @@ import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import '../styles/PromotionSettle.css'
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
-import { FaSearch, FaSave, FaSearchPlus } from "react-icons/fa";
+import { FaSearch, FaSave, FaTrash, FaTrashAlt } from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -264,7 +264,11 @@ const PromotionSettle = () => {
     totalCount: 0,      // ✅ 전체 건수
     unSavedCount: 0,      // ✅ 저장 건수
     savedCount: 0,      // ✅ 저장 건수
-    closedCount: 0      // ✅ 마감 건수
+    closedCount: 0,      // ✅ 마감 건수
+    abnormalCount: 0,        // 전체 이상 건수 (중복 제거)
+    abnormalBaechiX: 0,      // 배치X 건수
+    abnormalDuplicate: 0,    // 이중기재 건수
+    abnormalUnmatched: 0     // 매칭안됨 건수
   });
 
   // 컴포넌트 마운트 시 대리점 목록 조회
@@ -342,7 +346,11 @@ const PromotionSettle = () => {
         totalCount: 0,      // ✅ 추가
         unSavedCount: 0,      // ✅ 추가
         savedCount: 0,      // ✅ 추가
-        closedCount: 0      // ✅ 추가
+        closedCount: 0,      // ✅ 추가
+        abnormalCount: 0,        // 전체 이상 건수 (중복 제거)
+        abnormalBaechiX: 0,      // 배치X 건수
+        abnormalDuplicate: 0,    // 이중기재 건수
+        abnormalUnmatched: 0     // 매칭안됨 건수
       });
       return;
     }
@@ -354,10 +362,15 @@ const PromotionSettle = () => {
     let unSavedCount = 0;       // ✅ 저장 건수
     let savedCount = 0;       // ✅ 저장 건수
     let closedCount = 0;      // ✅ 마감 건수
+    let abnormalCount = 0;        // 전체 이상 건수 (중복 제거)
+    let abnormalBaechiX = 0;      // 배치X 건수
+    let abnormalDuplicate = 0;    // 이중기재 건수
+    let abnormalUnmatched = 0;     // 매칭안됨 건수
 
     tableData.forEach(row => {
       // actualHob (마감홉수)를 기준으로 합계 계산
       const hob = parseFloat(row.actualHob) || 0;
+      let hasAbnormal = false;
       totalHob += hob;
 
       // orderKind 또는 orderKindCd 기준으로 분류
@@ -382,6 +395,27 @@ const PromotionSettle = () => {
         unSavedCount++;
       }
 
+      // ✅ 각 유형별로 개별 집계
+      if (row.promoTeamNm && row.promoTeamNm.includes('배치X')) {
+        abnormalBaechiX++;
+        hasAbnormal = true;
+      }
+
+      if (row.orderUserNm && row.orderUserNm.includes('이중기재')) {
+        abnormalDuplicate++;
+        hasAbnormal = true;
+      }
+
+      if (row.goodsOptionNm && row.goodsOptionNm.includes('매칭안됨')) {
+        abnormalUnmatched++;
+        hasAbnormal = true;
+      }
+
+      // 전체 이상 건수 (한 행에 여러 이상이 있어도 1건으로만 카운트)
+      if (hasAbnormal) {
+        abnormalCount++;
+      }
+
     });
 
     setSummaryData({
@@ -392,7 +426,11 @@ const PromotionSettle = () => {
       totalCount: tableData.length,  // ✅ 전체 건수
       unSavedCount: unSavedCount,        // ✅ 저장 건수
       savedCount: savedCount,        // ✅ 저장 건수
-      closedCount: closedCount       // ✅ 마감 건수
+      closedCount: closedCount,       // ✅ 마감 건수
+      abnormalCount: abnormalCount,        // 전체 이상 건수 (중복 제거)
+      abnormalBaechiX: abnormalBaechiX,      // 배치X 건수
+      abnormalDuplicate: abnormalDuplicate,    // 이중기재 건수
+      abnormalUnmatched: abnormalUnmatched     // 매칭안됨 건수
     });
   };
 
@@ -535,13 +573,77 @@ const PromotionSettle = () => {
     handleSearch();  // 목록 재조회
   };
 
+  /**
+   * orderCd별로 첫 번째 행인지 확인하는 함수
+   * @param {Object} rowData - 현재 행 데이터
+   * @param {Array} allData - 전체 테이블 데이터
+   * @returns {boolean} 첫 번째 행 여부
+   */
+  const isFirstRowInGroup = (rowData, allData) => {
+    const currentOrderCd = rowData.orderCd;
+    const currentIndex = allData.findIndex(row => 
+      row.orderCd === rowData.orderCd && row.orderSeq === rowData.orderSeq
+    );
+    
+    // 같은 orderCd를 가진 첫 번째 행인지 확인
+    const firstIndex = allData.findIndex(row => row.orderCd === currentOrderCd);
+    return currentIndex === firstIndex;
+  };
+
+  /**
+   * orderCd별로 마지막 행인지 확인하는 함수
+   * @param {Object} rowData - 현재 행 데이터
+   * @param {Array} allData - 전체 테이블 데이터
+   * @returns {boolean} 마지막 행 여부
+   */
+  const isLastRowInGroup = (rowData, allData) => {
+    const currentOrderCd = rowData.orderCd;
+    const currentIndex = allData.findIndex(row => 
+      row.orderCd === rowData.orderCd && row.orderSeq === rowData.orderSeq
+    );
+    
+    // 같은 orderCd를 가진 마지막 행인지 확인
+    const lastIndex = allData.map((row, idx) => row.orderCd === currentOrderCd ? idx : -1)
+      .filter(idx => idx !== -1)
+      .pop();
+    
+    return currentIndex === lastIndex;
+  };
+
+  /**
+   * orderCd가 같은 행의 개수를 세는 함수
+   * @param {string} orderCd - 주문 코드
+   * @param {Array} allData - 전체 테이블 데이터
+   * @returns {number} 같은 orderCd를 가진 행의 개수
+   */
+  const getGroupRowCount = (orderCd, allData) => {
+    return allData.filter(row => row.orderCd === orderCd).length;
+  };
+
   // 테이블 컬럼 정의
   const columns = [
     {
-      formatter: "rowSelection",  // 체크박스 추가
+      formatter: "rowSelection",
       titleFormatter: "rowSelection",
       hozAlign: "center",
-      width: 50
+      width: 50,
+      headerSort: false,
+      // ✅ 셀 클릭 시 체크박스 토글
+      cellClick: function(e, cell) {
+        // 이미 체크박스를 직접 클릭한 경우는 제외
+        if (e.target.type === 'checkbox') {
+          return;
+        }
+        
+        const row = cell.getRow();
+        
+        // 현재 선택 상태 확인
+        if (row.isSelected()) {
+          row.deselect();
+        } else {
+          row.select();
+        }
+      }
     },
     {
       title: 'No',
@@ -551,33 +653,67 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '대리점',
-      field: 'agencyNm',
-      width: 85,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      formatter: function(cell) {
-        // ✅ 클릭 가능한 스타일 적용
-        const value = cell.getValue() || '';
-        return `
-          <div style="
-            cursor: pointer;
-            color: #0d6efd;
-            text-decoration: underline;
-            font-weight: 500;
-          " 
-          class="promo-dt-cell"
-          title="클릭하여 상세 보기">
-            ${value}
-          </div>
-        `;
-      },
-      cellClick: function(e, cell) {
-        // ✅ 판촉일 클릭 시 상세 팝업 열기
-        const rowData = cell.getRow().getData();
-        handlePromoDtClick(rowData);
-      },
-    },
+  title: '대리점',
+  field: 'agencyNm',
+  width: 100,
+  hozAlign: 'center',
+  headerHozAlign: 'center',
+  formatter: function(cell) {
+    const value = cell.getValue() || '';
+    const rowData = cell.getRow().getData();
+    const table = cell.getTable();
+    const allData = table.getData();
+    
+    const cellElement = cell.getElement();
+    const rowElement = cell.getRow().getElement();  // ✅ row element도 가져오기
+    
+    // ✅ 마지막 행이 아니면 하단 border 제거 (cell과 row 모두)
+    if (!isLastRowInGroup(rowData, allData)) {
+      // cell의 border 제거
+      cellElement.style.setProperty('border-bottom', 'none', 'important');
+      // row의 border도 제거
+      rowElement.style.setProperty('border-bottom', 'none', 'important');
+    }
+    
+    // ✅ 이상 데이터 확인
+    const hasAbnormal = 
+      (rowData.promoTeamNm && rowData.promoTeamNm.includes('배치X')) ||
+      (rowData.orderUserNm && rowData.orderUserNm.includes('이중기재')) ||
+      (rowData.goodsOptionNm && rowData.goodsOptionNm.includes('매칭안됨'));
+    
+    if (hasAbnormal) {
+      return `
+        <div style="
+          cursor: pointer;
+          color: #dc3545;
+          text-decoration: underline;
+          font-weight: bold;
+        " 
+        class="promo-dt-cell"
+        title="클릭하여 상세 보기 (이상 데이터)">
+          ${value}
+        </div>
+      `;
+    }
+    
+    return `
+      <div style="
+        cursor: pointer;
+        color: #0d6efd;
+        text-decoration: underline;
+        font-weight: 500;
+      " 
+      class="promo-dt-cell"
+      title="클릭하여 상세 보기">
+        ${value}
+      </div>
+    `;
+  },
+  cellClick: function(e, cell) {
+    const rowData = cell.getRow().getData();
+    handlePromoDtClick(rowData);
+  }
+},
     {
       title: '판촉팀',
       field: 'promoTeamNm',
@@ -605,7 +741,7 @@ const PromotionSettle = () => {
     {
       title: '고객',
       field: 'orderUserNm',
-      width: 100,
+      width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
       // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
@@ -636,7 +772,25 @@ const PromotionSettle = () => {
       field: 'goodsOptionNm',
       width: 220,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '';
+        }
+        
+        // "이중기재" 텍스트가 포함되어 있는지 확인
+        if (value.includes('매칭안됨')) {
+          cell.getElement().style.color = '#dc3545';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      }
     },
     {
       title: '주간수량',
@@ -723,32 +877,54 @@ const PromotionSettle = () => {
     {
       title: '마감홉수',
       field: 'actualHob',
-      width: 110,  // ✅ 버튼 공간 확보
+      width: 110,
       hozAlign: 'center',
       headerHozAlign: 'center',
-      editor: 'input',  // ✅ 편집 가능
-      editable: true,
-      // ✅ 숫자 유효성 검사
+      editor: 'number',  // ✅ 'input' 대신 'number' 사용
+      // ✅ 조건부 편집 가능 여부 설정
+      editable: function(cell) {
+        const rowData = cell.getRow().getData();
+        // masterCloseYn이 1이면 편집 불가 (마감 상태)
+        const isClosed = rowData.masterCloseYn === '1' || rowData.masterCloseYn === 1;
+        return !isClosed;  // 마감이 아닐 때만 편집 가능
+      },
+      // ✅ editorParams로 소수점 자리수 제한
+      editorParams: {
+        min: 0,
+        max: 999.9,
+        step: 0.1,  // ✅ 0.1 단위로만 입력 가능
+        elementAttributes: {
+          maxlength: "5"  // 최대 5자리 (999.9)
+        }
+      },
+      // ✅ 입력값 검증 및 반올림
+      cellEdited: function(cell) {
+        let value = cell.getValue();
+        if (value !== null && value !== undefined && value !== '') {
+          let numValue = parseFloat(value);
+          if (!isNaN(numValue)) {
+            // ✅ 소수점 1자리로 반올림
+            numValue = Math.round(numValue * 10) / 10;
+            cell.setValue(numValue);
+          }
+        }
+      },
       validator: [
-        "numeric",           // 숫자만 허용
-        "min:0",            // 최소값 0
-        "max:999.9"         // 최대값 999.9
+        "numeric",
+        "min:0",
+        "max:999.9"
       ],
       formatter: function(cell) {
         const value = cell.getValue();
-        // null, undefined, 빈 문자열 처리
         if (value === null || value === undefined || value === '') {
           return '';
         }
-        // 숫자로 변환
         const number = parseFloat(value);
         if (isNaN(number)) {
-          return value;  // 숫자가 아니면 원본 값 반환
+          return value;
         }
-        // 소수점 한 자리로 포맷 (예: 123.5, 100.0)
         return number.toFixed(1);
       },
-      // ✅ 엑셀 다운로드 시 숫자로 저장
       accessorDownload: function(value) {
         if (value === null || value === undefined || value === '') return 0;
         const number = parseFloat(value);
@@ -872,7 +1048,7 @@ const PromotionSettle = () => {
     {
       title: '전화',
       field: 'orderCellPhone',
-      width: 100,
+      width: 105,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
@@ -1099,6 +1275,36 @@ const PromotionSettle = () => {
       visible: false
     }
   ];
+
+  // ✅ 공통 formatter 함수들
+  const textDownloadFormatter = (value) => {
+    return (value === null || value === undefined || value === '') ? '' : value;
+  };
+
+  const numberDownloadFormatter = (value) => {
+    if (value === null || value === undefined || value === '') return 0;
+    const number = parseFloat(value);
+    return isNaN(number) ? 0 : number;
+  };
+
+  // ✅ accessorDownload가 없는 컬럼에 자동으로 추가
+  columns.forEach(col => {
+    // 이미 accessorDownload가 있거나, formatter가 rowSelection인 경우 스킵
+    if (col.accessorDownload || col.formatter === "rowSelection" || !col.field) {
+      return;
+    }
+    
+    // 숫자 필드 목록 (필요에 따라 추가)
+    const numberFields = ['weekQty', 'contractPeriod', 'actualHob', 'unitPrice', 
+                          'hcHob', 'quantity', 'agencyHob', 'hqHob', 'hcCheckHob'];
+    
+    // 숫자 필드면 numberDownloadFormatter, 아니면 textDownloadFormatter 적용
+    if (numberFields.includes(col.field)) {
+      col.accessorDownload = numberDownloadFormatter;
+    } else {
+      col.accessorDownload = textDownloadFormatter;
+    }
+  });
 
   // ✅ 한 줄로 모든 컬럼의 정렬 비활성화
   columns.forEach(col => col.headerSort = false);
@@ -1547,13 +1753,223 @@ const PromotionSettle = () => {
     }
   };
 
+  /**
+   * ✅ 선택한 행 삭제 함수 (이중 검증)
+   * - 프론트엔드: 1차 검증 (사용자 경험 향상)
+   * - 백엔드: 2차 검증 (데이터 무결성 보장)
+   */
+  const handleDelete = async () => {
+    if (!tabulatorInstance || !tabulatorInstance.current) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '테이블이 준비되지 않았습니다.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ✅ 1단계: 체크박스로 선택된 데이터 추출
+    const selectedRows = tabulatorInstance.current.getSelectedData();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '삭제할 데이터를 선택해주세요.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ✅ 2단계: 프론트엔드 사전 검증 (저장/마감 데이터 체크)
+    const savedOrClosedRows = selectedRows.filter(row => 
+      row.saveYn === '1' || row.saveYn === 1 || 
+      row.masterCloseYn === '1' || row.masterCloseYn === 1
+    );
+
+    // ✅ 삭제 불가능한 데이터가 있으면 전체 삭제 취소
+    if (savedOrClosedRows.length > 0) {
+      // 상태별 개수 계산
+      const savedCount = savedOrClosedRows.filter(row => 
+        (row.saveYn === '1' || row.saveYn === 1) && 
+        (row.masterCloseYn !== '1' && row.masterCloseYn !== 1)
+      ).length;
+      
+      const closedCount = savedOrClosedRows.filter(row => 
+        row.masterCloseYn === '1' || row.masterCloseYn === 1
+      ).length;
+
+      await Swal.fire({
+        icon: 'error',
+        title: '삭제 불가',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p style="margin-bottom: 15px; font-size: 15px;">
+              선택한 데이터 중 <strong style="color: #dc3545;">${savedOrClosedRows.length}건</strong>은 삭제할 수 없습니다.
+            </p>
+            <div style="background-color: #f8d7da; padding: 12px; border-radius: 5px; border-left: 4px solid #dc3545; margin-bottom: 15px;">
+              <p style="margin: 5px 0; font-size: 14px; color: #721c24;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <strong>삭제 불가 사유:</strong>
+              </p>
+              ${savedCount > 0 ? `
+                <p style="margin: 5px 0 5px 20px; font-size: 13px; color: #721c24;">
+                  • 저장된 데이터: <strong>${savedCount}건</strong>
+                </p>
+              ` : ''}
+              ${closedCount > 0 ? `
+                <p style="margin: 5px 0 5px 20px; font-size: 13px; color: #721c24;">
+                  • 마감된 데이터: <strong>${closedCount}건</strong>
+                </p>
+              ` : ''}
+            </div>
+            <div style="background-color: #d1ecf1; padding: 12px; border-radius: 5px; border-left: 4px solid #0c5460;">
+              <p style="margin: 0; font-size: 13px; color: #0c5460;">
+                <i class="bi bi-info-circle-fill"></i>
+                저장되거나 마감된 데이터는 삭제할 수 없습니다.<br/>
+                미저장 상태의 데이터만 선택하여 삭제해주세요.
+              </p>
+            </div>
+          </div>
+        `,
+        confirmButtonText: '확인',
+        confirmButtonColor: '#dc3545',
+        width: '500px'
+      });
+      return;  // ✅ 전체 삭제 취소
+    }
+
+    // ✅ 3단계: 삭제 확인 다이얼로그
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: '삭제 확인',
+      html: `
+        <div style="text-align: left; padding: 10px;">
+          <p style="margin-bottom: 15px; font-size: 15px;">
+            선택한 <strong style="color: #dc3545;">${selectedRows.length}건</strong>의 데이터를 삭제하시겠습니까?
+          </p>
+          <div style="background-color: #fff3cd; padding: 12px; border-radius: 5px; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; font-size: 13px; color: #856404;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <strong>주의:</strong> 삭제된 데이터는 복구할 수 없습니다.
+            </p>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      width: '450px'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      // ✅ 4단계: 로딩 표시
+      Swal.fire({
+        title: '삭제 중...',
+        text: '잠시만 기다려주세요.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // ✅ 5단계: 삭제할 데이터의 식별자 추출 (전체 선택 데이터 전송)
+      const deleteDataKeys = selectedRows.map(row => ({
+        orderCd: row.orderCd,
+        orderSeq: row.orderSeq
+      }));
+
+      console.log("=== 삭제 요청 데이터 ===");
+      console.log("삭제 요청 건수:", deleteDataKeys.length);
+      console.log("데이터:", deleteDataKeys);
+
+      // ✅ 6단계: API 호출 - 삭제 요청
+      const response = await axios.post('/api/promo/deletePromo', deleteDataKeys);
+
+      console.log("=== 삭제 응답 ===");
+      console.log(response.data);
+
+      // ✅ 7단계: 성공 처리
+      await Swal.fire({
+        icon: 'success',
+        title: '삭제 완료',
+        html: `
+          <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 15px; margin-bottom: 10px;">
+              <strong>${selectedRows.length}건</strong>의 데이터가 성공적으로 삭제되었습니다.
+            </p>
+          </div>
+        `,
+        confirmButtonText: '확인',
+        confirmButtonColor: '#28a745'
+      });
+
+      // ✅ 8단계: 삭제 후 목록 재조회
+      handleSearch();
+
+    } catch (error) {
+      console.error('=== 삭제 실패 ===', error);
+
+      // ✅ 백엔드 오류 메시지 상세 처리
+      let errorTitle = '삭제 실패';
+      let errorMessage = '데이터 삭제에 실패했습니다.';
+      let errorIcon = 'error';
+
+      if (error.response) {
+        console.log('Response status:', error.response.status);
+        console.log('Response data:', error.response.data);
+
+        // 백엔드에서 보낸 상세 오류 메시지 사용
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+          
+          // ✅ 저장/마감 데이터 관련 오류인 경우 아이콘 변경
+          if (errorMessage.includes('삭제할 수 없습니다') || 
+              errorMessage.includes('저장') || 
+              errorMessage.includes('마감')) {
+            errorIcon = 'warning';
+            errorTitle = '삭제 불가';
+          }
+        }
+      } else if (error.request) {
+        console.log('No response received:', error.request);
+        errorMessage = '서버로부터 응답이 없습니다. 네트워크 연결을 확인해주세요.';
+      } else {
+        console.log('Error message:', error.message);
+        errorMessage = error.message || '알 수 없는 오류가 발생했습니다.';
+      }
+
+      // ✅ 개선된 오류 메시지 표시
+      await Swal.fire({
+        icon: errorIcon,
+        title: errorTitle,
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p style="font-size: 14px; white-space: pre-line; line-height: 1.6;">
+              ${errorMessage}
+            </p>
+          </div>
+        `,
+        confirmButtonText: '확인',
+        confirmButtonColor: errorIcon === 'warning' ? '#ffc107' : '#dc3545',
+        width: '500px'
+      });
+    }
+  };
+
   // Tabulator 옵션
   const options = {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '435px',
-    headerSort: false  // ✅ 전체 정렬 비활성화
+    height: '445px'
   };
 
   return (
@@ -1869,18 +2285,27 @@ const PromotionSettle = () => {
               </Button>
             </Col>
 
+            {/* ✅ 삭제 버튼 추가 */}
+            <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
+              <Button
+                variant="danger"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
+                onClick={handleDelete}
+              >
+                <FaTrashAlt /> 삭제
+              </Button>
+            </Col>
+
             {/* 엑셀 버튼 */}
-            <Col md={2} style={{ minWidth: '160px', maxWidth: '160px' }}>
+            <Col md={2} style={{ minWidth: '150px', maxWidth: '150px' }}>
               <Button
                 variant="secondary"
                 size="sm"
                 className="w-100  d-flex align-items-center justify-content-center gap-1"
                 onClick={handleExcelDownload}
               >
-                <i className="bi bi-search me-2">
-                    <RiFileExcel2Line /> 엑셀다운로드
-                </i>
-                
+                <RiFileExcel2Line /> 엑셀다운로드
               </Button>
             </Col>            
           </Row>
@@ -1901,8 +2326,8 @@ const PromotionSettle = () => {
               <div style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '15px',
-                fontSize: '15px'
+                gap: '10px',
+                fontSize: '14px'
               }}>
                 <span style={{ 
                   color: '#6c757d', 
@@ -1963,6 +2388,38 @@ const PromotionSettle = () => {
 
                 <span style={{ color: '#6c757d', fontWeight: '500' }}>
                   마감: <strong>{summaryData.closedCount}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  <strong>{')'}</strong>
+                </span>
+
+                <span style={{ 
+                  color: '#6c757d', 
+                  fontWeight: 'bold'
+                }}>
+                  |
+                </span>
+                
+                {/* 이상 정보 */}
+                <span style={{ color: '#dc3545', fontWeight: '500' }}>
+                  전체이상건수: <strong>{summaryData.abnormalCount}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  <strong>{'('}</strong>
+                </span>
+                
+                <span style={{fontWeight: '500' }}>
+                  판촉팀배치: <strong>{summaryData.abnormalBaechiX}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  이중기재: <strong>{summaryData.abnormalDuplicate}</strong> 건
+                </span>
+
+                <span style={{fontWeight: '500' }}>
+                  상품매칭: <strong>{summaryData.abnormalUnmatched}</strong> 건
                 </span>
 
                 <span style={{fontWeight: '500' }}>

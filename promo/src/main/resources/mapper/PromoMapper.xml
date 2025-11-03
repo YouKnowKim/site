@@ -140,6 +140,26 @@
 	    WHERE FILENM = #{fileNm}
 	</update>
 	
+	<!-- ============================================
+     판촉실적 저장 전 검증
+     - saveYn, masterCloseYn 상태 조회
+     ============================================ -->
+	<select id="checkSavable" parameterType="MilkbangDetailDao" resultType="MilkbangDetailDao">
+	    SELECT 
+	        ORDERCD AS orderCd,
+	        ORDERSEQ AS orderSeq,
+	        SAVEYN AS saveYn,
+	        MASTERCLOSEYN AS masterCloseYn,
+	        CASE 
+	            WHEN MASTERCLOSEYN = 1 THEN '마감'
+	            WHEN SAVEYN = 1 THEN '저장'
+	            ELSE '미저장'
+	        END AS status
+	    FROM YSC.TC_MILKBANGGOODS
+	    WHERE ORDERCD = #{orderCd}
+	      AND ORDERSEQ = #{orderSeq}
+	</select>
+	
 	<update id="mergePromo" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANGGOODS
 	    <set>
@@ -155,6 +175,7 @@
 	    </set>
 	    WHERE ORDERCD = #{orderCd}
 	    AND ORDERSEQ = #{orderSeq}
+	    AND (MASTERCLOSEYN IS NULL OR MASTERCLOSEYN != 1)
 	</update>
 	
 	<update id="mergePromoDetail" parameterType="MilkbangDetailDao">
@@ -164,6 +185,12 @@
 	        UPDATEDT = SYSDATE
 	    </set>
 	    WHERE ORDERCD = #{orderCd}
+	    AND NOT EXISTS (
+	        SELECT 1 
+	        FROM YSC.TC_MILKBANGGOODS 
+	        WHERE ORDERCD = #{orderCd}
+	        AND MASTERCLOSEYN = 1
+	    )
 	</update>
 	
 	<select id="selectMilkbangDetailList" resultType="MilkbangDetailDao">
@@ -488,5 +515,52 @@
 			a.PROMOTYPE AS promoType
 		from ysc.TC_PROMOTEAM a
 	</select>
+	
+	<!-- ============================================
+     판촉실적 삭제 전 검증
+     - saveYn 또는 masterCloseYn이 1인지 체크
+     ============================================ -->
+	<select id="checkDeletable" parameterType="MilkbangDetailDao" resultType="MilkbangDetailDao">
+	    SELECT 
+	        ORDERCD AS orderCd,
+	        ORDERSEQ AS orderSeq,
+	        SAVEYN AS saveYn,
+	        MASTERCLOSEYN AS masterCloseYn,
+	        CASE 
+	            WHEN MASTERCLOSEYN = 1 THEN '마감'
+	            WHEN SAVEYN = 1 THEN '저장'
+	            ELSE '미저장'
+	        END AS status
+	    FROM YSC.TC_MILKBANGGOODS
+	    WHERE ORDERCD = #{orderCd}
+	      AND ORDERSEQ = #{orderSeq}
+	</select>
+		
+	<!-- 1. Detail 테이블 삭제 (MILKBANGGOODS) -->
+	<delete id="deleteMilkbangGoods" parameterType="MilkbangDetailDao">
+	    DELETE FROM YSC.TC_MILKBANGGOODS
+	    WHERE ORDERCD = #{orderCd}
+	      AND ORDERSEQ = #{orderSeq}
+	      AND (SAVEYN IS NULL OR SAVEYN != 1)
+    	  AND (MASTERCLOSEYN IS NULL OR MASTERCLOSEYN != 1)
+	</delete>
+	
+	<!-- 2. 특정 orderCd의 남은 Detail 개수 조회 -->
+	<select id="countMilkbangGoods" parameterType="MilkbangDetailDao" resultType="int">
+	    SELECT COUNT(*)
+	    FROM YSC.TC_MILKBANGGOODS
+	    WHERE ORDERCD = #{orderCd}
+	</select>
+	
+	<!-- 3. Master 테이블 삭제 (MILKBANG) - Detail이 없을 때만 -->
+	<delete id="deleteMilkbang" parameterType="MilkbangDetailDao">
+	    DELETE FROM YSC.TC_MILKBANG
+	    WHERE ORDERCD = #{orderCd}
+	      AND NOT EXISTS (
+	          SELECT 1 
+	          FROM YSC.TC_MILKBANGGOODS 
+	          WHERE ORDERCD = #{orderCd}
+	      )
+	</delete>
 
 </mapper>

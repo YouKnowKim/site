@@ -65,11 +65,11 @@ code {
 }
 
 /* 편집 중 */
-.tabulator-cell.tabulator-editing {
+/* .tabulator-cell.tabulator-editing {
   border: 2px solid #0d6efd;
   background-color: #fff;
   box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
-}
+} */
 
 /* ============================================
    Tabulator 세로 구분선 강제 적용
@@ -77,25 +77,79 @@ code {
 
 /* 헤더 세로 구분선 */
 .tabulator .tabulator-header .tabulator-col {
-  border-right: 1px solid #dee2e6 !important;
+  border-right: 2px solid #dee2e6 !important;
 }
 
 /* 데이터 셀 세로 구분선 */
 .tabulator .tabulator-tableholder .tabulator-table .tabulator-row .tabulator-cell {
-  border-right: 1px solid #dee2e6 !important;
+  border-right: 2px solid #dee2e6 !important;
 }
 
 /* hover 상태에서도 세로선 유지 */
 .tabulator .tabulator-row:hover .tabulator-cell {
-  border-right: 1px solid #dee2e6 !important;
+  border-right: 2px solid #dee2e6 !important;
 }
 
 /* 선택된 행에서도 세로선 유지 */
 .tabulator .tabulator-row.tabulator-selected .tabulator-cell {
-  border-right: 1px solid #dee2e6 !important;
+  border-right: 2px solid #dee2e6 !important;
 }
 
 /* 편집 중인 셀도 세로선 유지 */
 .tabulator .tabulator-row .tabulator-cell.tabulator-editing {
-  border-right: 1px solid #dee2e6 !important;
+  border-right: 2px solid #dee2e6 !important;
+}
+
+/* ============================================
+   셀 병합 스타일 (orderCd 기준)
+   ============================================ */
+
+/* 병합된 셀 - 값 숨김 (첫 번째 행이 아닌 경우) */
+.tabulator .tabulator-row .tabulator-cell.merged-cell-hidden {
+  border-top: none !important;
+  color: transparent !important;
+  user-select: none !important;
+  background-color: #f8f9fa !important;
+}
+
+/* 병합된 셀 - 하단 border 제거 (마지막 행이 아닌 경우) */
+.tabulator .tabulator-row .tabulator-cell.merged-cell-no-bottom-border {
+  border-bottom: none !important;
+}
+
+/* 병합된 셀에 hover 시 배경색 제거 */
+.tabulator .tabulator-row:hover .tabulator-cell.merged-cell-hidden {
+  background-color: #f8f9fa !important;
+}
+
+/* 병합된 셀 선택 시 배경색 제거 */
+.tabulator .tabulator-row.tabulator-selected .tabulator-cell.merged-cell-hidden {
+  background-color: #f8f9fa !important;
+}
+
+/* ============================================
+   Tabulator Zebra Striping 제거
+   ============================================ */
+
+/* 모든 행의 배경색을 흰색으로 통일 */
+.tabulator .tabulator-row {
+  background-color: #ffffff !important;
+}
+
+/* 짝수 행 배경색 흰색 */
+.tabulator .tabulator-row.tabulator-row-even {
+  background-color: #ffffff !important;
+}
+
+/* 홀수 행 배경색 흰색 */
+.tabulator .tabulator-row.tabulator-row-odd {
+  background-color: #ffffff !important;
+}
+
+/* hover 시 배경색 (선택사항) */
+
+
+/* 선택된 행 배경색 (선택사항) */
+.tabulator .tabulator-row.tabulator-selected {
+  background-color: #e7f1ff !important;  /* 파란색 계열 */
 }

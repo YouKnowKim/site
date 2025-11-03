@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="savePromoDetail"/>
+			<item value="savePromo"/>
+			<item value="savepromo"/>
+			<item value="save"/>
+			<item value="미저장"/>
+			<item value="deleteMilkbangGoods"/>
+			<item value="YSC.MILKBANG"/>
+			<item value="YSC.TC_MILKBANGGOODS"/>
+			<item value="order"/>
+			<item value=";"/>
+			<item value="_"/>
+			<item value="orderseq"/>
 			<item value="promoPersonNm"/>
 			<item value="update"/>
 			<item value="updateFileList"/>
-			<item value="미저장"/>
-			<item value="detailList"/>
-			<item value="AGENCYHOB"/>
-			<item value="teamNm"/>
-			<item value="origin"/>
-			<item value="checkGoodsOptionNM"/>
-			<item value="goods"/>
-			<item value="good"/>
-			<item value="findGoodsOption"/>
-			<item value="findGoodsList"/>
-			<item value="gift"/>
-			<item value="orderKindCd"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

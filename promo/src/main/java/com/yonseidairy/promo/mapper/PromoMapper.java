@@ -43,5 +43,15 @@ public interface PromoMapper {
 	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);
 	
 	Integer mergePromoDetail(MilkbangDetailDao inMilkbangDetailDao);
+	
+	int deleteMilkbangGoods(MilkbangDetailDao inMilkbangDetailDao);
+	
+	int countMilkbangGoods(MilkbangDetailDao inMilkbangDetailDao);
+	
+	int deleteMilkbang(MilkbangDetailDao inMilkbangDetailDao);
+	
+	MilkbangDetailDao checkDeletable(MilkbangDetailDao inMilkbangDetailDao);
+	
+	MilkbangDetailDao checkSavable(MilkbangDetailDao inMilkbangDetailDao);
 
 }

@@ -622,7 +622,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
               <thead className="table-light">
                 <tr className="text-center align-middle small">
                   <th style={{ width: '200px' }}>상품</th>
-                  <th style={{ width: '50px' }}>1회<br/>투입<br/>수량</th>
+                  <th style={{ width: '50px' }}>1회투입<br/>수량</th>
                   <th style={{ width: '80px' }}>배송요일</th>
                   <th style={{ width: '50px' }}>주간<br/>총수량</th>
                   <th style={{ width: '70px' }}>음용기간</th>
@@ -675,16 +675,21 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                   </td>
                   <td>
                     <Form.Control
-                      as="textarea"
                       rows={1}
                       size="sm"
                       value={editableData[index]?.actualHob || ''}
                       onChange={(e) => handleInputChange(index, 'actualHob', e.target.value)}
                       type="number"
+                      step="0.1"      // ✅ 0.1 단위로 증감
+                      min="0"         // ✅ 최소값 0
+                      max="999.9"     // ✅ 최대값 999.9
                       className="text-center"
+                      placeholder="0.0"
                       style={{ 
                         textAlign: 'center',
-                        MozAppearance: 'textfield'  // Firefox에서 스피너 제거
+                        // ✅ MozAppearance 제거 - Firefox에서도 스피너 표시
+                        WebkitAppearance: 'auto',  // Chrome/Safari 스피너 표시
+                        appearance: 'auto'          // 표준 속성
                       }}
                     />
                   </td>
