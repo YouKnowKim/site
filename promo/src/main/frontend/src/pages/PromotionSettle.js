@@ -244,7 +244,6 @@ const PromotionSettle = () => {
   const [promotionEmployee, setPromotionEmployee] = useState('');
   const [selectedHcStatus, setSelectedHcStatus] = useState('');
   const [selectedHcActionStatus, setSelectedHcActionStatus] = useState('');
-  const [selectedAddCondition, setSelectedAddCondition] = useState('');
   const [originalData, setOriginalData] = useState([]);  // 조회 시점의 원본 데이터 저장
   // ✅ 1. 현재 선택된 주차의 label을 저장할 state 추가
   const [currentWeekLabel, setCurrentWeekLabel] = useState('');
@@ -627,7 +626,7 @@ const PromotionSettle = () => {
       titleFormatter: "rowSelection",
       hozAlign: "center",
       width: 50,
-      headerSort: false,
+      download: false,  // ✅ 엑셀 다운로드 시 제외
       // ✅ 셀 클릭 시 체크박스 토글
       cellClick: function(e, cell) {
         // 이미 체크박스를 직접 클릭한 경우는 제외
@@ -661,19 +660,6 @@ const PromotionSettle = () => {
   formatter: function(cell) {
     const value = cell.getValue() || '';
     const rowData = cell.getRow().getData();
-    const table = cell.getTable();
-    const allData = table.getData();
-    
-    const cellElement = cell.getElement();
-    const rowElement = cell.getRow().getElement();  // ✅ row element도 가져오기
-    
-    // ✅ 마지막 행이 아니면 하단 border 제거 (cell과 row 모두)
-    if (!isLastRowInGroup(rowData, allData)) {
-      // cell의 border 제거
-      cellElement.style.setProperty('border-bottom', 'none', 'important');
-      // row의 border도 제거
-      rowElement.style.setProperty('border-bottom', 'none', 'important');
-    }
     
     // ✅ 이상 데이터 확인
     const hasAbnormal = 
@@ -1030,22 +1016,6 @@ const PromotionSettle = () => {
       visible:false
     },
     {
-      title: '해피콜 조정홉수',
-      field: 'hcHob',
-      width: 95,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
-      },
-      // ✅ 엑셀 다운로드 시 숫자로 저장
-      accessorDownload: function(value) {
-        if (value === null || value === undefined || value === '') return 0;
-        const number = parseFloat(value);
-        return isNaN(number) ? 0 : number;
-      }
-    },
-    {
       title: '전화',
       field: 'orderCellPhone',
       width: 105,
@@ -1079,6 +1049,22 @@ const PromotionSettle = () => {
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
+    },
+    {
+      title: '해피콜 조정홉수',
+      field: 'hcHob',
+      width: 95,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '해피콜<br/>조정홉수';  // HTML로 줄바꿈
+      },
+      // ✅ 엑셀 다운로드 시 숫자로 저장
+      accessorDownload: function(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        const number = parseFloat(value);
+        return isNaN(number) ? 0 : number;
+      }
     },
     {
       title: '해피콜 날짜',
@@ -1525,9 +1511,6 @@ const PromotionSettle = () => {
           
           // 마감여부
           masterCloseYn: isClosed,
-          
-          // 특이사항 (필요시 추가)
-          addCondition: selectedAddCondition,
 
           subStartDate: subStartDate,
 
@@ -1964,12 +1947,48 @@ const PromotionSettle = () => {
     }
   };
 
-  // Tabulator 옵션
   const options = {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '445px'
+    height: '445px',
+    rowFormatter: function(row) {
+      const rowData = row.getData();
+      const table = row.getTable();
+      const allData = table.getData();
+      
+      // ✅ 병합 대상 필드
+      const mergeFields = ['agencyNm', 'promoTeamNm', 'orderUserNm', 'goodsOptionNm'];
+      
+      // ✅ 같은 orderCd를 가진 행이 여러 개인지 확인
+      const groupCount = allData.filter(r => r.orderCd === rowData.orderCd).length;
+      
+      // ✅ 병합 그룹인 경우에만 처리
+      if (groupCount > 1) {
+        // 첫 번째 행인지 확인
+        const isFirst = isFirstRowInGroup(rowData, allData);
+        
+        // 마지막 행인지 확인
+        const isLast = isLastRowInGroup(rowData, allData);
+        
+        mergeFields.forEach(field => {
+          const cell = row.getCell(field);
+          if (cell) {
+            const cellElement = cell.getElement();
+            
+            // ✅ 첫 번째 행: 위쪽 테두리 진하게
+            if (isFirst) {
+              cellElement.style.borderTop = '1px solid #495057';  // 진한 회색 테두리
+            }
+            
+            // ✅ 마지막 행: 아래쪽 테두리 진하게
+            if (isLast) {
+              cellElement.style.borderBottom = '1px solid #495057';  // 진한 회색 테두리
+            }
+          }
+        });
+      }
+    }
   };
 
   return (
@@ -2216,31 +2235,7 @@ const PromotionSettle = () => {
                 </div>
               </Form.Group>
             </Col>
-            {/* 특이사항 선택 */}
-            <Col md={1} style={{ minWidth: '200px', maxWidth: '220px' }}>
-              <Form.Group>
-                <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '70px' }}>
-                    특이사항 :
-                  </Form.Label>
-                  <Form.Select
-                    size="sm"
-                    value={selectedAddCondition}
-                    onChange={(e) => setSelectedAddCondition(e.target.value)}
-                    style={{ width: '120px' }}
-                  >
-                    <option value="">없음</option>
-                    <option value="1">이중기재</option>
-                    <option value="2">유치원</option>
-                    <option value="3">전화번호</option>
-                  </Form.Select>
-                </div>
-              </Form.Group>
-            </Col>
-          </Row>
 
-          {/* 세 번째 줄: 조회 버튼 */}
-          <Row className="align-items-end mb-2">
             <Col md={2} style={{ minWidth: '250px', maxWidth: '300px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
@@ -2260,7 +2255,10 @@ const PromotionSettle = () => {
                 </div>
               </Form.Group>
             </Col>
+          </Row>
 
+          {/* 세 번째 줄: 조회 버튼 */}
+          <Row className="align-items-end mb-2">
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button

@@ -28,7 +28,7 @@ const Header = () => {
   const teamPersonNm = '' + sessionStorage.getItem('teamPersonNm') + '님';
   
   // ✅ 탭 컨텍스트에서 addTab 함수 가져오기
-  const { addTab } = useTab();
+  const { addTab, closeAllTabs } = useTab();
 
   // 비밀번호 변경 모달 상태 관리
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -45,6 +45,10 @@ const Header = () => {
    */
   const handleLogoutClick = (e) => {
     e.preventDefault();
+
+    if(closeAllTabs){
+      closeAllTabs();
+    }
     sessionStorage.clear();
     navigate('/login');
   };

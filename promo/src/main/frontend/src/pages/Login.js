@@ -4,12 +4,10 @@ import {
   Form,
   Button,
   Card,
-  Row,
-  Col,
   Alert
 } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/images/logo.png'; // 상대경로
+import logo from '../assets/images/logo.png';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -22,57 +20,36 @@ const Login = () => {
   // 페이지 로딩 시 이미 로그인되어 있다면 리다이렉트
   useEffect(() => {
     if (sessionStorage.getItem('authenticated') === 'true') {
-      navigate('/login');
+      navigate('/');
     }
-  }, []);
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    let teamPersonCd = '';
-    let teamPersonNm = '';
-    let teamPersonType = '';
-    let managerYn = '';
-    let teamCd = '';
-    let agencyYn = '';
-    let agencyCd = '';
-    let loginYn = '';
-
-    let gubunType = '';
     let loginData = {};
-    let valid = false;
 
-    // IP 정보 가져오기 (이게 완료될 때까지 다음 줄 실행 안 됨)
-    const ipResponse = await axios.get('https://ipapi.co/json/');
+    try {
+      // IP 정보 가져오기
+      const ipResponse = await axios.get('https://ipapi.co/json/');
 
-    const loginResponse = await axios.get(`/api/login/getLoginInfo`, {
-      params: { 
-                loginId: loginId 
-               ,loginPw : password
-               ,loginIp : ipResponse.data.ip
-               ,loginBrowser : navigator.userAgent
-              }
-    })
-    .then(response => {
-      loginData = response.data;
-    })
-    .catch(error => {
-      Swal.fire({
-        icon: 'error',
-        title: '로그인 오류',
-        text: error
+      // 로그인 정보 요청
+      const loginResponse = await axios.get(`/api/login/getLoginInfo`, {
+        params: { 
+          loginId: loginId,
+          loginPw: password,
+          loginIp: ipResponse.data.ip,
+          loginBrowser: navigator.userAgent
+        }
       });
-    });
 
-    if (loginData) {
+      loginData = loginResponse.data;
 
-      if (loginData.status == "0") {
+      if (loginData.status === "0") {
         setError('존재하지 않는 아이디입니다.');
-
-      } else if (loginData.status == "1") {
+      } else if (loginData.status === "1") {
         setError('비밀번호가 올바르지 않습니다.');
-
-      } else if (loginData.status == "2") {
+      } else if (loginData.status === "2") {
         sessionStorage.setItem('authenticated', 'true');
         sessionStorage.setItem('teamPersonCd', loginData.teamPersonCd);
         sessionStorage.setItem('loginId', loginData.loginId);
@@ -86,55 +63,90 @@ const Login = () => {
         sessionStorage.setItem('loginYn', loginData.loginYn);
         navigate('/');
       }
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      Swal.fire({
+        icon: 'error',
+        title: '로그인 오류',
+        text: '로그인 처리 중 오류가 발생했습니다.'
+      });
     }
   };
 
   return (
-    <div>
-      {/* 로고 영역 */}
-      <div style={{ 
-        padding: '20px',
+    <div style={{
+      minHeight: '100vh',
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'white',
+      padding: '20px'
+    }}>
+      {/* ✅ 로고와 로그인 카드를 하나의 컨테이너로 묶음 */}
+      <div style={{
+        width: '100%',
+        maxWidth: '420px',
         display: 'flex',
-        alignItems: 'center',
-        gap: '20px'  // ✅ 15px에서 20px로 증가
+        flexDirection: 'column',
+        alignItems: 'center'
       }}>
-        <img 
-          src={logo}
-          alt="연세유업 로고" 
-          style={{ 
-            height: '50px',
-            cursor: 'pointer'
-          }}
-          onClick={() => navigate('/')}
-        />
-        <span style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          color: '#1a5490'
+        {/* 로고 영역 */}
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '15px',
+          marginBottom: '30px'
         }}>
-          판촉관리사이트
-        </span>
-      </div>
-      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '70vh'}}>
-        <Card style={{ width: '100%', maxWidth: '410px' }} className="p-4 shadow">
-          <Card.Body>
-            <h3 className="text-center mb-4">로그인</h3>
+          <img 
+            src={logo}
+            alt="연세유업 로고" 
+            style={{ 
+              height: '60px',
+              cursor: 'pointer'
+            }}
+            onClick={() => navigate('/')}
+          />
+          <span style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#1a5490',
+            textAlign: 'center'
+          }}>
+            판촉관리사이트
+          </span>
+        </div>
 
-            {error && <Alert variant="danger">{error}</Alert>}
+        {/* 로그인 카드 */}
+        <Card 
+          style={{ 
+            width: '100%',
+            border: 'none',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}
+        >
+          <Card.Body className="p-4">
+            <h3 className="text-center mb-4" style={{ fontWeight: '600' }}>로그인</h3>
+
+            {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
 
             <Form onSubmit={handleLogin}>
               <Form.Group className="mb-3" controlId="formUsername">
-                  <Form.Label>아이디</Form.Label>
-                  <Form.Control
-                      type="text"
-                      placeholder="아이디 입력"
-                      value={loginId}
-                      onChange={(e) => setLoginId(e.target.value)}
-                      required
-                  />
+                <Form.Label>아이디</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="아이디 입력"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value)}
+                  required
+                  autoComplete="username"
+                  style={{ padding: '10px 12px' }}
+                />
               </Form.Group>
 
-              <Form.Group className="mb-3" controlId="formPassword">
+              <Form.Group className="mb-4" controlId="formPassword">
                 <Form.Label>비밀번호</Form.Label>
                 <Form.Control
                   type="password"
@@ -142,23 +154,53 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
+                  style={{ padding: '10px 12px' }}
                 />
               </Form.Group>
 
-              <div className="d-grid mb-3">
-                <Button type="submit" variant="primary">
+              <div className="d-grid">
+                <Button 
+                  type="submit" 
+                  variant="primary"
+                  size="lg"
+                  style={{ 
+                    padding: '12px',
+                    fontWeight: '500'
+                  }}
+                >
                   로그인
                 </Button>
               </div>
-
-              {/* <div className="d-flex justify-content-between">
-                <a href="#">비밀번호 찾기</a>
-                <a href="#">회원가입</a>
-              </div> */}
             </Form>
           </Card.Body>
         </Card>
-      </Container>
+      </div>
+
+      {/* ✅ 모바일 반응형 스타일 */}
+      <style>{`
+        @media (max-width: 576px) {
+          .card-body {
+            padding: 1.5rem !important;
+          }
+          
+          h3 {
+            font-size: 1.5rem !important;
+          }
+        }
+        
+        @media (max-width: 400px) {
+          /* 로고 크기 조정 */
+          img[alt="연세유업 로고"] {
+            height: 50px !important;
+          }
+          
+          /* 타이틀 크기 조정 */
+          span {
+            font-size: 20px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

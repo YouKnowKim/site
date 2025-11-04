@@ -14,6 +14,8 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="addCondition"/>
+			<item value="selectMilkNotSubmitFile"/>
 			<item value="savePromoDetail"/>
 			<item value="savePromo"/>
 			<item value="savepromo"/>
@@ -27,8 +29,6 @@
 			<item value="_"/>
 			<item value="orderseq"/>
 			<item value="promoPersonNm"/>
-			<item value="update"/>
-			<item value="updateFileList"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

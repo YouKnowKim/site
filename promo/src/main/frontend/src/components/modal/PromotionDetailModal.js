@@ -488,7 +488,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                     borderColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#dc3545' : '',
                     backgroundColor: (selectedPromoTeamCd === '-1' || selectedPromoTeamCd === -1) ? '#fff5f5' : '',
                     borderWidth: '2px',
-                    boxShadow: '0 0 0 0.2rem rgba(0, 102, 204, 0.15)'  // 외곽 광선 효과
+                    boxShadow: '0 0 0 0.3rem rgba(52, 58, 64, 0.35)'  // 외곽 광선 효과
                   }}
                 >
                   {promoTeamList.map((promoTeam) => (
@@ -513,7 +513,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                   style={{
                     backgroundColor: '#ffffff',
                     borderWidth: '2px',
-                    boxShadow: '0 0 0 0.2rem rgba(0, 102, 204, 0.15)'  // 외곽 광선 효과
+                    boxShadow: '0 0 0 0.3rem rgba(52, 58, 64, 0.35)'  // 외곽 광선 효과
                   }}
                 />
               </Form.Group>
