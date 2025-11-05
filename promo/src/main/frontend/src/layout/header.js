@@ -13,6 +13,7 @@ import Home from '../pages/Home';
 import MilkFileMng from '../pages/MilkFileMng';
 import MilkFileNotSubmit from '../pages/MilkFileNotSubmit';
 import PromotionSettle from '../pages/PromotionSettle';
+import AgencyMng from '../pages/AgencyMng';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -301,9 +302,9 @@ const Header = () => {
               {/* 설정 */}
               <NavDropdown title="설정" id="setting-dropdown">
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'agency-manage', '담당별 대리점 등록 관리', '/AgencyManage', Home)}
+                  onClick={(e) => handleMenuClick(e, 'agency-manage', '대리점 등록 관리', '/AgencyMng', AgencyMng)}
                 >
-                  담당별 대리점 등록 관리
+                  대리점 등록 관리
                 </NavDropdown.Item>
                 <NavDropdown.Item 
                   onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉홉수 설정', '/PromoCountSetting', Home)}

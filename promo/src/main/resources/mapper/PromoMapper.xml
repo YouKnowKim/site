@@ -213,6 +213,7 @@
 		    a.DELETEYN AS deleteYn,
 		    a.MILKBANGFILENM AS milkbangFileNm,
 		    a.AGENCYCD AS agencyCd,
+		    'A' || a.AGENCYCD as agencyCdMis,
 		    a.AGENCYTEL AS agencyTel,
 		    a.AGENCYDELIVERYYN AS agencyDeliveryYn,
 		    a.PROMOPERSONNM AS promoPersonNm,

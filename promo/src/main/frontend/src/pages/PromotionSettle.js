@@ -1201,11 +1201,24 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '대리점코드',
+      title: '대리점코드(대리점)',
       field: 'agencyCd',
       width: 100,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '대리점코드<br/>(대리점)';  // HTML로 줄바꿈
+      },
+    },
+    {
+      title: '대리점코드MIS',
+      field: 'agencyCdMis',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '대리점코드<br/>(본사)';  // HTML로 줄바꿈
+      },
     },
     {
       title: '주차',

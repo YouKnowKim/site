@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.yonseidairy.promo.mapper.SettingMapper">
+
+    <select id="selectAgencyList" resultType="AgencyDao">
+        SELECT
+        	ROW_NUMBER() OVER (ORDER BY a.AGENCYCD) AS no
+			, a.AGENCYCD AS agencyCd
+			, a.AGENCYNM AS agencyNm
+			, c.CUSTNO AS custno
+			, c.custName AS custName
+			, a.TEAMPERSONCD AS teamPersonCd
+			, b.TEAMPERSONNM AS teamPersonNm
+			, a.AGENCYTEL AS agencyTel
+			, a.AGENCYCELLPHONE AS agencyCellPhone
+			, a.AGENCYADDRESS AS agencyAddress
+			, a.AGENCYNO AS agencyNo
+			, a.BANKUSERNM AS bankuserNm
+			, a.BANKNM AS bankNm
+			, a.BANKNO AS bankNo
+			, a.VIRTUALBANKNM AS virtualBankNm
+			, a.VIRTUALBANKNO_HOME AS virtualBankNoHome
+			, a.VIRTUALBANKNO_SPECIAL AS virtualBankNoSpecial
+			, a.DELETEYN AS deleteYn
+			, case when a.DELETEYN = 0 THEN '사용' ELSE '미사용' END AS deleteNm
+		FROM ysc.tc_agency a
+		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
+		LEFT JOIN apps.CD_CUSTOMER c ON 'A' || a.AGENCYCD = c.CUSTNO
+		WHERE 1 = 1
+		AND a.AGENCYTYPE = '1'
+		<if test="deleteYn != null and deleteYn != ''">
+	        AND (a.DELETEYN = 0 OR a.DELETEYN = #{deleteYn})
+	    </if>
+		<if test="agencyCd != null and agencyCd != ''">
+	        AND a.AGENCYCD LIKE '%' || #{agencyCd} || '%'
+	    </if>
+	    <if test="agencyNm != null and agencyNm != ''">
+	        AND a.AGENCYNM LIKE '%' || #{agencyNm} || '%'
+	    </if>
+	    <if test="teamPersonNm != null and teamPersonNm != ''">
+	        AND b.TEAMPERSONNM LIKE '%' || #{teamPersonNm} || '%'
+	    </if>
+		ORDER BY a.AGENCYCD
+    </select>
+
+</mapper>
