@@ -14,6 +14,7 @@ import MilkFileMng from '../pages/MilkFileMng';
 import MilkFileNotSubmit from '../pages/MilkFileNotSubmit';
 import PromotionSettle from '../pages/PromotionSettle';
 import AgencyMng from '../pages/AgencyMng';
+import GoodsMng from '../pages/GoodsMng';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -218,7 +219,7 @@ const Header = () => {
               className="d-flex align-items-center mb-2 mb-lg-0 text-black text-decoration-none me-4"
               onClick={(e) => handleMenuClick(e, 'home', '홈', '/', Home)}
             >
-              <img src={logo} alt="연세우유 로고" width="40" height="auto" className="me-2" />
+              <img src={logo} alt="연세우유 로고" width="200" height="auto" className="me-2" />
             </a>
 
             {/* ✅ 네비게이션 메뉴 - 탭 방식으로 변경 */}
@@ -307,9 +308,9 @@ const Header = () => {
                   대리점 등록 관리
                 </NavDropdown.Item>
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉홉수 설정', '/PromoCountSetting', Home)}
+                  onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉 제품 관리', '/GoodsMng', GoodsMng)}
                 >
-                  판촉홉수 설정
+                  판촉 제품 관리
                 </NavDropdown.Item>
               </NavDropdown>
             </Nav>

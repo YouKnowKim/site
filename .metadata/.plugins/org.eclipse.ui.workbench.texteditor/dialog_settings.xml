@@ -14,6 +14,14 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="#{misCd"/>
+			<item value="misCd"/>
+			<item value="updateDeleteYn"/>
+			<item value="optionNm"/>
+			<item value="getGoodsList"/>
+			<item value="unitprice"/>
+			<item value="@PostMapping"/>
+			<item value="insert"/>
 			<item value="Custno"/>
 			<item value="row_num"/>
 			<item value="selectAgencyList"/>
@@ -21,14 +29,6 @@
 			<item value="AGENCYCD"/>
 			<item value="addCondition"/>
 			<item value="selectMilkNotSubmitFile"/>
-			<item value="savePromoDetail"/>
-			<item value="savePromo"/>
-			<item value="savepromo"/>
-			<item value="save"/>
-			<item value="미저장"/>
-			<item value="deleteMilkbangGoods"/>
-			<item value="YSC.MILKBANG"/>
-			<item value="YSC.TC_MILKBANGGOODS"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

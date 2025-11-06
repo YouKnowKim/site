@@ -4422,3 +4422,305 @@ java.lang.InterruptedException
 
 !ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:19:39.768
 !MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/controller/PromoController.java
+!SESSION 2025-11-05 18:26:19.369 -----------------------------------------------
+eclipse.buildId=4.36.0.20250605-1300
+java.version=23.0.2
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=ko_KR
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY ch.qos.logback.classic 1 0 2025-11-05 18:26:24.182
+!MESSAGE Activated before the state location was initialized. Retry after the state location is initialized.
+
+!ENTRY org.eclipse.lemminx.uber-jar 4 0 2025-11-05 18:26:24.538
+!MESSAGE bundle org.eclipse.lemminx.uber-jar:0.31.0 (1331) Component descriptor entry 'OSGI-INF/*.xml' not found
+
+!ENTRY ch.qos.logback.classic 1 0 2025-11-05 18:26:32.907
+!MESSAGE Logback config file: C:\spring\.metadata\.plugins\org.eclipse.m2e.logback\logback.2.7.100.20250418-1315.xml
+
+!ENTRY org.eclipse.ui 2 0 2025-11-05 18:26:33.497
+!MESSAGE Warnings while parsing the commands from the 'org.eclipse.ui.commands' and 'org.eclipse.ui.actionDefinitions' extension points.
+!SUBENTRY 1 org.eclipse.ui 2 0 2025-11-05 18:26:33.497
+!MESSAGE Commands should really have a category: plug-in='org.springframework.tooling.boot.ls', id='spring.initializr.addStarters', categoryId='org.eclipse.lsp4e.commandCategory'
+
+!ENTRY org.eclipse.ui 2 0 2025-11-05 18:26:33.820
+!MESSAGE Warnings while parsing the commands from the 'org.eclipse.ui.commands' and 'org.eclipse.ui.actionDefinitions' extension points.
+!SUBENTRY 1 org.eclipse.ui 2 0 2025-11-05 18:26:33.820
+!MESSAGE Commands should really have a category: plug-in='org.springframework.tooling.boot.ls', id='spring.initializr.addStarters', categoryId='org.eclipse.lsp4e.commandCategory'
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:26:45.241
+!MESSAGE [Info] Starting language server with binary lsp agent.
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:26:45.256
+!MESSAGE [Info] Lsp agent started successfully.
+
+!ENTRY org.eclipse.egit.ui 2 0 2025-11-05 18:26:45.468
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\kimjinseok'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY org.eclipse.lsp4e 1 0 2025-11-05 18:26:47.665
+!MESSAGE [Info]	[lsp] GitHub Copilot Language Server 1.339.0 initialized
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.965
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/application-client_9.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.966
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/jobXML_2_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.969
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.970
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.976
+!MESSAGE The given URI https://jakarta.ee/xml/ns/validation/validation-configuration-3.0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-05 18:26:54.982
+!MESSAGE The given URI http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_1.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.jface 2 0 2025-11-05 18:26:55.359
+!MESSAGE Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+!SUBENTRY 1 org.eclipse.jface 2 0 2025-11-05 18:26:55.359
+!MESSAGE A conflict occurred for CTRL+SHIFT+T:
+Binding(CTRL+SHIFT+T,
+	ParameterizedCommand(Command(org.eclipse.jdt.ui.navigate.open.type,Open Type,
+		Open a type in a Java editor,
+		Category(org.eclipse.ui.category.navigate,Navigate,null,true),
+		WorkbenchHandlerServiceHandler("org.eclipse.jdt.ui.navigate.open.type"),
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+SHIFT+T,
+	ParameterizedCommand(Command(org.eclipse.lsp4e.symbolInWorkspace,Go to Symbol in Workspace,
+		,
+		Category(org.eclipse.lsp4e.category,Language Servers,null,true),
+		WorkbenchHandlerServiceHandler("org.eclipse.lsp4e.symbolInWorkspace"),
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY org.eclipse.lsp4e 2 0 2025-11-05 18:37:55.141
+!MESSAGE Unable to compute end of document
+!STACK 0
+org.eclipse.jface.text.BadLocationException: 1888
+	at org.eclipse.jface.text.TreeLineTracker.lineByOffset(TreeLineTracker.java:268)
+	at org.eclipse.jface.text.TreeLineTracker.getLineNumberOfOffset(TreeLineTracker.java:1112)
+	at org.eclipse.jface.text.AbstractLineTracker.getLineNumberOfOffset(AbstractLineTracker.java:246)
+	at org.eclipse.jface.text.AbstractDocument.getLineOfOffset(AbstractDocument.java:863)
+	at org.eclipse.core.internal.filebuffers.SynchronizableDocument.getLineOfOffset(SynchronizableDocument.java:429)
+	at org.eclipse.lsp4e.LSPEclipseUtils.toPosition(LSPEclipseUtils.java:201)
+	at org.eclipse.lsp4e.operations.inlayhint.InlayHintProvider.provideCodeMinings(InlayHintProvider.java:46)
+	at org.eclipse.lsp4e.operations.inlayhint.InlayHintProvider.provideCodeMinings(InlayHintProvider.java:89)
+	at org.eclipse.jface.internal.text.codemining.CodeMiningManager.lambda$2(CodeMiningManager.java:194)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:215)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:921)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:727)
+	at org.eclipse.jface.internal.text.codemining.CodeMiningManager.getCodeMinings(CodeMiningManager.java:200)
+	at org.eclipse.jface.internal.text.codemining.CodeMiningManager.updateCodeMinings(CodeMiningManager.java:145)
+	at org.eclipse.jface.internal.text.codemining.CodeMiningManager.run(CodeMiningManager.java:134)
+	at org.eclipse.jface.text.source.SourceViewer.updateCodeMinings(SourceViewer.java:1334)
+	at org.eclipse.jdt.internal.ui.javaeditor.JavaCodeMiningReconciler.reconciled(JavaCodeMiningReconciler.java:51)
+	at org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor.reconciled(CompilationUnitEditor.java:1674)
+	at org.eclipse.jdt.internal.ui.text.java.JavaReconcilingStrategy.reconciled(JavaReconcilingStrategy.java:228)
+	at org.eclipse.jdt.internal.ui.text.JavaCompositeReconcilingStrategy.reconciled(JavaCompositeReconcilingStrategy.java:171)
+	at org.eclipse.jdt.internal.ui.text.JavaCompositeReconcilingStrategy.reconcile(JavaCompositeReconcilingStrategy.java:115)
+	at org.eclipse.jface.text.reconciler.MonoReconciler.process(MonoReconciler.java:78)
+	at org.eclipse.jface.text.reconciler.AbstractReconciler$BackgroundThread.run(AbstractReconciler.java:207)
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.601
+!MESSAGE [Info] Document is null for editor: PromoController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.602
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/controller/PromoController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.621
+!MESSAGE [Info] Document is null for editor: PromoMapper.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.622
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/resources/mapper/PromoMapper.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.640
+!MESSAGE [Info] Document is null for editor: SettingMapper.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.640
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/resources/mapper/SettingMapper.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.656
+!MESSAGE [Info] Document is null for editor: SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.657
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/service/SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.685
+!MESSAGE [Info] Document is null for editor: SettingController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.686
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/controller/SettingController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.707
+!MESSAGE [Info] Document is null for editor: SettingMapper.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-05 18:40:58.708
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/mapper/SettingMapper.java
+!SESSION 2025-11-06 08:57:48.763 -----------------------------------------------
+eclipse.buildId=4.36.0.20250605-1300
+java.version=23.0.2
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=ko_KR
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY ch.qos.logback.classic 1 0 2025-11-06 08:57:53.590
+!MESSAGE Activated before the state location was initialized. Retry after the state location is initialized.
+
+!ENTRY org.eclipse.lemminx.uber-jar 4 0 2025-11-06 08:57:53.996
+!MESSAGE bundle org.eclipse.lemminx.uber-jar:0.31.0 (1331) Component descriptor entry 'OSGI-INF/*.xml' not found
+
+!ENTRY ch.qos.logback.classic 1 0 2025-11-06 08:58:05.963
+!MESSAGE Logback config file: C:\spring\.metadata\.plugins\org.eclipse.m2e.logback\logback.2.7.100.20250418-1315.xml
+
+!ENTRY org.eclipse.ui 2 0 2025-11-06 08:58:06.921
+!MESSAGE Warnings while parsing the commands from the 'org.eclipse.ui.commands' and 'org.eclipse.ui.actionDefinitions' extension points.
+!SUBENTRY 1 org.eclipse.ui 2 0 2025-11-06 08:58:06.921
+!MESSAGE Commands should really have a category: plug-in='org.springframework.tooling.boot.ls', id='spring.initializr.addStarters', categoryId='org.eclipse.lsp4e.commandCategory'
+
+!ENTRY org.eclipse.ui 2 0 2025-11-06 08:58:07.644
+!MESSAGE Warnings while parsing the commands from the 'org.eclipse.ui.commands' and 'org.eclipse.ui.actionDefinitions' extension points.
+!SUBENTRY 1 org.eclipse.ui 2 0 2025-11-06 08:58:07.644
+!MESSAGE Commands should really have a category: plug-in='org.springframework.tooling.boot.ls', id='spring.initializr.addStarters', categoryId='org.eclipse.lsp4e.commandCategory'
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 08:58:18.345
+!MESSAGE [Info] Starting language server with binary lsp agent.
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 08:58:18.367
+!MESSAGE [Info] Lsp agent started successfully.
+
+!ENTRY org.eclipse.egit.ui 2 0 2025-11-06 08:58:18.520
+!MESSAGE Warning: The environment variable HOME is not set. The following directory will be used to store the Git
+user global configuration and to define the default location to store repositories: 'C:\Users\kimjinseok'. If this is
+not correct please set the HOME environment variable and restart Eclipse. Otherwise Git for Windows and
+EGit might behave differently since they see different configuration options.
+This warning can be switched off on the Team > Git > Confirmations and Warnings preference page.
+
+!ENTRY org.eclipse.lsp4e 1 0 2025-11-06 08:58:20.212
+!MESSAGE [Info]	[lsp] GitHub Copilot Language Server 1.339.0 initialized
+
+!ENTRY org.eclipse.jface 2 0 2025-11-06 08:58:32.258
+!MESSAGE Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+!SUBENTRY 1 org.eclipse.jface 2 0 2025-11-06 08:58:32.258
+!MESSAGE A conflict occurred for CTRL+SHIFT+T:
+Binding(CTRL+SHIFT+T,
+	ParameterizedCommand(Command(org.eclipse.jdt.ui.navigate.open.type,Open Type,
+		Open a type in a Java editor,
+		Category(org.eclipse.ui.category.navigate,Navigate,null,true),
+		WorkbenchHandlerServiceHandler("org.eclipse.jdt.ui.navigate.open.type"),
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+SHIFT+T,
+	ParameterizedCommand(Command(org.eclipse.lsp4e.symbolInWorkspace,Go to Symbol in Workspace,
+		,
+		Category(org.eclipse.lsp4e.category,Language Servers,null,true),
+		WorkbenchHandlerServiceHandler("org.eclipse.lsp4e.symbolInWorkspace"),
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.000
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/application-client_9.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.001
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/jobXML_2_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.003
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.004
+!MESSAGE The given URI https://jakarta.ee/xml/ns/jaxb/bindingschema_3_0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.010
+!MESSAGE The given URI https://jakarta.ee/xml/ns/validation/validation-configuration-3.0.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY org.eclipse.wildwebdeveloper.xml 2 0 2025-11-06 10:14:30.012
+!MESSAGE The given URI http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_1.xsd from org.eclipse.jst.standard.schemas could not be resolved for local access
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 10:50:48.332
+!MESSAGE [Info] Document is null for editor: GoodsManager.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 10:50:48.334
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/batch/src/main/java/com/milk/batch/function/GoodsManager.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 10:51:14.928
+!MESSAGE [Info] Document is null for editor: MilkbangManager.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 10:51:14.929
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/batch/src/main/java/com/milk/batch/function/MilkbangManager.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:11:35.737
+!MESSAGE [Info] Document is null for editor: BatchMainController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:11:35.739
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/batch/src/main/java/com/milk/batch/controller/BatchMainController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:14:54.887
+!MESSAGE [Info] Document is null for editor: AgencyDao.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:14:54.887
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/dao/AgencyDao.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:15:00.723
+!MESSAGE [Info] Document is null for editor: PromoController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:15:00.724
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/controller/PromoController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:15:01.553
+!MESSAGE [Info] Document is null for editor: PromoService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 11:15:01.553
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/service/PromoService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 16:46:55.144
+!MESSAGE [Info] Document is null for editor: SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 16:46:55.145
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/service/SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.674
+!MESSAGE [Info] Document is null for editor: SettingMapper.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.675
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/mapper/SettingMapper.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.702
+!MESSAGE [Info] Document is null for editor: SettingController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.703
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/controller/SettingController.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.753
+!MESSAGE [Info] Document is null for editor: GoodsDao.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.754
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/dao/GoodsDao.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.773
+!MESSAGE [Info] Document is null for editor: SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.774
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/java/com/yonseidairy/promo/service/SettingService.java
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.807
+!MESSAGE [Info] Document is null for editor: SettingMapper.xml
+
+!ENTRY com.microsoft.copilot.eclipse 1 0 2025-11-06 18:09:09.808
+!MESSAGE [Info] Completion handler is refreshed for the document: file:///C:/spring/promo/src/main/resources/mapper/SettingMapper.xml

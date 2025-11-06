@@ -652,54 +652,54 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
-  title: '대리점',
-  field: 'agencyNm',
-  width: 100,
-  hozAlign: 'center',
-  headerHozAlign: 'center',
-  formatter: function(cell) {
-    const value = cell.getValue() || '';
-    const rowData = cell.getRow().getData();
-    
-    // ✅ 이상 데이터 확인
-    const hasAbnormal = 
-      (rowData.promoTeamNm && rowData.promoTeamNm.includes('배치X')) ||
-      (rowData.orderUserNm && rowData.orderUserNm.includes('이중기재')) ||
-      (rowData.goodsOptionNm && rowData.goodsOptionNm.includes('매칭안됨'));
-    
-    if (hasAbnormal) {
-      return `
-        <div style="
-          cursor: pointer;
-          color: #dc3545;
-          text-decoration: underline;
-          font-weight: bold;
-        " 
-        class="promo-dt-cell"
-        title="클릭하여 상세 보기 (이상 데이터)">
-          ${value}
-        </div>
-      `;
-    }
-    
-    return `
-      <div style="
-        cursor: pointer;
-        color: #0d6efd;
-        text-decoration: underline;
-        font-weight: 500;
-      " 
-      class="promo-dt-cell"
-      title="클릭하여 상세 보기">
-        ${value}
-      </div>
-    `;
-  },
-  cellClick: function(e, cell) {
-    const rowData = cell.getRow().getData();
-    handlePromoDtClick(rowData);
-  }
-},
+      title: '대리점',
+      field: 'agencyNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        const value = cell.getValue() || '';
+        const rowData = cell.getRow().getData();
+        
+        // ✅ 이상 데이터 확인
+        const hasAbnormal = 
+          (rowData.promoTeamNm && rowData.promoTeamNm.includes('배치X')) ||
+          (rowData.orderUserNm && rowData.orderUserNm.includes('이중기재')) ||
+          (rowData.goodsOptionNm && rowData.goodsOptionNm.includes('매칭안됨'));
+        
+        if (hasAbnormal) {
+          return `
+            <div style="
+              cursor: pointer;
+              color: #dc3545;
+              text-decoration: underline;
+              font-weight: bold;
+            " 
+            class="promo-dt-cell"
+            title="클릭하여 상세 보기 (이상 데이터)">
+              ${value}
+            </div>
+          `;
+        }
+        
+        return `
+          <div style="
+            cursor: pointer;
+            color: #0d6efd;
+            text-decoration: underline;
+            font-weight: 500;
+          " 
+          class="promo-dt-cell"
+          title="클릭하여 상세 보기">
+            ${value}
+          </div>
+        `;
+      },
+      cellClick: function(e, cell) {
+        const rowData = cell.getRow().getData();
+        handlePromoDtClick(rowData);
+      }
+    },
     {
       title: '판촉팀',
       field: 'promoTeamNm',

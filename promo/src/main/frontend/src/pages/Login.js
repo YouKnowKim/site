@@ -109,14 +109,6 @@ const Login = () => {
             }}
             onClick={() => navigate('/')}
           />
-          <span style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: '#1a5490',
-            textAlign: 'center'
-          }}>
-            판촉관리사이트
-          </span>
         </div>
 
         {/* 로그인 카드 */}

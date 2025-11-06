@@ -5,6 +5,93 @@
   
 <mapper namespace="com.yonseidairy.promo.mapper.SettingMapper">
 
+	<insert id="insertGoods" parameterType="GoodsDao">
+	    INSERT INTO YSC.TC_GOODSOPTION (
+		    GOODSOPTIONCD
+			, OPTIONNM
+			, MISCD
+			, DAY1
+			, DAY2
+			, DAY3
+			, DAY4
+			, DAY5
+			, DAY6
+			, DELETEYN
+		) VALUES (
+	        #{goodsOptionCd}
+	        , #{optionNm}
+	        , #{misCd, jdbcType=VARCHAR}
+	        , #{day1, jdbcType=NUMERIC}
+	        , #{day2, jdbcType=NUMERIC}
+	        , #{day3, jdbcType=NUMERIC}
+	        , #{day4, jdbcType=NUMERIC}
+	        , #{day5, jdbcType=NUMERIC}
+	        , #{day6, jdbcType=NUMERIC}
+	        , #{deleteYn}
+        )
+	</insert>
+	
+	<update id="updateGoods" parameterType="GoodsDao">
+	    UPDATE YSC.TC_GOODSOPTION
+	    SET OPTIONNM = #{optionNm}
+	    	, MISCD = #{misCd, jdbcType=VARCHAR}
+	    	, DAY1 = #{day1, jdbcType=NUMERIC}
+	    	, DAY2 = #{day2, jdbcType=NUMERIC}
+	    	, DAY3 = #{day3, jdbcType=NUMERIC}
+	    	, DAY4 = #{day4, jdbcType=NUMERIC}
+	    	, DAY5 = #{day5, jdbcType=NUMERIC}
+	    	, DAY6 = #{day6, jdbcType=NUMERIC}
+	    	, DELETEYN = #{deleteYn}
+	    WHERE GOODSOPTIONCD = #{goodsOptionCd}
+	</update>
+
+	<!-- goodsOptionCd 존재 여부 확인 -->
+	<select id="existsGoodsOptionCd" resultType="int" parameterType="GoodsDao">
+	    SELECT COUNT(*)
+	    FROM YSC.TC_GOODSOPTION
+	    WHERE GOODSOPTIONCD = #{goodsOptionCd}
+	</select>
+
+	<select id="selectGoodsList" resultType="GoodsDao">
+        SELECT
+        	ROW_NUMBER() OVER (ORDER BY a.GOODSOPTIONCD) AS no 
+			, a.GOODSOPTIONCD as goodsOptionCd
+			, a.GOODSCD as goodsCd
+			, a.OPTIONNM as optionNm
+			, a.ORIGINPRICE as originPrice
+			, a.UNITPRICE as unitPrice
+			, a.MISCD as misCd
+			, b.MATNAME as misNm
+			, b.MATCODE as matcode
+			, a.DAY1 as day1
+			, a.DAY2 as day2
+			, a.DAY3 as day3
+			, a.DAY4 as day4
+			, a.DAY5 as day5
+			, a.DAY6 as day6
+			, a.DELETEYN AS deleteYn
+		FROM ysc.TC_GOODSOPTION a
+		LEFT JOIN apps.CD_MATCODE b ON SUBSTR(a.MISCD, 1, LENGTH(a.MISCD) - 1) = b.MATCODE	 
+		WHERE 1 = 1
+		AND a.GOODSOPTIONCD != -1
+		<if test="optionNm != null and optionNm != ''">
+			AND a.OPTIONNM LIKE '%' || #{optionNm} || '%'
+	    </if>
+	    <if test="goodsOptionCd != null and goodsOptionCd != ''">
+			AND a.goodsOptionCd LIKE '%' || #{goodsOptionCd} || '%'
+	    </if>
+	    <if test="misNm != null and misNm != ''">
+			AND b.MATNAME LIKE '%' || #{misNm} || '%'
+	    </if>
+	    <if test="misCd != null and misCd != ''">
+			AND b.MATCODE LIKE '%' || #{misCd} || '%'
+	    </if>
+	    <if test="deleteYn != null and deleteYn != ''">
+			AND (a.DELETEYN = 0 OR a.DELETEYN = #{deleteYn})
+	    </if>
+		ORDER BY a.GOODSOPTIONCD
+    </select>
+
     <select id="selectAgencyList" resultType="AgencyDao">
         SELECT
         	ROW_NUMBER() OVER (ORDER BY a.AGENCYCD) AS no
@@ -28,7 +115,7 @@
 			, case when a.DELETEYN = 0 THEN '사용' ELSE '미사용' END AS deleteNm
 		FROM ysc.tc_agency a
 		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
-		LEFT JOIN apps.CD_CUSTOMER c ON 'A' || a.AGENCYCD = c.CUSTNO
+		LEFT JOIN apps.CD_CUSTOMER c ON 'A' || a.AGENCYCD = c.CUSTNO 
 		WHERE 1 = 1
 		AND a.AGENCYTYPE = '1'
 		<if test="deleteYn != null and deleteYn != ''">
@@ -45,5 +132,36 @@
 	    </if>
 		ORDER BY a.AGENCYCD
     </select>
+    
+    <insert id="insertAgency" parameterType="AgencyDao">
+	    INSERT INTO YSC.TC_AGENCY (
+		    AGENCYCD
+			, AGENCYNM
+			, AGENCYTYPE
+			, TEAMPERSONCD
+			, DELETEYN 
+		) VALUES (
+	        #{agencyCd}
+	        , #{agencyNm}
+	        , 1
+	        , #{teamPersonCd}
+	        , 0
+        )
+	</insert>
+	
+	<update id="updateAgency" parameterType="AgencyDao">
+	    UPDATE YSC.TC_AGENCY
+	    SET AGENCYNM = #{agencyNm}
+	    	, TEAMPERSONCD = #{teamPersonCd}
+	    	, DELETEYN = #{deleteYn}
+	    WHERE AGENCYCD = #{agencyCd}
+	</update>
+
+	<!-- agencyCd 존재 여부 확인 -->
+	<select id="existsAgencyCd" resultType="int" parameterType="AgencyDao">
+	    SELECT COUNT(*)
+	    FROM YSC.TC_AGENCY
+	    WHERE AGENCYCD = #{agencyCd}
+	</select>
 
 </mapper>

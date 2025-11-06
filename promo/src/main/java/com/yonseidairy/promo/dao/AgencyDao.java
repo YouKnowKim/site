@@ -7,6 +7,8 @@ public class AgencyDao {
 
 	private String managerYn;
 	
+	private String changeType;
+	
 	private String no;
 	
 	private String deleteNm;
