@@ -12,6 +12,7 @@ public class GoodsDao {
 	private String empyNme;
 	private String matcode;
 	private String changeType;
+	private String teamPersonCd;
 	
 	/**
 	 * 상품옵션코드 (Primary Key)

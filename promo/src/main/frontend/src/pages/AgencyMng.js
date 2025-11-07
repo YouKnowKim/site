@@ -35,6 +35,7 @@ const AgencyMng = () => {
   const [selectedAgencyCd, setSelectedAgencyCd] = useState('');
   const [selectedAgencyNm, setSelectedAgencyNm] = useState('');
   const [selectedTeamPersonNm, setSelectedTeamPersonNm] = useState('');
+  const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
   const [selectedDeleteYn, setSelectedDeleteYn] = useState(0);  // ✅ 미사용 포함 여부
   const [tableData, setTableData] = useState([]);
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
@@ -50,15 +51,38 @@ const AgencyMng = () => {
   const teamPersonModalTableRef = useRef(null);                           // 팝업 테이블 참조
 
   useEffect(() => {
-    /**
-     * tabulatorInstance가 생성되고, 아직 초기 조회를 하지 않았다면 조회 실행
-     */
-    if (tabulatorInstance && isInitialLoadRef.current) {
-      console.log('Tabulator 인스턴스가 생성되었습니다. 초기 조회를 시작합니다.');
+    fetchTeamPersonList();
+  });
+
+  // 초기 로드 시 1회만 자동 조회
+  useEffect(() => {
+    if (isInitialLoad && teamPersonList.length > 0) {
       handleSearch();
-      isInitialLoadRef.current = false;  // 초기 조회 완료 플래그 설정
+      setIsInitialLoad(false);
     }
-  }, [tabulatorInstance]);  // ✅ tabulatorInstance가 변경될 때마다 실행
+  }, [isInitialLoad, teamPersonList]);
+
+  // 담당자 목록 조회 함수
+  const fetchTeamPersonList = async () => {
+    try {
+      const response = await axios.get('/api/promo/getAllTeamPerson');  // API 엔드포인트 수정 필요
+      
+      // API 응답 구조에 따라 수정
+      // 예: response.data 또는 response.data.data
+      setTeamPersonList(response.data);
+      
+    } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '담당자 목록 조회 실패',
+        confirmButtonText: '확인'
+      });
+      console.error('담당자 목록 조회 실패:', error);
+      // 에러 시 빈 배열 설정
+      setTeamPersonList([]);
+    }
+  };
 
   /**
    * ✅ 두 행 데이터를 비교하여 변경 여부를 판단하는 함수
@@ -572,7 +596,8 @@ const AgencyMng = () => {
           agencyCd : selectedAgencyCd,
           agencyNm : selectedAgencyNm,
           teamPersonNm : selectedTeamPersonNm,
-          deleteYn : selectedDeleteYn
+          deleteYn : selectedDeleteYn,
+          teamPersonCd : selectedTeamPersonCd
         }
       });
 
@@ -795,27 +820,34 @@ const AgencyMng = () => {
               </Form.Group>
             </Col>
 
-            {/* 담당자 입력 */}
-            <Col md={2} style={{ minWidth: '230px', maxWidth: '230px' }}>
+            {/* 담당자 선택 */}
+            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
                     담당자 :
                   </Form.Label>
-                  <Form.Control
-                    type="text"
+                  <Form.Select
                     size="sm"
-                    value={selectedTeamPersonNm}
-                    onChange={(e) => setSelectedTeamPersonNm(e.target.value)}
-                    placeholder="담당자명 입력"
-                    style={{ width: '120px' }}
-                  />
+                    value={selectedTeamPersonCd}
+                    onChange={(e) => {
+                      setSelectedTeamPersonCd(e.target.value);
+                    }}
+                    style={{ width: '150px' }}  // 고정 크기
+                  >
+                    <option value="">= 전체 =</option>
+                    {teamPersonList.map((teamPerson) => (
+                      <option key={teamPerson.teamPersonCd} value={teamPerson.teamPersonCd}>
+                        {teamPerson.teamPersonNm}
+                      </option>
+                    ))}
+                  </Form.Select>
                 </div>
               </Form.Group>
             </Col>
 
             {/* 담당자 입력 */}
-            <Col md={2} style={{ minWidth: '250px', maxWidth: '250px' }}>
+            {/* <Col md={2} style={{ minWidth: '250px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
@@ -832,7 +864,7 @@ const AgencyMng = () => {
                   </Form.Select>
                 </div>
               </Form.Group>
-            </Col>
+            </Col> */}
 
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>

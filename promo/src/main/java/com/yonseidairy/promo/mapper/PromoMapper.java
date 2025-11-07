@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoDao;
 import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
@@ -15,6 +16,9 @@ import com.yonseidairy.promo.dao.TeamPersonDao;
 @Mapper
 @Repository
 public interface PromoMapper {
+	
+	// 마감 내역 조회
+	List<PromoCloseDao> selectCloseList(PromoCloseDao inPromoCloseDao);
 	
 	// 전체 대리점 목록을 조회합니다.
 	List<AgencyDao> selectAllAgency();

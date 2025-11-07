@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.service.PromoService;
@@ -41,6 +42,12 @@ public class PromoController {
 	
 	@Autowired
 	PromoService promoService;
+	
+	@GetMapping("/getCloseList")
+	public List<PromoCloseDao> getCloseList(@ModelAttribute PromoCloseDao inPromoCloseDao) {
+		
+		return promoService.getCloseList(inPromoCloseDao);
+	}
 	
 	@GetMapping("/getAllAgency")
 	public List<AgencyDao> getAllAgency(@ModelAttribute AgencyDao inAgencyDao) {

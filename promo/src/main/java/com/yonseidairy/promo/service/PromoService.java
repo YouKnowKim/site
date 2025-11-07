@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
+import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoTeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.mapper.PromoMapper;
@@ -19,6 +20,11 @@ public class PromoService {
 
 	@Autowired
 	PromoMapper promoMapper;
+	
+	public List<PromoCloseDao> getCloseList(PromoCloseDao inPromoCloseDao) {
+
+		return promoMapper.selectCloseList(inPromoCloseDao);
+	}
 
 	public List<AgencyDao> getAllAgency(AgencyDao inAgencyDao) {
 

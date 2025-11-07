@@ -5,6 +5,31 @@
   
 <mapper namespace="com.yonseidairy.promo.mapper.PromoMapper">
 
+	<select id="selectCloseList" resultType="PromoCloseDao">
+        SELECT 
+			a.TEAMPERSONCD AS teamPersonCd
+			, nvl(max(b.TEAMPERSONNM), '담당자 없음') AS teamPersonNm
+			, count(*) AS totalCnt
+			, sum(MASTERCLOSEYN) AS closeCnt
+			, count(*) - sum(SAVEYN) AS unSavedCnt
+			, max(MASTERCLOSEDT) AS masterCloseDt
+			, CASE WHEN sum(MASTERCLOSEYN) = 0 AND  count(*) - sum(SAVEYN) > 0 THEN '미저장'
+				   WHEN sum(MASTERCLOSEYN) = 0 AND  count(*) - sum(SAVEYN) = 0 THEN '마감전'
+				   WHEN count(*) - sum(MASTERCLOSEYN) = 0 AND  count(*) - sum(SAVEYN) = 0 THEN '마감완료'
+				   WHEN sum(MASTERCLOSEYN) > 0 AND count(*) - sum(MASTERCLOSEYN) > 0 THEN '마감후 추가건'
+				   ELSE '오류' END AS masterCloseNm
+			, max(MASTERCLOSEREMARK) AS masterCloseRemark
+		FROM ysc.TC_MILKBANGGOODS a
+		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD 
+		WHERE 1 = 1
+		AND to_char(a.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
+		<if test='teamCd != null and teamCd != ""'>
+	      AND a.TEAMCD = #{teamCd}
+	    </if>
+		GROUP BY a.TEAMPERSONCD 
+		ORDER BY a.TEAMPERSONCD 
+    </select>
+
     <select id="selectAllAgency" resultType="AgencyDao">
         select 
 			AGENCYCD AS agencyCd

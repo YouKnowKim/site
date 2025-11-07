@@ -14,6 +14,7 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="masterCloseMn"/>
 			<item value="#{misCd"/>
 			<item value="misCd"/>
 			<item value="updateDeleteYn"/>
@@ -28,7 +29,6 @@
 			<item value="getAgencyList"/>
 			<item value="AGENCYCD"/>
 			<item value="addCondition"/>
-			<item value="selectMilkNotSubmitFile"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

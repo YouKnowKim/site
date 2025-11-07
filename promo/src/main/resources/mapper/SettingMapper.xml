@@ -130,6 +130,9 @@
 	    <if test="teamPersonNm != null and teamPersonNm != ''">
 	        AND b.TEAMPERSONNM LIKE '%' || #{teamPersonNm} || '%'
 	    </if>
+	    <if test="teamPersonCd != null and teamPersonCd != ''">
+	        AND b.TEAMPERSONCD LIKE '%' || #{teamPersonCd} || '%'
+	    </if>
 		ORDER BY a.AGENCYCD
     </select>
     

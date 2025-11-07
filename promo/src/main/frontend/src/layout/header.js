@@ -15,6 +15,7 @@ import MilkFileNotSubmit from '../pages/MilkFileNotSubmit';
 import PromotionSettle from '../pages/PromotionSettle';
 import AgencyMng from '../pages/AgencyMng';
 import GoodsMng from '../pages/GoodsMng';
+import PromotionClose from '../pages/PromotionClose';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -247,7 +248,7 @@ const Header = () => {
                   판촉실적 정산
                 </NavDropdown.Item>
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promo-close', '판촉실적 마감', '/PromoClose', Home)}
+                  onClick={(e) => handleMenuClick(e, 'promo-close', '판촉실적 마감', '/PromotionClose', PromotionClose)}
                 >
                   판촉실적 마감
                 </NavDropdown.Item>

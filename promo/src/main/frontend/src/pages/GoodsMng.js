@@ -37,22 +37,46 @@ const GoodsMng = () => {
   const [selectedMisNm, setSelectedMisNm] = useState('');
   const [selectedMisCd, setSelectedMisCd] = useState('');
   const [selectedDeleteYn, setSelectedDeleteYn] = useState(0);  // ✅ 미사용 포함 여부
+  const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [tableData, setTableData] = useState([]);
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [originalData, setOriginalData] = useState([]);
-  const isInitialLoadRef = useRef(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const tableRef = useRef(null);
 
   useEffect(() => {
-    /**
-     * tabulatorInstance가 생성되고, 아직 초기 조회를 하지 않았다면 조회 실행
-     */
-    if (tabulatorInstance && isInitialLoadRef.current) {
-      console.log('Tabulator 인스턴스가 생성되었습니다. 초기 조회를 시작합니다.');
-      handleSearch();
-      isInitialLoadRef.current = false;  // 초기 조회 완료 플래그 설정
+    fetchAgencyList();
+  });
+
+  // 초기 로드 시 1회만 자동 조회
+    useEffect(() => {
+      if (isInitialLoad && agencyList.length > 0) {
+        handleSearch();
+        setIsInitialLoad(false);
+      }
+    }, [isInitialLoad, agencyList]);
+
+  // 대리점 목록 조회 함수
+  const fetchAgencyList = async () => {
+    try {
+      const response = await axios.get('/api/promo/getAllAgency');  // API 엔드포인트 수정 필요
+      
+      // API 응답 구조에 따라 수정
+      // 예: response.data 또는 response.data.data
+      setAgencyList(response.data);
+      
+    } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '대리점 목록 조회 실패',
+        confirmButtonText: '확인'
+      });
+      console.error('대리점 목록 조회 실패:', error);
+      // 에러 시 빈 배열 설정
+      setAgencyList([]);
     }
-  }, [tabulatorInstance]);  // ✅ tabulatorInstance가 변경될 때마다 실행
+  };
 
   /**
    * ✅ 두 행 데이터를 비교하여 변경 여부를 판단하는 함수
@@ -263,14 +287,14 @@ const GoodsMng = () => {
       },
     },
     {
-      title: '제품코드연결(본사)',
+      title: '제품코드연결(대리점)',
       field: 'misCd',
       width: 130,
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
       titleFormatter: function() {
-        return '제품코드연결<br/>(본사)';  // HTML로 줄바꿈
+        return '제품코드연결<br/>(대리점)';  // HTML로 줄바꿈
       },
     },
     {
