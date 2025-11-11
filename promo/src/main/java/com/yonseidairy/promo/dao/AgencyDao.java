@@ -4,6 +4,10 @@ import lombok.Data;
 
 @Data
 public class AgencyDao {
+	
+	private String salesMan;
+	
+	private String empyNme;
 
 	private String managerYn;
 	

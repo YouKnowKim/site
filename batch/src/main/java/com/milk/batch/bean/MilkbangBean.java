@@ -1,5 +1,6 @@
 package com.milk.batch.bean;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
@@ -41,4 +42,16 @@ public class MilkbangBean extends OrderGoodsBean {
 	public ArrayList<com.milk.batch.bean.MilkbangBean> arrMilkbangGoods = new ArrayList<>();
 
 	public ArrayList<com.milk.batch.bean.MilkbangBean> child = new ArrayList<>();
+	
+	public BigDecimal Day1 = new BigDecimal("0");
+	
+	public BigDecimal Day2 = new BigDecimal("0");
+	
+	public BigDecimal Day3 = new BigDecimal("0");
+	
+	public BigDecimal Day4 = new BigDecimal("0");
+	
+	public BigDecimal Day5 = new BigDecimal("0");
+	
+	public BigDecimal Day6 = new BigDecimal("0");
 }

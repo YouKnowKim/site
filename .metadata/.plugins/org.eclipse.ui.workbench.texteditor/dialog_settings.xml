@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="masterCloseMn"/>
-			<item value="#{misCd"/>
-			<item value="misCd"/>
-			<item value="updateDeleteYn"/>
-			<item value="optionNm"/>
-			<item value="getGoodsList"/>
-			<item value="unitprice"/>
-			<item value="@PostMapping"/>
+			<item value="GoodsOptionCD"/>
+			<item value="actualhob"/>
+			<item value="actualHob"/>
+			<item value="DB에 업로드 중..."/>
+			<item value="ROOT_DIR"/>
+			<item value="convertExcel"/>
+			<item value="판촉자료"/>
+			<item value="actual"/>
+			<item value="insertgood"/>
+			<item value="insertM"/>
 			<item value="insert"/>
-			<item value="Custno"/>
-			<item value="row_num"/>
-			<item value="selectAgencyList"/>
-			<item value="getAgencyList"/>
-			<item value="AGENCYCD"/>
-			<item value="addCondition"/>
+			<item value="unclosePromo"/>
+			<item value="closePromo"/>
+			<item value="close"/>
+			<item value="#{teamCd"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

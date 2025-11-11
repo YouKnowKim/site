@@ -7,10 +7,20 @@ import org.springframework.stereotype.Repository;
 
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.GoodsDao;
+import com.yonseidairy.promo.dao.TeamDao;
+import com.yonseidairy.promo.dao.TeamPersonDao;
 
 @Mapper
 @Repository
 public interface SettingMapper {
+	
+	int existsTeamPersonCd(TeamPersonDao inTeamPersonDao);
+	int insertTeamPerson(TeamPersonDao inTeamPersonDao);
+	int updateTeamPerson(TeamPersonDao inTeamPersonDao);
+	
+	List<TeamDao> selectTeamList(TeamDao inTeamDao);
+	
+	List<TeamPersonDao> selectTeamPersonList(TeamPersonDao inTeamPersonDao);
 
 	/**
 	 * 대리점 목록 조회

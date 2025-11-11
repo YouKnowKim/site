@@ -1195,7 +1195,7 @@ const PromotionSettle = () => {
     },
     {
       title: '팀',
-      field: 'teamNm',
+      field: 'deptNme',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'

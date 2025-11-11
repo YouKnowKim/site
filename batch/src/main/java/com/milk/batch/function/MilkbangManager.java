@@ -1489,7 +1489,7 @@ public class MilkbangManager {
 	                    "OrderKindCD, OrderKind, " +
 	                    "AgencyHob, HQHob, PromoGiftNM, " +
 	                    "GiveDT, GivePersonNM, StopDT, StopReason, SaveYN, " +
-	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM" +
+	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM, ActualHob" +
 	                    ") SELECT " +
 	                    "?, " +
 	                    "(SELECT NVL(MAX(OrderSEQ),0) + 1 FROM ysc.tc_milkbanggoods WHERE OrderCD = ?), " +
@@ -1498,7 +1498,7 @@ public class MilkbangManager {
 	                    "ADD_MONTHS(?, ?), " +  // ExpireDT = PromoDT + ContractPeriod
 	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
 	                    "tc_teamperson.TeamPersonCD, tc_teamperson.TeamPersonNM, " +
-	                    "tc_team.TeamCD, tc_team.TeamNM " +
+	                    "tc_team.TeamCD, tc_team.TeamNM, ? " +
 	                    "FROM ysc.tc_agency " +
 	                    "LEFT OUTER JOIN ysc.tc_teamperson ON (tc_agency.TeamPersonCD = tc_teamperson.TeamPersonCD) " +
 	                    "LEFT OUTER JOIN ysc.tc_team ON (tc_team.TeamCD = tc_teamperson.TeamCD) " +
@@ -1542,6 +1542,7 @@ public class MilkbangManager {
 	                pstmt.setTimestamp(idx++, clsMilkbangGoods.StopDT);
 	                pstmt.setString(idx++, clsMilkbangGoods.StopReason);
 	                pstmt.setInt(idx++, clsMilkbangGoods.SaveYN);
+	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.ActualHob);
 	                pstmt.setLong(idx++, clsMilkbangGoods.AgencyCD);
 	                
 	                pstmt.executeUpdate();

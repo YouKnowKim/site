@@ -5,6 +5,88 @@
   
 <mapper namespace="com.yonseidairy.promo.mapper.SettingMapper">
 
+	<insert id="insertTeamPerson" parameterType="TeamPersonDao">
+		INSERT INTO YSC.TC_TEAMPERSON (
+			TEAMPERSONCD
+			, LOGINID
+			, LOGINPW
+			, TEAMPERSONNM
+			, TEAMPERSONTYPE
+			, MANAGERYN
+			, TEAMCD
+			, AGENCYYN
+		) VALUES (
+			#{teamPersonCd, jdbcType=VARCHAR}
+			, #{loginId, jdbcType=VARCHAR}
+			, #{loginPw, jdbcType=VARCHAR}
+			, #{teamPersonNm, jdbcType=VARCHAR}
+			, #{teamPersonType, jdbcType=VARCHAR}
+			, #{managerYn, jdbcType=VARCHAR}
+			, #{teamCd, jdbcType=VARCHAR}
+			, #{agencyYn, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="updateTeamPerson" parameterType="TeamPersonDao">
+	    UPDATE YSC.TC_TEAMPERSON
+	    SET LOGINID = #{loginId, jdbcType=VARCHAR}
+	    	, LOGINPW = #{loginPw, jdbcType=VARCHAR}
+	    	, TEAMPERSONNM = #{teamPersonNm, jdbcType=VARCHAR}
+	    	, TEAMPERSONTYPE = #{teamPersonType, jdbcType=VARCHAR}
+	    	, MANAGERYN = #{managerYn, jdbcType=VARCHAR}
+	    	, TEAMCD = #{teamCd, jdbcType=VARCHAR}
+	    	, AGENCYYN = #{agencyYn, jdbcType=VARCHAR}
+	    WHERE TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="existsTeamPersonCd" resultType="int" parameterType="TeamPersonDao">
+	    SELECT COUNT(*)
+	    FROM YSC.TC_TEAMPERSON
+	    WHERE TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectTeamList" resultType="TeamDao">
+        SELECT 
+        	 a.TEAMCD as teamCd
+        	 , a.TEAMNM AS teamNm
+        	 , a.TEAMTYPE AS teamType
+        FROM ysc.TC_TEAM a
+		ORDER BY a.TEAMCD
+    </select>
+
+	<select id="selectTeamPersonList" resultType="TeamPersonDao">
+        select 
+			a.TEAMPERSONCD AS teamPersonCd
+			, a.TEAMPERSONNM AS teamPersonNm
+			, a.TEAMPERSONTYPE AS teamPersonType
+			, a.LOGINID AS loginId
+			, a.LOGINPW as loginPw
+			, a.TEAMCD AS teamCd
+			, b.TEAMNM AS teamNm
+			, a.MANAGERYN AS managerYn
+			, NVL(c.EMPY_NME, e.CUSTNAME) AS empyNme
+			, NVL(c.EMPY_ID, e.CUSTNO) AS empyId
+			, c.DEPT_CDE AS deptCde
+			, d.DEPT_NME AS deptNme
+			, a.AGENCYYN AS agencyYn
+		from ysc.tc_teamperson a
+		LEFT JOIN ysc.TC_TEAM b ON a.TEAMCD = b.TEAMCD 
+		LEFT JOIN insa.PAPEDTL c ON a.LOGINID = c.EMPY_ID
+		LEFT JOIN apps.CMDEPTCD d on c.DEPT_CDE = d.DEPT_CDE
+		LEFT JOIN apps.CD_CUSTOMER e on 'A' || a.LOGINID = e.CUSTNO
+		WHERE 1 = 1 
+		<if test="teamPersonType != null and teamPersonType != ''">
+			AND a.TEAMPERSONTYPE = #{teamPersonType}
+	    </if>
+		<if test="teamPersonCd != null and teamPersonCd != ''">
+			AND a.TEAMPERSONCD LIKE '%' || #{teamPersonCd} || '%'
+	    </if>
+	    <if test="teamPersonNm != null and teamPersonNm != ''">
+			AND a.TEAMPERSONNM LIKE '%' || #{teamPersonNm} || '%'
+	    </if>
+		ORDER BY TEAMPERSONCD 
+    </select>
+
 	<insert id="insertGoods" parameterType="GoodsDao">
 	    INSERT INTO YSC.TC_GOODSOPTION (
 		    GOODSOPTIONCD
@@ -113,6 +195,14 @@
 			, a.VIRTUALBANKNO_SPECIAL AS virtualBankNoSpecial
 			, a.DELETEYN AS deleteYn
 			, case when a.DELETEYN = 0 THEN '사용' ELSE '미사용' END AS deleteNm
+			, (SELECT max(z2.SALES_MAN) FROM apps.CD_CUSTOMER z1
+				LEFT JOIN apps.CD_CUSTOMER_SHIP z2 ON z1.OFFICE_ID = z2.OFFICE_ID  AND z1.CUSTNO = z2.CUSTNO 
+				LEFT JOIN insa.PAPEDTL z3 ON z2.SALES_MAN = z3.EMPY_ID 
+				WHERE z1.OFFICE_ID = 'YSM' AND z1.custno = c.custno) as salesMan
+			, (SELECT max(z3.EMPY_NME) FROM apps.CD_CUSTOMER z1
+				LEFT JOIN apps.CD_CUSTOMER_SHIP z2 ON z1.OFFICE_ID = z2.OFFICE_ID  AND z1.CUSTNO = z2.CUSTNO 
+				LEFT JOIN insa.PAPEDTL z3 ON z2.SALES_MAN = z3.EMPY_ID 
+				WHERE z1.OFFICE_ID = 'YSM' AND z1.custno = c.custno) as empyNme
 		FROM ysc.tc_agency a
 		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
 		LEFT JOIN apps.CD_CUSTOMER c ON 'A' || a.AGENCYCD = c.CUSTNO 

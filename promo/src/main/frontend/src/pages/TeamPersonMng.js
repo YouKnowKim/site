@@ -31,50 +31,105 @@ const getTodayDate = () => {
   return `${year}-${month}-${day}`;
 };
 
-const GoodsMng = () => {
-  const [selectedOptionNm, setSelectedOptionNm] = useState('');
-  const [selectedGoodsOptionCd, setSelectedGoodsOptionCd] = useState('');
-  const [selectedMisNm, setSelectedMisNm] = useState('');
-  const [selectedMisCd, setSelectedMisCd] = useState('');
-  const [selectedDeleteYn, setSelectedDeleteYn] = useState(0);  // ✅ 미사용 포함 여부
-  const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
+const TeamPersonMng = () => {
+  const [selectedTeamPersonNm, setSelectedTeamPersonNm] = useState('');
+  const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
+  const [selectedTeamPersonType, setSelectedTeamPersonType] = useState('1');
   const [tableData, setTableData] = useState([]);
+  const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
+  const [teamList, setTeamList] = useState([]);
+  const [teamOptions, setTeamOptions] = useState({});
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
-  const [originalData, setOriginalData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [originalData, setOriginalData] = useState([]);
+  const isInitialLoadRef = useRef(true);
   const tableRef = useRef(null);
+  // 담당자 선택 팝업 관련 state
+  const [showTeamPersonModal, setShowTeamPersonModal] = useState(false);  // 팝업 표시 여부
+  const [teamPersonList, setTeamPersonList] = useState([]);               // 담당자 목록
+  const [currentRowIndex, setCurrentRowIndex] = useState(null);           // 현재 선택된 행 인덱스
+  const teamPersonModalTableRef = useRef(null);                           // 팝업 테이블 참조
 
   useEffect(() => {
-    fetchAgencyList();
+    fetchTeamList();
+  }, []); // 빈 배열: 컴포넌트 마운트 시 1회만 실행
+
+  useEffect(() => {
+    fetchTeamPersonList();
   });
 
   // 초기 로드 시 1회만 자동 조회
-    useEffect(() => {
-      if (isInitialLoad && agencyList.length > 0) {
-        handleSearch();
-        setIsInitialLoad(false);
-      }
-    }, [isInitialLoad, agencyList]);
+  useEffect(() => {
+    if (isInitialLoad && teamPersonList.length > 0 && teamList.length > 0) {
+      handleSearch();
+      setIsInitialLoad(false);
+    }
+  }, [isInitialLoad, teamPersonList, teamList]);
 
-  // 대리점 목록 조회 함수
-  const fetchAgencyList = async () => {
+  const fetchTeamList = async () => {
     try {
-      const response = await axios.get('/api/promo/getAllAgency');  // API 엔드포인트 수정 필요
+      // API 호출
+      const response = await axios.get('/api/setting/getTeamList');
+      
+      // 응답 데이터 확인 (디버깅용)
+      console.log('팀 목록 조회 결과:', response.data);
+      
+      // state에 원본 데이터 저장
+      setTeamList(response.data || []);
+      
+      // ✅ editorParams의 values 형태로 변환
+      // 형태: { "01": "영업1팀", "02": "영업2팀", ... }
+      const options = {};
+      
+      // 빈 옵션 추가 (선택 안 함)
+      options[''] = '- 선택 -';
+      
+      // 각 팀을 순회하며 옵션 객체 생성
+      response.data.forEach(team => {
+        options[team.teamCd] = team.teamNm;
+      });
+      
+      // 변환된 옵션 객체를 state에 저장
+      setTeamOptions(options);
+      
+      console.log('팀 옵션 변환 결과:', options);
+      
+    } catch (error) {
+      console.error('팀 목록 조회 실패:', error);
+      
+      // 에러 알림
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '팀 목록 조회에 실패했습니다.',
+        confirmButtonText: '확인'
+      });
+      
+      // 에러 시 빈 배열/객체로 초기화
+      setTeamList([]);
+      setTeamOptions({ '': '- 선택 -' });
+    }
+  };
+
+  // 담당자 목록 조회 함수
+  const fetchTeamPersonList = async () => {
+    try {
+      const response = await axios.get('/api/promo/getAllTeamPerson');  // API 엔드포인트 수정 필요
       
       // API 응답 구조에 따라 수정
       // 예: response.data 또는 response.data.data
-      setAgencyList(response.data);
+      setTeamPersonList(response.data);
       
     } catch (error) {
       Swal.fire({
         icon: 'warning',
         title: '오류',
-        text: '대리점 목록 조회 실패',
+        text: '담당자 목록 조회 실패',
         confirmButtonText: '확인'
       });
-      console.error('대리점 목록 조회 실패:', error);
+      console.error('담당자 목록 조회 실패:', error);
       // 에러 시 빈 배열 설정
-      setAgencyList([]);
+      setTeamPersonList([]);
     }
   };
 
@@ -86,17 +141,14 @@ const GoodsMng = () => {
    */
   const isRowChanged = (original, current) => {
     // ✅ 비교할 필드 목록 (편집 가능한 필드들)
-    // 새로 추가된 행(isNew)은 이 함수를 거치지 않으므로 goodsOptionCd는 제외
     const fieldsToCompare = [
-      'optionNm',        // 제품명(대리점)
-      'misCd',           // 제품코드연결(본사)
-      'day1',            // day1
-      'day2',            // day2
-      'day3',            // day3
-      'day4',            // day4
-      'day5',            // day5
-      'day6',            // day6
-      'deleteYn'         // 사용여부
+      'teamPersonNm',    // 사원명
+      'loginId',         // 로그인ID
+      'loginPw',         // 비밀번호
+      'teamCd',          // 소속팀코드
+      'managerYn',       // 관리자여부
+      'agencyYn',        // 대리점여부
+      'teamPersonType'   // 직원타입
     ];
 
     // ✅ 각 필드를 비교하여 하나라도 다르면 변경된 것으로 판단
@@ -133,7 +185,7 @@ const GoodsMng = () => {
   const getChangedData = (originalData, currentData) => {
     const changedRows = [];
 
-    // ✅ 각 행의 고유 식별자 (goodsOptionCd)를 사용하여 매칭
+    // ✅ 각 행의 고유 식별자 (teamPersonCd)를 사용하여 매칭
     currentData.forEach(currentRow => {
       // 새로 추가된 행은 무조건 변경된 것으로 간주
       if (currentRow.isNew === true) {
@@ -144,9 +196,9 @@ const GoodsMng = () => {
         return;
       }
 
-      // 원본 데이터에서 동일한 goodsOptionCd를 가진 행 찾기
+      // 원본 데이터에서 동일한 teamPersonCd를 가진 행 찾기
       const originalRow = originalData.find(
-        row => row.goodsOptionCd === currentRow.goodsOptionCd
+        row => row.teamPersonCd === currentRow.teamPersonCd
       );
 
       // ✅ 원본 데이터에 해당 행이 있고, 변경되었다면 추가
@@ -166,6 +218,116 @@ const GoodsMng = () => {
     return changedRows;
   };
 
+  const handleTeamPersonSelect = (selectedPerson) => {
+    if (currentRowIndex === null || !tabulatorInstance?.current) {
+      return;
+    }
+
+    // 테이블의 해당 행 데이터 업데이트
+    const rows = tabulatorInstance.current.getRows();
+    const targetRow = rows[currentRowIndex];
+    
+    if (targetRow) {
+      // ✅ 담당코드와 담당자명을 동시에 업데이트
+      targetRow.update({
+        teamPersonCd: selectedPerson.teamPersonCd,
+        teamPersonNm: selectedPerson.teamPersonNm,
+        isTeamPersonChanged: true  // ✅ 변경 플래그 추가
+      });
+      
+      // state도 함께 업데이트
+      setTableData(prev => {
+        const newData = [...prev];
+        newData[currentRowIndex] = {
+          ...newData[currentRowIndex],
+          teamPersonCd: selectedPerson.teamPersonCd,
+          teamPersonNm: selectedPerson.teamPersonNm,
+          isTeamPersonChanged: true  // ✅ 변경 플래그 추가
+        };
+        return newData;
+      });
+    }
+    
+    // 팝업 닫기
+    setShowTeamPersonModal(false);
+    setCurrentRowIndex(null);
+  };
+
+  // ✅ 담당자 선택 팝업의 컬럼 정의
+  const teamPersonColumns = [
+    {
+      title: 'No',
+      field: 'no',
+      width: 70,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      formatter: function(cell) {
+        return cell.getRow().getPosition();
+      }
+    },
+    {
+      title: '담당코드',
+      field: 'teamPersonCd',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '담당자명',
+      field: 'teamPersonNm',
+      width: 150,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
+      title: '선택',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      headerSort: false,
+      formatter: function(cell) {
+      // ✅ 버튼 스타일 최적화
+      return `
+        <button 
+          class="btn btn-primary btn-sm team-person-select-btn"
+          style="
+            padding: 0px 0px;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: 40px;
+            max-width: 50px;
+          ">
+          선택
+        </button>
+      `;
+    },
+      cellClick: function(e, cell) {
+        const rowData = cell.getRow().getData();
+        handleTeamPersonSelect(rowData);
+      }
+    }
+  ];
+
+  const openTeamPersonModal = async (rowIndex) => {
+    setCurrentRowIndex(rowIndex);  // 현재 행 인덱스 저장
+    setShowTeamPersonModal(true);  // 팝업 표시
+    
+    // 담당자 목록 조회 API 호출
+    try {
+      const response = await axios.get('/api/promo/getAllTeamPerson');
+      setTeamPersonList(response.data || []);
+    } catch (error) {
+      console.error('담당자 목록 조회 실패:', error);
+      Swal.fire({
+        icon: 'error',
+        title: '오류',
+        text: '담당자 목록 조회에 실패했습니다.',
+        confirmButtonText: '확인'
+      });
+      setTeamPersonList([]);
+    }
+  };
+
   const handleAddRow = () => {
     if (!tabulatorInstance?.current) {
       Swal.fire({
@@ -180,16 +342,8 @@ const GoodsMng = () => {
     // 새로운 행 데이터 생성
     const newRow = {
       no: tableData.length + 1,
-      goodsOptionCd: '',
-      optionNm: '',
-      misCd: "",
-      day1: "0",
-      day2: "0",
-      day3: "0",
-      day4: "0",
-      day5: "0",
-      day6: "0",
-      deleteYn: '0',
+      managerYn: '0',
+      teamPersonType: '1',
       isNew: true  // ✅ 새로 추가된 행 구분용 플래그
     };
 
@@ -205,19 +359,24 @@ const GoodsMng = () => {
     {
       title: 'No',
       field: 'no',
-      width: 70,
+      width: 80,
       hozAlign: 'center',
-      headerHozAlign: 'center'
+      headerHozAlign: 'center',
+      formatter: function(cell, formatterParams, onRendered) {
+        // 현재 행의 위치를 가져와서 1부터 시작하는 순번 반환
+        return cell.getRow().getPosition();
+      }
     },
     {
-      title: '제품코드(대리점)',
-      field: 'goodsOptionCd',
+      title: '사원코드',
+      field: 'teamPersonCd',
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
       editorParams: {
         elementAttributes: {
+          maxlength: "5",        // 최대 5자리까지만 입력 가능
           inputMode: "numeric",  // 모바일에서 숫자 키패드 표시
           pattern: "[0-9]*"      // 숫자만 입력 가능 (브라우저 힌트)
         }
@@ -225,157 +384,114 @@ const GoodsMng = () => {
       // ✅ 새로 추가된 행(isNew=true)에서만 편집 가능
       editable: function(cell) {
         const rowData = cell.getRow().getData();
-        return rowData.isNew === true;
-      },
-      titleFormatter: function() {
-        return '제품코드<br/>(대리점)';
-      },
-      // ✅ 입력값 유효성 검사 - 숫자만 허용
-      cellEdited: function(cell) {
-        const value = cell.getValue();
-        
-        // 1. 빈 값 체크
-        if (!value || value.trim() === '') {
-          Swal.fire({
-            icon: 'warning',
-            title: '입력 오류',
-            text: '제품코드는 필수 입력 항목입니다.',
-            confirmButtonText: '확인'
-          });
-          // 빈 값으로 초기화
-          cell.setValue('');
-          return;
-        }
-        
-        // 2. 숫자가 아닌 문자 제거
-        const cleanedValue = value.replace(/\D/g, '');
-        
-        // 3. 숫자가 아닌 문자가 포함되어 있었다면 경고 후 정제된 값으로 업데이트
-        if (value !== cleanedValue) {
-          Swal.fire({
-            icon: 'warning',
-            title: '입력 오류',
-            text: '제품코드는 숫자만 입력 가능합니다.',
-            confirmButtonText: '확인'
-          });
-          cell.setValue(cleanedValue);
-          return;
-        }
-        
-        // 4. 정제 후 빈 값이 된 경우 (숫자가 하나도 없었던 경우)
-        if (cleanedValue === '') {
-          Swal.fire({
-            icon: 'warning',
-            title: '입력 오류',
-            text: '제품코드는 숫자만 입력 가능합니다.',
-            confirmButtonText: '확인'
-          });
-          cell.setValue('');
-          return;
-        }
+        return rowData.isNew === true;  // isNew가 true일 때만 편집 가능
       }
     },
     {
-      title: '제품명(대리점)',
-      field: 'optionNm',
-      width: 250,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      editor: 'input',
-      titleFormatter: function() {
-        return '제품명<br/>(대리점)';  // HTML로 줄바꿈
-      },
-    },
-    {
-      title: '제품코드연결(대리점)',
-      field: 'misCd',
+      title: '사원명',
+      field: 'teamPersonNm',
       width: 130,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      editor: 'input',
-      titleFormatter: function() {
-        return '제품코드연결<br/>(대리점)';  // HTML로 줄바꿈
-      },
-    },
-    {
-      title: '제품코드(본사)',
-      field: 'matcode',
-      width: 130,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '제품코드<br/>(본사)';  // HTML로 줄바꿈
-      },
-    },
-    {
-      title: '제품명(본사)',
-      field: 'misNm',
-      width: 300,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      titleFormatter: function() {
-        return '제품명<br/>(본사)';  // HTML로 줄바꿈
-      },
-    },
-    {
-      title: 'day1',
-      field: 'day1',
-      width: 80,
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input'
     },
     {
-      title: 'day2',
-      field: 'day2',
-      width: 80,
+      title: '로그인ID(MIS사번)',
+      field: 'loginId',
+      width: 130,
       hozAlign: 'center',
+      headerHozAlign: 'center',
       editor: 'input',
+      titleFormatter: function() {
+        return '로그인ID<br/>(MIS사번)';  // HTML로 줄바꿈
+      },
+    },
+    {
+      title: '비밀번호',
+      field: 'loginPw',
+      width: 150,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'input'
+    },
+    // {
+    //   title: '소속 팀',
+    //   field: 'teamCd',
+    //   width: 150,
+    //   editor: 'list',
+    //   hozAlign: 'center',
+    //   headerHozAlign: 'center',
+    //   editorParams: {
+    //     values: teamOptions,  // { "01": "영업1팀", ... }
+    //     autocomplete: true,
+    //     listOnEmpty: true
+    //   },
+    //   // ✅ formatter: 팀코드 대신 팀명 표시
+    //   formatter: function(cell) {
+    //     const teamCd = cell.getValue();
+        
+    //     // 빈 값인 경우
+    //     if (!teamCd || teamCd === '' || teamCd === '0') {
+    //       cell.getElement().style.color = '#999';
+    //       return '- 선택 -';
+    //     }
+        
+    //     // ✅ teamOptions에서 해당 팀코드의 팀명 찾기
+    //     const teamNm = teamOptions[teamCd];
+        
+    //     if (teamNm && teamNm !== '- 선택 -') {
+    //       // 팀명이 있으면 팀명 표시
+    //       cell.getElement().style.color = '';
+    //       return teamNm;
+    //     } else {
+    //       // 팀명을 찾을 수 없으면 팀코드 그대로 표시
+    //       cell.getElement().style.color = '#dc3545';  // 빨간색 (오류 표시)
+    //       return teamCd;
+    //     }
+    //   }
+    // },
+    {
+      title: 'MIS 코드',
+      field: 'empyId',
+      width: 130,
+      hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: 'day3',
-      field: 'day3',
-      width: 80,
+      title: 'MIS 사원명',
+      field: 'empyNme',
+      width: 130,
       hozAlign: 'center',
-      editor: 'input',
       headerHozAlign: 'center'
     },
     {
-      title: 'day4',
-      field: 'day4',
-      width: 80,
+      title: 'MIS 부서코드',
+      field: 'deptCde',
+      width: 110,
       hozAlign: 'center',
-      editor: 'input',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return 'MIS<br/>부서코드';  // HTML로 줄바꿈
+      },
+    },
+    {
+      title: 'MIS 부서명',
+      field: 'deptNme',
+      width: 150,
+      hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: 'day5',
-      field: 'day5',
-      width: 80,
-      hozAlign: 'center',
-      editor: 'input',
-      headerHozAlign: 'center'
-    },
-    {
-      title: 'day6',
-      field: 'day6',
-      width: 80,
-      hozAlign: 'center',
-      editor: 'input',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '사용여부',
-      field: 'deleteYn',
-      width: 100,
+      title: '관리자여부',
+      field: 'managerYn',
+      width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'list',
       editorParams: {
         values: {
-          "0": "사용",
-          "1": "미사용"
+          "0": "관리자X",
+          "1": "관리자O"
         }
       },
       // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
@@ -389,11 +505,89 @@ const GoodsMng = () => {
         
         // 문자열 또는 숫자로 변환하여 비교
         const stringValue = String(value);
-        const displayValue = stringValue === '0' ? '사용' : '미사용';
+        const displayValue = stringValue === '0' ? '관리자X' : '관리자O';
         
         // 미사용인 경우 빨간색 강조
-        if (displayValue === '미사용') {
-          cell.getElement().style.color = '#ee1010ff';
+        if (displayValue === '관리자O') {
+          cell.getElement().style.color = '#1014eeff';
+          cell.getElement().style.fontWeight = 'bold';
+        } else {
+          // 사용인 경우 기본 스타일로 복원
+          cell.getElement().style.color = '';
+          cell.getElement().style.fontWeight = '';
+        }
+        
+        return displayValue;
+      }
+    },
+    {
+      title: '대리점여부',
+      field: 'agencyYn',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'list',
+      editorParams: {
+        values: {
+          "0": "대리점X",
+          "1": "대리점O"
+        }
+      },
+      // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
+      formatter: function(cell) {
+        const value = cell.getValue();
+        
+        // null, undefined 체크
+        if (value === null || value === undefined) {
+          return '';
+        }
+        
+        // 문자열 또는 숫자로 변환하여 비교
+        const stringValue = String(value);
+        const displayValue = stringValue === '0' ? '대리점X' : '대리점O';
+        
+        // 미사용인 경우 빨간색 강조
+        if (displayValue === '대리점O') {
+          cell.getElement().style.color = '#1014eeff';
+          cell.getElement().style.fontWeight = 'bold';
+        } else {
+          // 사용인 경우 기본 스타일로 복원
+          cell.getElement().style.color = '';
+          cell.getElement().style.fontWeight = '';
+        }
+        
+        return displayValue;
+      }
+    },
+    {
+      title: '직원타입',
+      field: 'teamPersonType',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'list',
+      editorParams: {
+        values: {
+          "0": "담당자X",
+          "1": "담당자O"
+        }
+      },
+      // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
+      formatter: function(cell) {
+        const value = cell.getValue();
+        
+        // null, undefined 체크
+        if (value === null || value === undefined) {
+          return '담당자X';
+        }
+        
+        // 문자열 또는 숫자로 변환하여 비교
+        const stringValue = String(value);
+        const displayValue = stringValue === '1' ? '담당자O' : '담당자X';
+        
+        // 미사용인 경우 빨간색 강조
+        if (displayValue === '담당자') {
+          cell.getElement().style.color = '#1014eeff';
           cell.getElement().style.fontWeight = 'bold';
         } else {
           // 사용인 경우 기본 스타일로 복원
@@ -406,36 +600,7 @@ const GoodsMng = () => {
     }
   ];
 
-  // ✅ 공통 formatter 함수들
-  const textDownloadFormatter = (value) => {
-    return (value === null || value === undefined || value === '') ? '' : value;
-  };
-
-  const numberDownloadFormatter = (value) => {
-    if (value === null || value === undefined || value === '') return 0;
-    const number = parseFloat(value);
-    return isNaN(number) ? 0 : number;
-  };
-
-  // ✅ accessorDownload가 없는 컬럼에 자동으로 추가
-  columns.forEach(col => {
-    // 이미 accessorDownload가 있거나, formatter가 rowSelection인 경우 스킵
-    if (col.accessorDownload || col.formatter === "rowSelection" || !col.field) {
-      return;
-    }
-    
-    // 숫자 필드 목록 (필요에 따라 추가)
-    const numberFields = ['day1', 'day2', 'day3', 'day4', 'day5', 'day6'];
-    
-    // 숫자 필드면 numberDownloadFormatter, 아니면 textDownloadFormatter 적용
-    if (numberFields.includes(col.field)) {
-      col.accessorDownload = numberDownloadFormatter;
-    } else {
-      col.accessorDownload = textDownloadFormatter;
-    }
-  });
-
-  // 엑셀 다운로드 함수
+// 엑셀 다운로드 함수
   const handleExcelDownload = () => { 
 
     if (!tabulatorInstance) {
@@ -459,10 +624,10 @@ const GoodsMng = () => {
     }
 
     const today = getTodayDate().replace(/-/g, '');
-    const fileName = `판촉제품관리${today}.xlsx`;
+    const fileName = `대리점관리_${today}.xlsx`;
     
     tabulatorInstance?.current.download("xlsx", fileName, {
-      sheetName: "판촉제품관리"
+      sheetName: "대리점관리"
     });
   };
 
@@ -482,13 +647,11 @@ const GoodsMng = () => {
       }
 
       // 조회 API 호출
-      const response = await axios.get('/api/setting/getGoodsList', {
+      const response = await axios.get('/api/setting/getTeamPersonList', {
         params: {
-          optionNm : selectedOptionNm,
-          goodsOptionCd : selectedGoodsOptionCd,
-          misNm : selectedMisNm,
-          misCd : selectedMisCd,
-          deleteYn : selectedDeleteYn
+          teamPersonCd : selectedTeamPersonCd,
+          teamPersonNm : selectedTeamPersonNm,
+          teamPersonType : selectedTeamPersonType
         }
       });
 
@@ -533,8 +696,11 @@ const GoodsMng = () => {
     }
   };
 
+  /**
+   * ✅ 저장 버튼 클릭 핸들러
+   */
   const handleSave = async () => {
-
+    
     // ✅ 1. 현재 테이블의 모든 데이터 가져오기
     const currentData = tabulatorInstance?.current?.getData() || [];
 
@@ -548,18 +714,11 @@ const GoodsMng = () => {
       return;
     }
 
-    // ✅ 2. 유효성 검사 - 제품코드 필수 입력 및 숫자 검사
+    // ✅ 2. 유효성 검사 (신규 행만 검증)
     const invalidRows = currentData.filter(row => {
-      if (row.isNew) {  // 새로 추가된 행만 검사
-        const goodsOptionCd = row.goodsOptionCd;
-        
-        // 빈 값 체크
-        if (!goodsOptionCd || goodsOptionCd.trim() === '') {
-          return true;
-        }
-        
-        // 숫자가 아닌 문자가 포함된 경우
-        if (!/^\d+$/.test(goodsOptionCd)) {
+      if (row.isNew) {
+        // 사원명이 비어있는 경우
+        if (!row.teamPersonNm || row.teamPersonNm.trim() === '') {
           return true;
         }
       }
@@ -567,22 +726,25 @@ const GoodsMng = () => {
     });
 
     if (invalidRows.length > 0) {
-      // ✅ 에러 메시지 상세화
-      const hasEmptyCode = invalidRows.some(row => !row.goodsOptionCd || row.goodsOptionCd.trim() === '');
-      const hasNonNumeric = invalidRows.some(row => row.goodsOptionCd && !/^\d+$/.test(row.goodsOptionCd));
-      
-      let errorMessage = '제품코드 입력 오류:\n';
-      if (hasEmptyCode) {
-        errorMessage += '- 제품코드가 입력되지 않은 행이 있습니다.\n';
-      }
-      if (hasNonNumeric) {
-        errorMessage += '- 제품코드는 숫자만 입력 가능합니다.\n';
-      }
+      // ✅ 구체적인 오류 메시지 생성
+      const errors = [];
+      invalidRows.forEach(row => {
+        if (!row.teamPersonNm || row.teamPersonNm.trim() === '') {
+          errors.push(`사원명이 비어있습니다.`);
+        }
+      });
       
       Swal.fire({
         icon: 'error',
         title: '저장 실패',
-        text: errorMessage,
+        html: `
+          <div style="text-align: left;">
+            <p><strong>다음 항목을 확인해주세요:</strong></p>
+            <ul>
+              ${[...new Set(errors)].map(err => `<li>${err}</li>`).join('')}
+            </ul>
+          </div>
+        `,
         confirmButtonText: '확인'
       });
       return;
@@ -640,8 +802,8 @@ const GoodsMng = () => {
         }
       });
 
-      // ✅ API 호출 (제품 관리용 엔드포인트)
-      const response = await axios.post('/api/setting/saveGoodsList', changedData);
+      // ✅ API 호출 (사원 관리 엔드포인트)
+      const response = await axios.post('/api/setting/saveTeamPersonList', changedData);
 
       // ✅ 7. 저장 성공 처리
       Swal.fire({
@@ -657,7 +819,7 @@ const GoodsMng = () => {
     } catch (error) {
       console.error('저장 실패:', error);
       
-      // 에러 메시지 추출
+      // ✅ 에러 메시지 추출
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.error || 
                           '데이터 저장에 실패했습니다.';
@@ -696,7 +858,7 @@ const GoodsMng = () => {
           <h5>
             <i className="bi bi-circle-fill text-warning me-1"></i>
             <CiViewList size={22} />
-            판촉 제품 관리
+            사원 관리
           </h5>
         </Col>
       </Row>
@@ -707,74 +869,46 @@ const GoodsMng = () => {
           <Row className="align-items-end">
 
             {/* 대리점 입력 */}
-            <Col md={3} style={{ minWidth: '460px', maxWidth: '460px' }}>
+            <Col md={4} style={{ minWidth: '350px', maxWidth: '350px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
-                    제품(대리점) :
+                    사원코드 :
                   </Form.Label>
                   <Form.Control
                     type="text"
                     size="sm"
-                    value={selectedOptionNm}
-                    onChange={(e) => setSelectedOptionNm(e.target.value)}
-                    placeholder="제품명(대리점) 입력"
-                    style={{ width: '180px' }}
+                    value={selectedTeamPersonCd}
+                    onChange={(e) => setSelectedTeamPersonCd(e.target.value)}
+                    placeholder="사원코드 입력"
+                    style={{ width: '120px' }}
                   />
                   <Form.Control
                     type="text"
                     size="sm"
-                    value={selectedGoodsOptionCd}
-                    onChange={(e) => setSelectedGoodsOptionCd(e.target.value)}
-                    placeholder="제품코드(대리점) 입력"
-                    style={{ width: '150px' }}
+                    value={selectedTeamPersonNm}
+                    onChange={(e) => setSelectedTeamPersonNm(e.target.value)}
+                    placeholder="사원명 입력"
+                    style={{ width: '120px' }}
                   />
                 </div>
               </Form.Group>
             </Col>
 
-            {/* 대리점 입력 */}
-            <Col md={3} style={{ minWidth: '460px', maxWidth: '460px' }}>
-              <Form.Group>
-                <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
-                    제품(대리점) :
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    size="sm"
-                    value={selectedMisNm}
-                    onChange={(e) => setSelectedMisNm(e.target.value)}
-                    placeholder="제품명(본사) 입력"
-                    style={{ width: '180px' }}
-                  />
-                  <Form.Control
-                    type="text"
-                    size="sm"
-                    value={selectedMisCd}
-                    onChange={(e) => setSelectedMisCd(e.target.value)}
-                    placeholder="제품코드(본사) 입력"
-                    style={{ width: '150px' }}
-                  />
-                </div>
-              </Form.Group>
-            </Col>
-
-            {/* 담당자 입력 */}
             <Col md={2} style={{ minWidth: '250px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
-                    미사용 :
+                    구분 :
                   </Form.Label>
                   <Form.Select
                     size="sm"
-                    value={selectedDeleteYn}
-                    onChange={(e) => setSelectedDeleteYn(e.target.value)}
+                    value={selectedTeamPersonType}
+                    onChange={(e) => setSelectedTeamPersonType(e.target.value)}
                     style={{ width: '130px' }}
                   >
-                    <option value="0">미포함</option>
-                    <option value="1">포함</option>
+                    <option value="">전체</option>
+                    <option value="1">담당자</option>
                   </Form.Select>
                 </div>
               </Form.Group>
@@ -825,7 +959,7 @@ const GoodsMng = () => {
           {/* 행추가/행삭제 버튼 그룹 */}
           <Row className="align-items-center">
             <Col xs="auto">
-              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>판촉 제품 관리</span>
+              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>사원 관리</span>
             </Col>
             <Col>
               <Button
@@ -859,4 +993,4 @@ const GoodsMng = () => {
   );
 };
 
-export default GoodsMng;
+export default TeamPersonMng;

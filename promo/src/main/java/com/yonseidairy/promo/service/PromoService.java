@@ -20,7 +20,7 @@ public class PromoService {
 
 	@Autowired
 	PromoMapper promoMapper;
-	
+
 	public List<PromoCloseDao> getCloseList(PromoCloseDao inPromoCloseDao) {
 
 		return promoMapper.selectCloseList(inPromoCloseDao);
@@ -72,9 +72,284 @@ public class PromoService {
 	}
 
 	/**
-	 * 판촉실적 저장 (사전 검증 + 전체 저장 or 전체 취소)
-	 * - 저장 전 모든 데이터의 masterCloseYn 확인
-	 * - 하나라도 마감 데이터가 있으면 전체 저장 취소
+	 * 판촉실적 마감 처리 (사전 검증 + 전체 마감 or 전체 취소) - 마감 전 모든 담당자의 미저장 건수 확인 - 하나라도 미저장 건이
+	 * 있으면 전체 마감 취소 - 모든 담당자가 마감 가능한 경우에만 마감 처리
+	 * 
+	 * @param dataList 마감 처리할 담당자 목록 (담당자코드, 기간, 마감사유 포함)
+	 * @return 마감 처리된 총 건수
+	 * @throws Exception 마감 처리 중 오류 발생 시
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public Integer closePromo(List<PromoCloseDao> dataList) throws Exception {
+
+		if (dataList == null || dataList.isEmpty()) {
+			throw new IllegalArgumentException("마감 처리할 데이터가 없습니다.");
+		}
+
+		System.out.println("=== 판촉실적 마감 가능 여부 사전 검증 시작 ===");
+		System.out.println("마감 요청 담당자 수: " + dataList.size() + "명");
+
+		// ✅ 1단계: 모든 담당자의 마감 가능 여부 사전 검증
+		List<String> unclosableList = new ArrayList<>();
+
+		for (PromoCloseDao data : dataList) {
+			// 필수 값 체크
+			if (data.getTeamPersonCd() == null || data.getTeamPersonCd().isEmpty()) {
+				throw new IllegalArgumentException("필수 값(담당자코드)이 누락되었습니다.");
+			}
+
+			if (data.getStartDate() == null || data.getStartDate().isEmpty() || data.getEndDate() == null
+					|| data.getEndDate().isEmpty()) {
+				throw new IllegalArgumentException("필수 값(기간)이 누락되었습니다.");
+			}
+
+			// DB에서 마감 가능 여부 확인
+			PromoCloseDao checkResult = promoMapper.checkClosable(data);
+
+			// 데이터가 존재하지 않는 경우
+			if (checkResult == null) {
+				String msg = "데이터를 찾을 수 없음 - 담당자코드: " + data.getTeamPersonCd() + ", 기간: " + data.getStartDate() + " ~ "
+						+ data.getEndDate();
+				System.out.println(msg);
+				unclosableList.add(data.getTeamPersonNm() + " (데이터 없음)");
+				continue;
+			}
+
+			// ✅ 미저장 건수 확인
+			String unSavedCnt = checkResult.getUnSavedCnt();
+			int unSavedCntInt = (unSavedCnt != null) ? Integer.parseInt(unSavedCnt) : 0;
+
+			// ✅ 미저장 건이 있으면 마감 불가
+			if (unSavedCntInt > 0) {
+				String msg = "마감 불가 - 담당자: " + checkResult.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "미저장 건수: " + unSavedCnt + "건";
+				System.out.println(msg);
+				unclosableList.add(checkResult.getTeamPersonNm() + " (미저장 " + unSavedCnt + "건)");
+				continue;
+			}
+
+			// ✅ 전체 건수 확인
+			String totalCnt = checkResult.getTotalCnt();
+			int totalCntInt = (totalCnt != null) ? Integer.parseInt(totalCnt) : 0;
+
+			if (totalCntInt == 0) {
+				String msg = "마감 불가 - 담당자: " + checkResult.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "마감할 데이터 없음";
+				System.out.println(msg);
+				unclosableList.add(checkResult.getTeamPersonNm() + " (데이터 없음)");
+				continue;
+			}
+
+			// ✅ 이미 마감 완료된 경우
+			String masterCloseNm = checkResult.getMasterCloseNm();
+			if ("마감완료".equals(masterCloseNm) || "마감후 추가건".equals(masterCloseNm)) {
+				String msg = "마감 불가 - 담당자: " + checkResult.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "이미 마감 완료됨";
+				System.out.println(msg);
+				unclosableList.add(checkResult.getTeamPersonNm() + " (이미 마감완료)");
+			}
+		}
+
+		// ✅ 2단계: 마감 불가능한 담당자가 하나라도 있으면 전체 마감 취소
+		if (!unclosableList.isEmpty()) {
+			System.out.println("=== 마감 불가능한 담당자 발견 - 전체 마감 취소 ===");
+			System.out.println("마감 불가 담당자 수: " + unclosableList.size() + "명");
+			unclosableList.forEach(System.out::println);
+
+			// 상세 오류 메시지 생성
+			StringBuilder errorMsg = new StringBuilder();
+			errorMsg.append("선택한 담당자 중 ").append(unclosableList.size()).append("명은 마감할 수 없습니다.\n\n");
+			errorMsg.append("【마감 불가 목록】\n");
+
+			int unsavedCount = 0;
+			int noDataCount = 0;
+			int alreadyClosedCount = 0;
+
+			for (String item : unclosableList) {
+				errorMsg.append("• ").append(item).append("\n");
+				if (item.contains("미저장"))
+					unsavedCount++;
+				else if (item.contains("데이터 없음"))
+					noDataCount++;
+				else if (item.contains("이미 마감완료"))
+					alreadyClosedCount++;
+			}
+
+			errorMsg.append("\n【마감 불가 사유】\n");
+			if (unsavedCount > 0) {
+				errorMsg.append("• 미저장 건이 있는 담당자: ").append(unsavedCount).append("명\n");
+			}
+			if (noDataCount > 0) {
+				errorMsg.append("• 마감할 데이터가 없는 담당자: ").append(noDataCount).append("명\n");
+			}
+			if (alreadyClosedCount > 0) {
+				errorMsg.append("• 이미 마감 완료된 담당자: ").append(alreadyClosedCount).append("명\n");
+			}
+			errorMsg.append("\n미저장 건이 있는 경우 먼저 저장을 완료해주세요.");
+			errorMsg.append("\n재조회 후 마감 가능한 담당자만 선택하여 다시 시도해주세요.");
+
+			throw new IllegalArgumentException(errorMsg.toString());
+		}
+
+		System.out.println("=== 모든 담당자 마감 가능 확인 - 마감 진행 ===");
+
+		// ✅ 3단계: 모든 담당자가 마감 가능한 경우에만 실제 마감 진행
+		int totalClosedCount = 0;
+
+		for (PromoCloseDao data : dataList) {
+			try {
+				int closedCount = promoMapper.closePromo(data);
+
+				if (closedCount == 0) {
+					// 이 경우는 발생하지 않아야 함 (사전 검증 완료)
+					System.out.println("예상치 못한 마감 실패 - 담당자코드: " + data.getTeamPersonCd());
+					throw new RuntimeException("마감 중 예상치 못한 오류가 발생했습니다.");
+				}
+
+				totalClosedCount += closedCount;
+				System.out.println("마감 완료 - 담당자: " + data.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "마감 건수: " + closedCount + "건");
+
+			} catch (Exception e) {
+				System.out.println("마감 실패 - 담당자코드: " + data.getTeamPersonCd() + ", 오류: " + e.getMessage());
+				e.printStackTrace();
+				throw new RuntimeException("데이터 마감 중 오류가 발생했습니다: " + e.getMessage(), e);
+			}
+		}
+
+		System.out.println("=== 판촉실적 마감 완료 ===");
+		System.out.println("마감 성공: " + dataList.size() + "명, 총 " + totalClosedCount + "건");
+
+		return totalClosedCount;
+	}
+
+	/**
+	 * 판촉실적 마감해제 처리 (사전 검증 + 전체 해제 or 전체 취소) - 마감해제 전 모든 담당자의 마감 상태 확인 - 하나라도 마감되지
+	 * 않은 담당자가 있으면 전체 해제 취소 - 모든 담당자가 마감 상태인 경우에만 해제 처리
+	 * 
+	 * @param dataList 마감해제 처리할 담당자 목록 (담당자코드, 기간 포함)
+	 * @return 마감해제 처리된 총 건수
+	 * @throws Exception 마감해제 처리 중 오류 발생 시
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public Integer unclosePromo(List<PromoCloseDao> dataList) throws Exception {
+
+		if (dataList == null || dataList.isEmpty()) {
+			throw new IllegalArgumentException("마감해제 처리할 데이터가 없습니다.");
+		}
+
+		System.out.println("=== 판촉실적 마감해제 가능 여부 사전 검증 시작 ===");
+		System.out.println("마감해제 요청 담당자 수: " + dataList.size() + "명");
+
+		// ✅ 1단계: 모든 담당자의 마감해제 가능 여부 사전 검증
+		List<String> ununclosableList = new ArrayList<>();
+
+		for (PromoCloseDao data : dataList) {
+			// 필수 값 체크
+			if (data.getTeamPersonCd() == null || data.getTeamPersonCd().isEmpty()) {
+				throw new IllegalArgumentException("필수 값(담당자코드)이 누락되었습니다.");
+			}
+
+			if (data.getStartDate() == null || data.getStartDate().isEmpty() || data.getEndDate() == null
+					|| data.getEndDate().isEmpty()) {
+				throw new IllegalArgumentException("필수 값(기간)이 누락되었습니다.");
+			}
+
+			// DB에서 마감해제 가능 여부 확인
+			PromoCloseDao checkResult = promoMapper.checkUnclosable(data);
+
+			// 데이터가 존재하지 않는 경우
+			if (checkResult == null) {
+				String msg = "데이터를 찾을 수 없음 - 담당자코드: " + data.getTeamPersonCd() + ", 기간: " + data.getStartDate() + " ~ "
+						+ data.getEndDate();
+				System.out.println(msg);
+				ununclosableList.add(data.getTeamPersonNm() + " (데이터 없음)");
+				continue;
+			}
+
+			// ✅ 마감 건수 확인
+			String closeCnt = checkResult.getCloseCnt();
+			int closeCntInt = (closeCnt != null) ? Integer.parseInt(closeCnt) : 0;
+
+			// ✅ 마감된 건이 없으면 해제 불가
+			if (closeCntInt == 0) {
+				String msg = "마감해제 불가 - 담당자: " + checkResult.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "마감된 건이 없음";
+				System.out.println(msg);
+				ununclosableList.add(checkResult.getTeamPersonNm() + " (마감된 건 없음)");
+			}
+		}
+
+		// ✅ 2단계: 마감해제 불가능한 담당자가 하나라도 있으면 전체 해제 취소
+		if (!ununclosableList.isEmpty()) {
+			System.out.println("=== 마감해제 불가능한 담당자 발견 - 전체 해제 취소 ===");
+			System.out.println("마감해제 불가 담당자 수: " + ununclosableList.size() + "명");
+			ununclosableList.forEach(System.out::println);
+
+			// 상세 오류 메시지 생성
+			StringBuilder errorMsg = new StringBuilder();
+			errorMsg.append("선택한 담당자 중 ").append(ununclosableList.size()).append("명은 마감해제할 수 없습니다.\n\n");
+			errorMsg.append("【마감해제 불가 목록】\n");
+
+			int noClosedCount = 0;
+			int noDataCount = 0;
+
+			for (String item : ununclosableList) {
+				errorMsg.append("• ").append(item).append("\n");
+				if (item.contains("마감된 건 없음"))
+					noClosedCount++;
+				else if (item.contains("데이터 없음"))
+					noDataCount++;
+			}
+
+			errorMsg.append("\n【마감해제 불가 사유】\n");
+			if (noClosedCount > 0) {
+				errorMsg.append("• 마감된 건이 없는 담당자: ").append(noClosedCount).append("명\n");
+			}
+			if (noDataCount > 0) {
+				errorMsg.append("• 데이터가 없는 담당자: ").append(noDataCount).append("명\n");
+			}
+			errorMsg.append("\n마감된 건이 없는 경우 마감해제를 할 수 없습니다.");
+			errorMsg.append("\n재조회 후 마감된 담당자만 선택하여 다시 시도해주세요.");
+
+			throw new IllegalArgumentException(errorMsg.toString());
+		}
+
+		System.out.println("=== 모든 담당자 마감해제 가능 확인 - 해제 진행 ===");
+
+		// ✅ 3단계: 모든 담당자가 마감해제 가능한 경우에만 실제 해제 진행
+		int totalUnclosedCount = 0;
+
+		for (PromoCloseDao data : dataList) {
+			try {
+				int unclosedCount = promoMapper.unclosePromo(data);
+
+				if (unclosedCount == 0) {
+					// 이 경우는 발생하지 않아야 함 (사전 검증 완료)
+					System.out.println("예상치 못한 마감해제 실패 - 담당자코드: " + data.getTeamPersonCd());
+					throw new RuntimeException("마감해제 중 예상치 못한 오류가 발생했습니다.");
+				}
+
+				totalUnclosedCount += unclosedCount;
+				System.out.println("마감해제 완료 - 담당자: " + data.getTeamPersonNm() + " (담당자코드: " + data.getTeamPersonCd()
+						+ "), " + "해제 건수: " + unclosedCount + "건");
+
+			} catch (Exception e) {
+				System.out.println("마감해제 실패 - 담당자코드: " + data.getTeamPersonCd() + ", 오류: " + e.getMessage());
+				e.printStackTrace();
+				throw new RuntimeException("데이터 마감해제 중 오류가 발생했습니다: " + e.getMessage(), e);
+			}
+		}
+
+		System.out.println("=== 판촉실적 마감해제 완료 ===");
+		System.out.println("마감해제 성공: " + dataList.size() + "명, 총 " + totalUnclosedCount + "건");
+
+		return totalUnclosedCount;
+	}
+
+	/**
+	 * 판촉실적 저장 (사전 검증 + 전체 저장 or 전체 취소) - 저장 전 모든 데이터의 masterCloseYn 확인 - 하나라도 마감
+	 * 데이터가 있으면 전체 저장 취소
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public Integer savePromo(List<MilkbangDetailDao> dataList) throws Exception {
@@ -90,8 +365,8 @@ public class PromoService {
 
 		for (MilkbangDetailDao data : dataList) {
 			// 필수 값 체크
-			if (data.getOrderCd() == null || data.getOrderCd().isEmpty() || 
-			    data.getOrderSeq() == null || data.getOrderSeq().isEmpty()) {
+			if (data.getOrderCd() == null || data.getOrderCd().isEmpty() || data.getOrderSeq() == null
+					|| data.getOrderSeq().isEmpty()) {
 				throw new IllegalArgumentException("필수 값(orderCd, orderSeq)이 누락되었습니다.");
 			}
 
@@ -100,8 +375,7 @@ public class PromoService {
 
 			// 데이터가 존재하지 않는 경우
 			if (checkResult == null) {
-				String msg = "데이터를 찾을 수 없음 - orderCd: " + data.getOrderCd() + 
-				            ", orderSeq: " + data.getOrderSeq();
+				String msg = "데이터를 찾을 수 없음 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq();
 				System.out.println(msg);
 				unsavableList.add(data.getOrderCd() + "-" + data.getOrderSeq() + " (데이터 없음)");
 				continue;
@@ -114,8 +388,8 @@ public class PromoService {
 			boolean isClosed = "1".equals(masterCloseYn);
 
 			if (isClosed) {
-				String msg = "저장 불가 - orderCd: " + data.getOrderCd() + 
-				            ", orderSeq: " + data.getOrderSeq() + ", 상태: " + status;
+				String msg = "저장 불가 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq() + ", 상태: "
+						+ status;
 				System.out.println(msg);
 				unsavableList.add(data.getOrderCd() + "-" + data.getOrderSeq() + " (" + status + ")");
 			}
@@ -137,8 +411,10 @@ public class PromoService {
 
 			for (String item : unsavableList) {
 				errorMsg.append("• ").append(item).append("\n");
-				if (item.contains("마감")) closedCount++;
-				else if (item.contains("데이터 없음")) notFoundCount++;
+				if (item.contains("마감"))
+					closedCount++;
+				else if (item.contains("데이터 없음"))
+					notFoundCount++;
 			}
 
 			errorMsg.append("\n【저장 불가 사유】\n");
@@ -162,21 +438,20 @@ public class PromoService {
 		for (MilkbangDetailDao data : dataList) {
 			try {
 				int updateResult = promoMapper.mergePromo(data);
-				
+
 				if (updateResult == 0) {
 					// 마감된 데이터는 업데이트되지 않음 (이미 사전 검증 완료)
-					System.out.println("예상치 못한 저장 실패 - orderCd: " + data.getOrderCd() + 
-					                 ", orderSeq: " + data.getOrderSeq());
+					System.out.println(
+							"예상치 못한 저장 실패 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq());
 					throw new RuntimeException("저장 중 예상치 못한 오류가 발생했습니다.");
 				}
-				
+
 				result++;
-				System.out.println("저장 완료 - orderCd: " + data.getOrderCd() + 
-				                 ", orderSeq: " + data.getOrderSeq());
-				
+				System.out.println("저장 완료 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq());
+
 			} catch (Exception e) {
-				System.out.println("저장 실패 - orderCd: " + data.getOrderCd() + 
-				                 ", orderSeq: " + data.getOrderSeq() + ", 오류: " + e.getMessage());
+				System.out.println("저장 실패 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq()
+						+ ", 오류: " + e.getMessage());
 				e.printStackTrace();
 				throw new RuntimeException("데이터 저장 중 오류가 발생했습니다: " + e.getMessage(), e);
 			}
@@ -189,9 +464,8 @@ public class PromoService {
 	}
 
 	/**
-	 * 판촉실적 상세 저장 (사전 검증 + 전체 저장 or 전체 취소)
-	 * - 저장 전 모든 데이터의 masterCloseYn 확인
-	 * - 하나라도 마감 데이터가 있으면 전체 저장 취소
+	 * 판촉실적 상세 저장 (사전 검증 + 전체 저장 or 전체 취소) - 저장 전 모든 데이터의 masterCloseYn 확인 - 하나라도 마감
+	 * 데이터가 있으면 전체 저장 취소
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public Integer savePromoDetail(List<MilkbangDetailDao> dataList) throws Exception {
@@ -207,8 +481,8 @@ public class PromoService {
 
 		for (MilkbangDetailDao data : dataList) {
 			// 필수 값 체크
-			if (data.getOrderCd() == null || data.getOrderCd().isEmpty() || 
-			    data.getOrderSeq() == null || data.getOrderSeq().isEmpty()) {
+			if (data.getOrderCd() == null || data.getOrderCd().isEmpty() || data.getOrderSeq() == null
+					|| data.getOrderSeq().isEmpty()) {
 				throw new IllegalArgumentException("필수 값(orderCd, orderSeq)이 누락되었습니다.");
 			}
 
@@ -217,8 +491,7 @@ public class PromoService {
 
 			// 데이터가 존재하지 않는 경우
 			if (checkResult == null) {
-				String msg = "데이터를 찾을 수 없음 - orderCd: " + data.getOrderCd() + 
-				            ", orderSeq: " + data.getOrderSeq();
+				String msg = "데이터를 찾을 수 없음 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq();
 				System.out.println(msg);
 				unsavableList.add(data.getOrderCd() + "-" + data.getOrderSeq() + " (데이터 없음)");
 				continue;
@@ -231,8 +504,8 @@ public class PromoService {
 			boolean isClosed = "1".equals(masterCloseYn);
 
 			if (isClosed) {
-				String msg = "저장 불가 - orderCd: " + data.getOrderCd() + 
-				            ", orderSeq: " + data.getOrderSeq() + ", 상태: " + status;
+				String msg = "저장 불가 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq() + ", 상태: "
+						+ status;
 				System.out.println(msg);
 				unsavableList.add(data.getOrderCd() + "-" + data.getOrderSeq() + " (" + status + ")");
 			}
@@ -254,8 +527,10 @@ public class PromoService {
 
 			for (String item : unsavableList) {
 				errorMsg.append("• ").append(item).append("\n");
-				if (item.contains("마감")) closedCount++;
-				else if (item.contains("데이터 없음")) notFoundCount++;
+				if (item.contains("마감"))
+					closedCount++;
+				else if (item.contains("데이터 없음"))
+					notFoundCount++;
 			}
 
 			errorMsg.append("\n【저장 불가 사유】\n");
@@ -279,22 +554,28 @@ public class PromoService {
 		for (MilkbangDetailDao data : dataList) {
 			try {
 				int updateResult = promoMapper.mergePromo(data);
-				
+
+				if (result == 0) {
+					if (promoMapper.countPromoTeamUpdateTarget(data) > 0) {
+						promoMapper.updatePromoTeam(data);
+					}
+					;
+				}
+
 				if (updateResult == 0) {
-					System.out.println("예상치 못한 저장 실패 - orderCd: " + data.getOrderCd() + 
-					                 ", orderSeq: " + data.getOrderSeq());
+					System.out.println(
+							"예상치 못한 저장 실패 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq());
 					throw new RuntimeException("저장 중 예상치 못한 오류가 발생했습니다.");
 				}
-				
+
 				promoMapper.mergePromoDetail(data);
 				result++;
-				
-				System.out.println("저장 완료 - orderCd: " + data.getOrderCd() + 
-				                 ", orderSeq: " + data.getOrderSeq());
-				
+
+				System.out.println("저장 완료 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq());
+
 			} catch (Exception e) {
-				System.out.println("저장 실패 - orderCd: " + data.getOrderCd() + 
-				                 ", orderSeq: " + data.getOrderSeq() + ", 오류: " + e.getMessage());
+				System.out.println("저장 실패 - orderCd: " + data.getOrderCd() + ", orderSeq: " + data.getOrderSeq()
+						+ ", 오류: " + e.getMessage());
 				e.printStackTrace();
 				throw new RuntimeException("데이터 저장 중 오류가 발생했습니다: " + e.getMessage(), e);
 			}

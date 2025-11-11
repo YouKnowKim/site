@@ -325,6 +325,28 @@ const AgencyMng = () => {
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
+      formatter: function(cell) {
+        const rowData = cell.getRow().getData();
+        const value = cell.getValue();
+        
+        // 담당자 비교
+        const teamPersonNm = rowData.teamPersonNm || '';  // 담당자(대리점)
+        const empyNme = rowData.empyNme || '';            // 담당자(본사)
+        
+        // 두 담당자가 다르면 빨간색 배경
+        if (teamPersonNm !== empyNme) {
+          cell.getElement().style.backgroundColor = '#ffcccc';
+          cell.getElement().style.color = '#cc0000';
+          cell.getElement().style.fontWeight = 'bold';
+        } else {
+          // 동일하면 기본 스타일
+          cell.getElement().style.backgroundColor = '';
+          cell.getElement().style.color = '';
+          cell.getElement().style.fontWeight = '';
+        }
+        
+        return value;
+      },
       editorParams: {
         elementAttributes: {
           maxlength: "5",        // 최대 5자리까지만 입력 가능
@@ -388,7 +410,7 @@ const AgencyMng = () => {
     },
     {
       title: '대리점명(본사)',
-      field: 'agencyNm',
+      field: 'custName',
       width: 150,
       hozAlign: 'center',
       headerHozAlign: 'center',
@@ -405,66 +427,6 @@ const AgencyMng = () => {
       editable: false,
       titleFormatter: function() {
         return '담당코드<br/>(대리점)';  // HTML로 줄바꿈
-      },
-      formatter: function(cell) {
-        const value = cell.getValue() || '';
-        const rowIndex = cell.getRow().getPosition(true) - 1;
-        const rowData = cell.getRow().getData();
-        
-        // ✅ 변경된 경우 배경색 적용
-        const backgroundColor = rowData.isTeamPersonChanged ? '#fff3cd' : 'transparent';
-        
-        return `
-          <div style="
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-            height: 100%;
-            background-color: ${backgroundColor};
-            margin: -4px;
-            padding: 4px;
-            transition: background-color 0.3s ease;
-          ">
-            <span style="
-              min-width: 60px;
-              text-align: center;
-            ">${value}</span>
-            <button 
-              class="search-team-person-btn" 
-              data-row-index="${rowIndex}"
-              style="
-                background: none;
-                border: none;
-                padding: 2px;
-                cursor: pointer;
-                font-size: 16px;
-                line-height: 1;
-                color: #0d6efd;
-                transition: transform 0.1s ease;
-              "
-              onmouseover="this.style.transform='scale(1.2)'"
-              onmouseout="this.style.transform='scale(1)'"
-              title="담당자 선택">
-              🔍
-            </button>
-          </div>
-        `;
-      },
-      cellClick: function(e, cell) {
-        if (e.target.classList.contains('search-team-person-btn') || 
-            e.target.closest('.search-team-person-btn')) {
-          
-          e.stopPropagation();
-          e.preventDefault();
-          
-          const button = e.target.classList.contains('search-team-person-btn') 
-            ? e.target 
-            : e.target.closest('.search-team-person-btn');
-          const rowIndex = parseInt(button.dataset.rowIndex);
-          
-          openTeamPersonModal(rowIndex);
-        }
       }
     },
     {
@@ -475,29 +437,27 @@ const AgencyMng = () => {
       headerHozAlign: 'center',
       titleFormatter: function() {
         return '담당자<br/>(대리점)';  // HTML로 줄바꿈
-      },
-      // ✅ formatter 추가하여 변경된 경우 배경색 적용
-      formatter: function(cell) {
-        const value = cell.getValue() || '';
-        const rowData = cell.getRow().getData();
-        
-        // ✅ 변경된 경우 배경색 적용
-        const backgroundColor = rowData.isTeamPersonChanged ? '#fff3cd' : 'transparent';
-        
-        return `
-          <div style="
-            background-color: ${backgroundColor};
-            margin: -4px;
-            padding: 4px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease;
-          ">
-            ${value}
-          </div>
-        `;
+      }
+    },
+    {
+      title: '담당코드(본사)',
+      field: 'salesMan',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editable: false,
+      titleFormatter: function() {
+        return '담당코드<br/>(본사)';  // HTML로 줄바꿈
+      }
+    },
+    {
+      title: '담당자(본사)',
+      field: 'empyNme',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      titleFormatter: function() {
+        return '담당자<br/>(본사)';  // HTML로 줄바꿈
       }
     },
     {
@@ -765,7 +725,7 @@ const AgencyMng = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '530px'
+    height: '520px'
   };
 
   const modalOptions = {
@@ -847,7 +807,7 @@ const AgencyMng = () => {
             </Col>
 
             {/* 담당자 입력 */}
-            {/* <Col md={2} style={{ minWidth: '250px', maxWidth: '250px' }}>
+            <Col md={2} style={{ minWidth: '250px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
@@ -864,7 +824,7 @@ const AgencyMng = () => {
                   </Form.Select>
                 </div>
               </Form.Group>
-            </Col> */}
+            </Col>
 
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>

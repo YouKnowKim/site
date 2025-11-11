@@ -5,6 +5,112 @@
   
 <mapper namespace="com.yonseidairy.promo.mapper.PromoMapper">
 
+	<!-- ============================================
+     판촉실적 마감 전 검증
+     - 담당자별 미저장 건수 확인
+     ============================================ -->
+	<select id="checkClosable" parameterType="PromoCloseDao" resultType="PromoCloseDao">
+	    SELECT 
+	        a.TEAMPERSONCD AS teamPersonCd,
+	        nvl(max(b.TEAMPERSONNM), '담당자 없음') AS teamPersonNm,
+	        count(*) AS totalCnt,
+	        sum(MASTERCLOSEYN) AS closeCnt,
+	        count(*) - sum(SAVEYN) AS unSavedCnt,
+	        max(MASTERCLOSEDT) AS masterCloseDt,
+	        CASE WHEN sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) > 0 THEN '미저장'
+	             WHEN sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) = 0 THEN '마감전'
+	             WHEN count(*) - sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) = 0 THEN '마감완료'
+	             WHEN sum(MASTERCLOSEYN) > 0 AND count(*) - sum(MASTERCLOSEYN) > 0 THEN '마감후 추가건'
+	             ELSE '오류' END AS masterCloseNm,
+	        max(MASTERCLOSEREMARK) AS masterCloseRemark
+	    FROM ysc.TC_MILKBANGGOODS a
+	    LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
+	    LEFT JOIN insa.PAPEDTL c on b.LOGINID = c.EMPY_ID
+	    LEFT JOIN apps.CMDEPTCD d on c.DEPT_CDE = D.DEPT_CDE
+	    LEFT JOIN ysc.TC_TEAM E ON d.DEPT_CDE = e.DEPT_CDE
+	    WHERE 1 = 1
+	    AND to_char(a.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate, jdbcType=VARCHAR}, '-', '') 
+	                                            AND REPLACE(#{endDate, jdbcType=VARCHAR}, '-', '')
+	    AND a.TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	    <if test='teamCd != null and teamCd != ""'>
+	        AND e.TEAMCD = #{teamCd, jdbcType=VARCHAR}
+	    </if>
+	    GROUP BY a.TEAMPERSONCD 
+	</select>
+	
+	<!-- ============================================
+	     판촉실적 마감 처리
+	     - MASTERCLOSEYN = 1
+	     - MASTERCLOSEDT = 현재시각
+	     - MASTERCLOSEREMARK = 마감사유
+	     - 미저장 건이 없는 경우에만 마감 가능
+	     ============================================ -->
+	<update id="closePromo" parameterType="PromoCloseDao">
+	    UPDATE ysc.TC_MILKBANGGOODS
+	    SET 
+	        MASTERCLOSEYN = 1,
+	        MASTERCLOSEDT = SYSDATE,
+	        MASTERCLOSEREMARK = #{masterCloseRemark, jdbcType=VARCHAR}
+	    WHERE 1 = 1
+	    AND to_char(PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate, jdbcType=VARCHAR}, '-', '') 
+	                                         AND REPLACE(#{endDate, jdbcType=VARCHAR}, '-', '')
+	    AND TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	    AND SAVEYN = 1 
+	    AND (MASTERCLOSEYN IS NULL OR MASTERCLOSEYN != 1)  
+	</update>
+	
+	<!-- ============================================
+	     판촉실적 마감해제 전 검증
+	     - 담당자별 마감 상태 확인
+	     ============================================ -->
+	<select id="checkUnclosable" parameterType="PromoCloseDao" resultType="PromoCloseDao">
+	    SELECT 
+	        a.TEAMPERSONCD AS teamPersonCd,
+	        nvl(max(b.TEAMPERSONNM), '담당자 없음') AS teamPersonNm,
+	        count(*) AS totalCnt,
+	        sum(MASTERCLOSEYN) AS closeCnt,
+	        count(*) - sum(SAVEYN) AS unSavedCnt,
+	        max(MASTERCLOSEDT) AS masterCloseDt,
+	        CASE WHEN sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) > 0 THEN '미저장'
+	             WHEN sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) = 0 THEN '마감전'
+	             WHEN count(*) - sum(MASTERCLOSEYN) = 0 AND count(*) - sum(SAVEYN) = 0 THEN '마감완료'
+	             WHEN sum(MASTERCLOSEYN) > 0 AND count(*) - sum(MASTERCLOSEYN) > 0 THEN '마감후 추가건'
+	             ELSE '오류' END AS masterCloseNm,
+	        max(MASTERCLOSEREMARK) AS masterCloseRemark
+	    FROM ysc.TC_MILKBANGGOODS a
+	    LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
+	    LEFT JOIN insa.PAPEDTL c on b.LOGINID = c.EMPY_ID
+	    LEFT JOIN apps.CMDEPTCD d on c.DEPT_CDE = D.DEPT_CDE
+	    LEFT JOIN ysc.TC_TEAM E ON d.DEPT_CDE = e.DEPT_CDE
+	    WHERE 1 = 1
+	    AND to_char(a.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate, jdbcType=VARCHAR}, '-', '') 
+	                                            AND REPLACE(#{endDate, jdbcType=VARCHAR}, '-', '')
+	    AND a.TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	    <if test='teamCd != null and teamCd != ""'>
+	        AND e.TEAMCD = #{teamCd, jdbcType=VARCHAR}
+	    </if>
+	    GROUP BY a.TEAMPERSONCD 
+	</select>
+	
+	<!-- ============================================
+	     판촉실적 마감해제 처리
+	     - MASTERCLOSEYN = 0
+	     - MASTERCLOSEDT = NULL
+	     - MASTERCLOSEREMARK = NULL
+	     ============================================ -->
+	<update id="unclosePromo" parameterType="PromoCloseDao">
+	    UPDATE ysc.TC_MILKBANGGOODS
+	    SET 
+	        MASTERCLOSEYN = 0,
+	        MASTERCLOSEDT = NULL,
+	        MASTERCLOSEREMARK = NULL
+	    WHERE 1 = 1
+	    AND to_char(PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate, jdbcType=VARCHAR}, '-', '') 
+	                                         AND REPLACE(#{endDate, jdbcType=VARCHAR}, '-', '')
+	    AND TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
+	    AND MASTERCLOSEYN = 1
+	</update>
+
 	<select id="selectCloseList" resultType="PromoCloseDao">
         SELECT 
 			a.TEAMPERSONCD AS teamPersonCd
@@ -20,11 +126,14 @@
 				   ELSE '오류' END AS masterCloseNm
 			, max(MASTERCLOSEREMARK) AS masterCloseRemark
 		FROM ysc.TC_MILKBANGGOODS a
-		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD 
+		LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
+		LEFT JOIN insa.PAPEDTL c on b.LOGINID = c.EMPY_ID
+		LEFT JOIN apps.CMDEPTCD d on c.DEPT_CDE = D.DEPT_CDE
+		LEFT JOIN ysc.TC_TEAM E ON d.DEPT_CDE = e.DEPT_CDE
 		WHERE 1 = 1
 		AND to_char(a.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
 		<if test='teamCd != null and teamCd != ""'>
-	      AND a.TEAMCD = #{teamCd}
+	      AND e.TEAMCD = #{teamCd}
 	    </if>
 		GROUP BY a.TEAMPERSONCD 
 		ORDER BY a.TEAMPERSONCD 
@@ -184,6 +293,38 @@
 	    WHERE ORDERCD = #{orderCd}
 	      AND ORDERSEQ = #{orderSeq}
 	</select>
+	
+	<select id="countPromoTeamUpdateTarget" parameterType="MilkbangDetailDao" resultType="int">
+	    SELECT COUNT(a.ORDERCD)
+	    FROM ysc.TC_MILKBANGGOODS a
+	    INNER JOIN ysc.tc_milkbang b 
+	        ON a.ordercd = b.ordercd
+	    WHERE b.promopersonnm = #{promoPersonNm, jdbcType=VARCHAR}
+	    AND b.orderdt &gt;= ADD_MONTHS(b.orderdt, -1)
+	    AND b.orderdt &lt;= ADD_MONTHS(b.orderdt, 1)
+	    AND a.MASTERCLOSEYN != 1
+	    AND a.PROMOTEAMCD != #{promoTeamCd, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updatePromoTeam" parameterType="MilkbangDetailDao">
+	    MERGE INTO ysc.TC_MILKBANGGOODS a
+		USING (
+		    SELECT 
+		        b.ordercd, 
+		        #{promoTeamCd} AS PROMOTEAMCD
+		    FROM ysc.tc_milkbang b
+		    WHERE b.promopersonnm = #{promoPersonNm}
+		    AND b.orderdt &gt;= ADD_MONTHS(b.orderdt, -1)
+		    AND b.orderdt &lt;= ADD_MONTHS(b.orderdt, 1)
+		) source
+		ON (a.ordercd = source.ordercd)
+		WHEN MATCHED THEN
+		    UPDATE SET a.PROMOTEAMCD = source.PROMOTEAMCD
+		    WHERE a.MASTERCLOSEYN != 1
+		    AND a.promodt &gt;= ADD_MONTHS(a.promodt, -1)
+		    AND a.promodt &lt;= ADD_MONTHS(a.promodt, 1)
+		    
+	</update>
 	
 	<update id="mergePromo" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANGGOODS
@@ -346,20 +487,26 @@
 		    	 when b.saveyn = 1 then '저장'
 		    		  else '미저장' end as totStatus,
 		 	
-		 	g.MISCD as misCd
+		 	g.MISCD as misCd,
+		 	
+		 	i.DEPT_NME AS deptNme
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
 		INNER JOIN ysc.TC_TEAMPERSON c
 		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
-		INNER JOIN ysc.TC_TEAM d
+		LEFT JOIN ysc.TC_TEAM d
 		    ON b.TEAMCD = d.TEAMCD
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD
 		INNER JOIN ysc.TC_AGENCY f
 		    ON a.AGENCYCD = f.AGENCYCD
 		LEFT JOIN ysc.TC_GOODSOPTION g 
-			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD		    
+			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD
+		LEFT JOIN insa.PAPEDTL h
+			ON c.LOGINID = h.EMPY_ID AND h.OFFICE_ID = 'YSM'
+		LEFT JOIN apps.CMDEPTCD i
+			ON h.DEPT_CDE = i.DEPT_CDE		    
 		WHERE 1 = 1
 			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
@@ -520,7 +667,7 @@
 		    ON a.ORDERCD = b.ORDERCD
 		INNER JOIN ysc.TC_TEAMPERSON c
 		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
-		INNER JOIN ysc.TC_TEAM d
+		LEFT JOIN ysc.TC_TEAM d
 		    ON b.TEAMCD = d.TEAMCD
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD

@@ -154,6 +154,13 @@ public class BatchMainController {
                                 clsMilkbangGoods.GoodsCD = clsGoodsOption.GoodsCD;
                                 clsMilkbangGoods.GoodsOptionCD = clsGoodsOption.GoodsOptionCD;
                                 clsMilkbangGoods.GoodsOptionNM = clsGoodsOption.OptionNM;
+                                clsMilkbangGoods.Day1 = clsGoodsOption.Day1;
+                                clsMilkbangGoods.Day2 = clsGoodsOption.Day2;
+                                clsMilkbangGoods.Day3 = clsGoodsOption.Day3;
+                                clsMilkbangGoods.Day4 = clsGoodsOption.Day4;
+                                clsMilkbangGoods.Day5 = clsGoodsOption.Day5;
+                                clsMilkbangGoods.Day6 = clsGoodsOption.Day6;
+                                System.out.println("clsGoodsOption.Day6 : " + clsGoodsOption.Day6);
                             }
                         }
                         
@@ -187,6 +194,42 @@ public class BatchMainController {
                             clsMilkbangGoods.OrderKindCD = 3;  // 무계약
                         } else {
                             clsMilkbangGoods.OrderKindCD = 1;  // 신규계약
+                        }
+                        
+                        // 본사 홉 자동 설정
+                        if(clsMilkbangGoods.OrderKindCD == 1) {
+                        	
+                        	BigDecimal weekQty = new BigDecimal(String.valueOf(clsMilkbangGoods.WeekQty));
+                            BigDecimal one = new BigDecimal("1");
+                            BigDecimal two = new BigDecimal("2");
+                            BigDecimal three = new BigDecimal("3");
+                            BigDecimal four = new BigDecimal("4");
+                            BigDecimal five = new BigDecimal("5");
+                            BigDecimal six = new BigDecimal("6");
+                            
+                        	if(weekQty.compareTo(one) == 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day1;
+                        	} else if (weekQty.compareTo(two) == 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day2;
+                        	} else if (weekQty.compareTo(three) == 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day3;
+                        	} else if (weekQty.compareTo(four) == 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day4;
+                        	} else if (weekQty.compareTo(five) == 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day5;
+                        	} else if (weekQty.compareTo(six) >= 0) {
+                        		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day6;
+                        	} else {
+                        		clsMilkbangGoods.ActualHob = new BigDecimal("0");
+                        	}
+                        	System.out.println("WeekQty : " + String.valueOf(clsMilkbangGoods.WeekQty));
+                        	System.out.println("clsMilkbangGoods.ActualHob : " + clsMilkbangGoods.ActualHob);
+                        } else if (clsMilkbangGoods.OrderKindCD == 2) {
+                        	clsMilkbangGoods.ActualHob = new BigDecimal("1");
+                        } else if (clsMilkbangGoods.OrderKindCD == 3) {
+                        	clsMilkbangGoods.ActualHob = new BigDecimal("0");
+                        } else {
+                        	clsMilkbangGoods.ActualHob = new BigDecimal("0");
                         }
                         
                         // ======== 7단계: 동일 주문 묶기 ========

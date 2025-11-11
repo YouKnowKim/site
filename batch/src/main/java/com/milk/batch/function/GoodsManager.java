@@ -158,6 +158,12 @@ public class GoodsManager {
       clsReturn.MergeCD = p_RS.getInt("MergeCD");
       clsReturn.AliasNM = (p_RS.getString("AliasNM") == null) ? "" : p_RS.getString("AliasNM");
       clsReturn.MisCD = (p_RS.getString("MisCD") == null) ? "" : p_RS.getString("MisCD");
+      clsReturn.Day1 = (p_RS.getBigDecimal("Day1") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day1");
+      clsReturn.Day2 = (p_RS.getBigDecimal("Day2") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day2");
+      clsReturn.Day3 = (p_RS.getBigDecimal("Day3") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day3");
+      clsReturn.Day4 = (p_RS.getBigDecimal("Day4") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day4");
+      clsReturn.Day5 = (p_RS.getBigDecimal("Day5") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day5");
+      clsReturn.Day6 = (p_RS.getBigDecimal("Day6") == null) ? new BigDecimal("0") : p_RS.getBigDecimal("Day6");
     } catch (Exception e) {
       System.out.println(strError + e.getMessage());
       clsReturn = null;

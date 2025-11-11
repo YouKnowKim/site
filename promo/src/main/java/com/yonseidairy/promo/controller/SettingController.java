@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.GoodsDao;
+import com.yonseidairy.promo.dao.TeamDao;
+import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.service.SettingService;
 
 @RestController
@@ -24,6 +26,18 @@ public class SettingController {
 
 	@Autowired
 	SettingService settingService;
+
+	@GetMapping("/getTeamList")
+	public List<TeamDao> getTeamList(@ModelAttribute TeamDao inTeamDao) {
+
+		return settingService.getTeamList(inTeamDao);
+	}
+
+	@GetMapping("/getTeamPersonList")
+	public List<TeamPersonDao> getTeamPersonList(@ModelAttribute TeamPersonDao inTeamPersonDao) {
+
+		return settingService.getTeamPersonList(inTeamPersonDao);
+	}
 
 	@GetMapping("/getGoodsList")
 	public List<GoodsDao> getGoodsList(@ModelAttribute GoodsDao inGoodsDao) {
@@ -35,6 +49,106 @@ public class SettingController {
 	public List<AgencyDao> getAgencyList(@ModelAttribute AgencyDao inAgencyDao) {
 
 		return settingService.getAgencyList(inAgencyDao);
+	}
+
+	/**
+	 * 사원 목록 일괄 저장 (신규 등록 및 수정)
+	 * 
+	 * @param dataList 저장할 사원 목록 (JSON 배열)
+	 * @return ResponseEntity<Map<String, Object>> 저장 결과
+	 */
+	@PostMapping("/saveTeamPersonList")
+	public ResponseEntity<Map<String, Object>> saveTeamPersonList(@RequestBody List<TeamPersonDao> dataList) {
+
+		try {
+			System.out.println("=== 사원 정보 저장 시작 ===");
+			System.out.println("변경된 데이터 개수: " + (dataList != null ? dataList.size() : 0));
+
+			// ✅ 1. 데이터 유효성 검증
+			if (dataList == null || dataList.isEmpty()) {
+				System.out.println("저장할 데이터가 없습니다.");
+
+				Map<String, Object> errorResponse = new HashMap<>();
+				errorResponse.put("success", false);
+				errorResponse.put("message", "저장할 데이터가 없습니다.");
+				errorResponse.put("savedCount", 0);
+
+				return ResponseEntity.badRequest().body(errorResponse);
+			}
+
+			// ✅ 2. changeType별 데이터 분리 (로그 출력용)
+			long insertCount = dataList.stream().filter(data -> "INSERT".equals(data.getChangeType())).count();
+			long updateCount = dataList.stream().filter(data -> "UPDATE".equals(data.getChangeType())).count();
+
+			System.out.println("신규 추가(INSERT): " + insertCount + "건");
+			System.out.println("수정(UPDATE): " + updateCount + "건");
+
+			// ✅ 3. 사원코드 유효성 검증 (신규 데이터만)
+			for (TeamPersonDao data : dataList) {
+				if ("INSERT".equals(data.getChangeType())) {
+
+					// ✅ 필수 필드 검증
+					if (data.getTeamPersonNm() == null || data.getTeamPersonNm().trim().isEmpty()) {
+						System.out.println("사원명이 비어있습니다.");
+
+						Map<String, Object> errorResponse = new HashMap<>();
+						errorResponse.put("success", false);
+						errorResponse.put("message", "사원명은 필수 입력 항목입니다.");
+						errorResponse.put("savedCount", 0);
+
+						return ResponseEntity.badRequest().body(errorResponse);
+					}
+				}
+			}
+
+			// ✅ 4. 서비스 레이어 호출
+			int savedCount = settingService.saveTeamPersonList(dataList);
+
+			System.out.println("저장 완료 - 성공: " + savedCount + "건");
+			System.out.println("=== 사원 정보 저장 완료 ===");
+
+			// ✅ 5. 성공 응답
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", savedCount + "건의 데이터가 성공적으로 저장되었습니다.");
+			response.put("savedCount", savedCount);
+			response.put("insertCount", insertCount);
+			response.put("updateCount", updateCount);
+
+			return ResponseEntity.ok(response);
+
+		} catch (IllegalArgumentException e) {
+			System.out.println("잘못된 요청 데이터: " + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.badRequest().body(errorResponse);
+
+		} catch (DataIntegrityViolationException e) {
+			// ✅ DB 제약 조건 위반 (중복 키 등)
+			System.out.println("데이터 무결성 제약 위반: " + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "이미 존재하는 사원코드이거나 데이터 무결성 제약을 위반했습니다.");
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(409).body(errorResponse); // 409 Conflict
+
+		} catch (Exception e) {
+			System.out.println("사원 정보 저장 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(500).body(errorResponse);
+		}
 	}
 
 	@PostMapping("/saveAgencyList")

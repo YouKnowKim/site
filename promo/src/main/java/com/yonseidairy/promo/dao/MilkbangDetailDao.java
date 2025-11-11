@@ -14,6 +14,7 @@ public class MilkbangDetailDao {
 
 // ==================== TC_MILKBANG 기본 정보 ====================
 	
+	private String deptNme;
 	private String no;
 	private String promoTeamNm;
 	

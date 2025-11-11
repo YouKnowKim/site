@@ -146,4 +146,16 @@ public class GoodsOptionBean extends GoodsBean {
 	public String MisCD = "";
 
 	public BigDecimal ActualHobSum = new BigDecimal("0");
+	
+	public BigDecimal Day1 = new BigDecimal("0");
+	
+	public BigDecimal Day2 = new BigDecimal("0");
+	
+	public BigDecimal Day3 = new BigDecimal("0");
+	
+	public BigDecimal Day4 = new BigDecimal("0");
+	
+	public BigDecimal Day5 = new BigDecimal("0");
+	
+	public BigDecimal Day6 = new BigDecimal("0");
 }

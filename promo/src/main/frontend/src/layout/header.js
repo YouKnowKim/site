@@ -16,6 +16,7 @@ import PromotionSettle from '../pages/PromotionSettle';
 import AgencyMng from '../pages/AgencyMng';
 import GoodsMng from '../pages/GoodsMng';
 import PromotionClose from '../pages/PromotionClose';
+import TeamPersonMng from '../pages/TeamPersonMng';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -312,6 +313,11 @@ const Header = () => {
                   onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉 제품 관리', '/GoodsMng', GoodsMng)}
                 >
                   판촉 제품 관리
+                </NavDropdown.Item>
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'teamperson-manage', '사원 관리', '/TeamPersonMng', TeamPersonMng)}
+                >
+                  사원 관리
                 </NavDropdown.Item>
               </NavDropdown>
             </Nav>

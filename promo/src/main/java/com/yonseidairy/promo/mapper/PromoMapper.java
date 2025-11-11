@@ -17,6 +17,39 @@ import com.yonseidairy.promo.dao.TeamPersonDao;
 @Repository
 public interface PromoMapper {
 	
+	/**
+	 * 판촉실적 마감 가능 여부를 확인합니다.
+	 * - 담당자별 미저장 건수 조회
+	 * - 미저장 건이 있으면 마감 불가
+	 */
+	PromoCloseDao checkClosable(PromoCloseDao inPromoCloseDao);
+
+	/**
+	 * 판촉실적을 마감 처리합니다.
+	 * 
+	 * @param inPromoCloseDao 마감 처리 정보 (담당자코드, 기간, 마감사유)
+	 * @return 마감 처리된 건수
+	 */
+	int closePromo(PromoCloseDao inPromoCloseDao);
+
+	/**
+	 * 판촉실적 마감해제 가능 여부를 확인합니다.
+	 * - 담당자별 마감 상태 조회
+	 * - 마감된 건이 없으면 해제 불가
+	 * 
+	 * @param inPromoCloseDao 조회 조건 (담당자코드, 기간)
+	 * @return 담당자별 마감 상태 정보
+	 */
+	PromoCloseDao checkUnclosable(PromoCloseDao inPromoCloseDao);
+
+	/**
+	 * 판촉실적 마감을 해제합니다.
+	 * 
+	 * @param inPromoCloseDao 마감해제 처리 정보 (담당자코드, 기간)
+	 * @return 마감해제 처리된 건수
+	 */
+	int unclosePromo(PromoCloseDao inPromoCloseDao);
+	
 	// 마감 내역 조회
 	List<PromoCloseDao> selectCloseList(PromoCloseDao inPromoCloseDao);
 	
@@ -55,6 +88,11 @@ public interface PromoMapper {
 
 	// 전체 프로모션 팀 목록을 조회합니다.
 	List<PromoTeamDao> selectAllPromoTeam(PromoTeamDao inPromoTeamDao);
+	
+	int countPromoTeamUpdateTarget(MilkbangDetailDao data);
+	
+	// 프로모션 상세 정보를 병합(Merge) 처리합니다. (존재하면 수정, 없으면 신규 등록)
+	Integer updatePromoTeam(MilkbangDetailDao inMilkbangDetailDao);
 
 	// 프로모션 정보를 병합(Merge) 처리합니다. (존재하면 수정, 없으면 신규 등록)
 	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);

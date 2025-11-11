@@ -13,6 +13,7 @@ import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
 import { FaSearch } from "react-icons/fa";
+import { FaLock, FaLockOpen } from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -206,6 +207,355 @@ const MilkFileNotSubmit = () => {
     }
   };
 
+  // 마감 버튼 클릭 핸들러
+  const handleClose = async () => {
+    
+    // 선택된 행 가져오기
+    const selectedRows = tabulatorInstance.current.getSelectedData();
+    
+    if (!selectedRows || selectedRows.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '마감 처리할 담당자를 선택해주세요.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ========================================
+    // 2. 마감 가능 여부 검증 (프론트엔드)
+    // ========================================
+    // 2-1. 미저장 건수가 있는 담당자 필터링
+    const unsavedRows = selectedRows.filter(row => {
+      const unSavedCnt = parseInt(row.unSavedCnt) || 0;
+      return unSavedCnt > 0;
+    });
+
+    // 2-2. 미저장 건이 있는 경우 경고
+    if (unsavedRows.length > 0) {
+      const unsavedList = unsavedRows.map(row => 
+        `- ${row.teamPersonNm}(${row.teamPersonCd}): ${row.unSavedCnt}건`
+      ).join('\n');
+      
+      Swal.fire({
+        icon: 'warning',
+        title: '마감 불가',
+        html: `
+          <div class="text-start">
+            <p class="mb-3">다음 담당자는 미저장 건이 있어 마감할 수 없습니다:</p>
+            <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">${unsavedList}</pre>
+            <p class="text-danger small mt-3 mb-0">※ 해당 담당자의 판촉실적을 모두 저장한 후 마감해주세요.</p>
+          </div>
+        `,
+        confirmButtonText: '확인',
+        width: '600px'
+      });
+      return;
+    }
+
+    // 2-3. 이미 마감완료된 담당자 필터링
+    const alreadyClosedRows = selectedRows.filter(row => 
+      row.masterCloseNm === '마감완료' || row.masterCloseNm === '마감후 추가건'
+    );
+
+    // 2-4. 이미 마감완료된 담당자가 있는 경우 확인
+    if (alreadyClosedRows.length > 0) {
+      const closedList = alreadyClosedRows.map(row => 
+        `- ${row.teamPersonNm}(${row.teamPersonCd})`
+      ).join('\n');
+      
+      const confirmResult = await Swal.fire({
+        icon: 'question',
+        title: '확인',
+        html: `
+          <div class="text-start">
+            <p class="mb-3">다음 담당자는 이미 마감완료 상태입니다:</p>
+            <pre class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto;">${closedList}</pre>
+            <p class="text-info small mt-3 mb-0">※ 해당 담당자는 마감 처리에서 제외하고 진행하시겠습니까?</p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '제외하고 진행',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#198754',
+        width: '600px'
+      });
+
+      // 취소한 경우
+      if (!confirmResult.isConfirmed) {
+        return;
+      }
+
+      // 이미 마감완료된 담당자를 제외한 행만 선택
+      const filteredRows = selectedRows.filter(row => 
+        row.masterCloseNm !== '마감완료'
+      );
+
+      // 제외 후 처리할 행이 없는 경우
+      if (filteredRows.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: '알림',
+          text: '마감 처리할 담당자가 없습니다.',
+          confirmButtonText: '확인'
+        });
+        return;
+      }
+
+      // 필터링된 행으로 계속 진행
+      selectedRows.length = 0;
+      selectedRows.push(...filteredRows);
+    }
+
+    try {
+      // ✅ 마감 사유 입력 받기
+      const { value: closeRemark } = await Swal.fire({
+        title: '판촉실적 마감',
+        html: `
+          <div class="text-start">
+            <p class="mb-3">선택한 <strong>${selectedRows.length}명</strong>의 판촉실적을 마감하시겠습니까?</p>
+            <p class="text-danger small mb-3">※ 미저장 건이 있는 담당자는 마감할 수 없습니다.</p>
+            <label for="closeRemark" class="form-label fw-bold">마감 사유:</label>
+            <textarea 
+              id="closeRemark" 
+              class="form-control" 
+              rows="3"
+              placeholder="마감 사유를 입력해주세요 (선택사항)"
+            ></textarea>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '마감',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#198754',
+        preConfirm: () => {
+          return document.getElementById('closeRemark').value;
+        }
+      });
+
+      // 취소한 경우
+      if (closeRemark === undefined) {
+        return;
+      }
+
+      // ✅ 로딩 표시
+      Swal.fire({
+        title: '처리 중...',
+        html: '판촉실적을 마감하고 있습니다.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // 선택된 행에서 필요한 데이터만 추출
+      const [startDate, endDate] = stdWeek.split('|');
+      const closeData = selectedRows.map(row => ({
+        teamPersonCd: row.teamPersonCd,
+        teamPersonNm: row.teamPersonNm,
+        startDate: startDate,
+        endDate: endDate,
+        teamCd: selectedTeamCd || null,
+        masterCloseRemark: closeRemark || null
+      }));
+
+      // ✅ API 호출
+      const response = await axios.post('/api/promo/closePromo', closeData);
+
+      // ✅ 성공 처리
+      if (response.data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: '마감 완료',
+          html: response.data.message,
+          confirmButtonText: '확인'
+        });
+
+        // 재조회
+        handleSearch();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: '마감 실패',
+          text: response.data.message || '마감 처리에 실패했습니다.',
+          confirmButtonText: '확인'
+        });
+      }
+
+    } catch (error) {
+      console.error('마감 처리 실패:', error);
+      
+      // 서버에서 받은 에러 메시지 표시
+      const errorMessage = error.response?.data?.message || 
+                          '마감 처리 중 오류가 발생했습니다.';
+      
+      Swal.fire({
+        icon: 'error',
+        title: '오류',
+        html: errorMessage.replace(/\n/g, '<br>'),
+        confirmButtonText: '확인',
+        width: '600px'
+      });
+    }
+  };
+
+  // 마감해제 버튼 클릭 핸들러
+  const handleUnclose = async () => {
+    
+    // 선택된 행 가져오기
+    const selectedRows = tabulatorInstance.current.getSelectedData();
+    
+    if (!selectedRows || selectedRows.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '마감해제할 담당자를 선택해주세요.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ========================================
+    // 2. 마감해제 가능 여부 검증 (프론트엔드)
+    // ========================================
+    // 2-1. 마감완료 상태가 아닌 담당자 필터링
+    const notClosedRows = selectedRows.filter(row => 
+      row.masterCloseNm !== '마감완료' && row.masterCloseNm !== '마감후 추가건'
+    );
+
+    // 2-2. 마감완료 상태가 아닌 담당자가 있는 경우 경고
+    if (notClosedRows.length > 0) {
+      const notClosedList = notClosedRows.map(row => 
+        `- ${row.teamPersonNm}(${row.teamPersonCd}): ${row.masterCloseNm || '마감전'}`
+      ).join('\n');
+      
+      const confirmResult = await Swal.fire({
+        icon: 'warning',
+        title: '확인',
+        html: `
+          <div class="text-start">
+            <p class="mb-3">다음 담당자는 마감완료 상태가 아닙니다:</p>
+            <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">${notClosedList}</pre>
+            <p class="text-info small mt-3 mb-0">※ 해당 담당자는 마감해제 처리에서 제외하고 진행하시겠습니까?</p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '제외하고 진행',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#dc3545',
+        width: '600px'
+      });
+
+      // 취소한 경우
+      if (!confirmResult.isConfirmed) {
+        return;
+      }
+
+      // 마감완료 상태인 담당자만 선택
+      const filteredRows = selectedRows.filter(row => 
+        row.masterCloseNm === '마감완료'
+      );
+
+      // 제외 후 처리할 행이 없는 경우
+      if (filteredRows.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: '알림',
+          text: '마감해제할 담당자가 없습니다. (마감완료 상태인 담당자만 해제 가능)',
+          confirmButtonText: '확인'
+        });
+        return;
+      }
+
+      // 필터링된 행으로 계속 진행
+      selectedRows.length = 0;
+      selectedRows.push(...filteredRows);
+    }
+
+    try {
+      // ✅ 확인 메시지
+      const result = await Swal.fire({
+        title: '판촉실적 마감해제',
+        html: `
+          <div class="text-start">
+            <p class="mb-3">선택한 <strong>${selectedRows.length}명</strong>의 판촉실적 마감을 해제하시겠습니까?</p>
+            <p class="text-danger small mb-0">※ 마감된 건만 해제할 수 있습니다.</p>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '해제',
+        cancelButtonText: '취소',
+        confirmButtonColor: '#dc3545'
+      });
+
+      // 취소한 경우
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      // ✅ 로딩 표시
+      Swal.fire({
+        title: '처리 중...',
+        html: '판촉실적 마감을 해제하고 있습니다.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // 선택된 행에서 필요한 데이터만 추출
+      const [startDate, endDate] = stdWeek.split('|');
+      const uncloseData = selectedRows.map(row => ({
+        teamPersonCd: row.teamPersonCd,
+        teamPersonNm: row.teamPersonNm,
+        startDate: startDate,
+        endDate: endDate,
+        teamCd: selectedTeamCd || null
+      }));
+
+      // ✅ API 호출
+      const response = await axios.post('/api/promo/unclosePromo', uncloseData);
+
+      // ✅ 성공 처리
+      if (response.data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: '마감해제 완료',
+          html: response.data.message,
+          confirmButtonText: '확인'
+        });
+
+        // 재조회
+        handleSearch();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: '마감해제 실패',
+          text: response.data.message || '마감해제 처리에 실패했습니다.',
+          confirmButtonText: '확인'
+        });
+      }
+
+    } catch (error) {
+      console.error('마감해제 처리 실패:', error);
+      
+      // 서버에서 받은 에러 메시지 표시
+      const errorMessage = error.response?.data?.message || 
+                          '마감해제 처리 중 오류가 발생했습니다.';
+      
+      Swal.fire({
+        icon: 'error',
+        title: '오류',
+        html: errorMessage.replace(/\n/g, '<br>'),
+        confirmButtonText: '확인',
+        width: '600px'
+      });
+    }
+  };
+
   // 테이블 컬럼 정의
   const columns = [
     {
@@ -326,9 +676,7 @@ const MilkFileNotSubmit = () => {
       field: 'masterCloseRemark',
       width: 200,
       hozAlign: 'center',
-      headerHozAlign: 'center',
-      editable : true,
-      editor: 'input'
+      headerHozAlign: 'center'
     }
   ];
 
@@ -507,6 +855,30 @@ const MilkFileNotSubmit = () => {
                 onClick={handleSearch}
               >
                 <FaSearch /> 조회
+              </Button>
+            </Col>
+
+            {/* 마감 버튼 */}
+            <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
+              <Button
+                variant="success"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
+                onClick={handleClose}
+              >
+                <FaLock /> 마감
+              </Button>
+            </Col>
+
+            {/* 마감해제 버튼 */}
+            <Col md={1} style={{ minWidth: '130px', maxWidth: '130px' }}>
+              <Button
+                variant="danger"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
+                onClick={handleUnclose}
+              >
+                <FaLockOpen /> 마감해제
               </Button>
             </Col>
           </Row>
