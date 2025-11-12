@@ -17,6 +17,7 @@ import AgencyMng from '../pages/AgencyMng';
 import GoodsMng from '../pages/GoodsMng';
 import PromotionClose from '../pages/PromotionClose';
 import TeamPersonMng from '../pages/TeamPersonMng';
+import PromotionSettlePivot from '../pages/PromotionSettlePivot';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -253,6 +254,11 @@ const Header = () => {
                 >
                   판촉실적 마감
                 </NavDropdown.Item>
+                {/* <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot', '판촉실적 정산 (피벗)', '/PromotionSettlePivot', PromotionSettlePivot)}
+                >
+                  판촉실적 정산 (피벗)
+                </NavDropdown.Item> */}
               </NavDropdown>
 
               {/* 판촉팀별 실적 */}

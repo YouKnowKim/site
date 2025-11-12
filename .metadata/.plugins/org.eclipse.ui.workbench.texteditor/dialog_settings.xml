@@ -14,6 +14,10 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="selectMilkbangDetailListPivot"/>
+			<item value="getMilkbangDetailList"/>
+			<item value="selectMilkbangDetailList"/>
+			<item value="// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)"/>
 			<item value="GoodsOptionCD"/>
 			<item value="actualhob"/>
 			<item value="actualHob"/>
@@ -25,10 +29,6 @@
 			<item value="insertgood"/>
 			<item value="insertM"/>
 			<item value="insert"/>
-			<item value="unclosePromo"/>
-			<item value="closePromo"/>
-			<item value="close"/>
-			<item value="#{teamCd"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

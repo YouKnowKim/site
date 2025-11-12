@@ -430,7 +430,7 @@ const MilkFileMng = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '530px'
+    height: "calc(100vh - 380px)"
   };
 
   return (
@@ -514,9 +514,7 @@ const MilkFileMng = () => {
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
               >
-                <i className="bi bi-search me-2">
-                    <FaSearch /> 조회
-                </i>
+                  <FaSearch /> 조회
                 
               </Button>
             </Col>
@@ -529,9 +527,7 @@ const MilkFileMng = () => {
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleExcelUpload}
               >
-                <i className="bi bi-search me-2">
-                    <RiFileExcel2Line /> 개별파일 업로드
-                </i>
+                  <RiFileExcel2Line /> 개별파일 업로드
                 
               </Button>
             </Col>

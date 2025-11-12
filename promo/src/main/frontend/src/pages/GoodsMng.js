@@ -678,7 +678,7 @@ const GoodsMng = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '520px'
+    height: "calc(100vh - 390px)"
   };
 
   const modalOptions = {

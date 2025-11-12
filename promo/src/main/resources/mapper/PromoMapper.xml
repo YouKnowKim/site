@@ -359,6 +359,71 @@
 	    )
 	</update>
 	
+	<select id="selectMilkbangDetailListPivot" resultType="MilkbangDetailPivotDao">
+		SELECT
+		    'A' || a.AGENCYCD as agencyCdMis,
+		    a.PROMOPERSONNM AS promoPersonNm,    
+		    a.DUPLICATEYN AS duplicateYn,    
+		    case when b.GOODSCD = -1 then b.GOODSOPTIONNM || '-' || b.GOODSOPTIONNM_ORIGIN
+				 else b.GOODSOPTIONNM end AS goodsOptionNm,
+		    b.QUANTITY AS quantity,
+		    b.CONTRACTPERIOD AS contractPeriod,
+		    b.WEEKQTY AS weekQty,
+		    case when b.ORDERKINDCD = '1' then '신규'
+		         when b.ORDERKINDCD = '2' then '재계약'
+		         when b.ORDERKINDCD = '3' then '무계약'
+		         else '없음' end AS orderKindCdNm,
+		    b.ACTUALHOB AS actualHob,  
+		    c.TEAMPERSONNM AS teamPersonNm,
+		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
+		    f.AGENCYNM AS agencyNm,
+		 	g.MISCD as misCd,
+		 	i.DEPT_NME AS deptNme
+		FROM ysc.tc_milkbang a
+		INNER JOIN ysc.TC_MILKBANGGOODS b
+		    ON a.ORDERCD = b.ORDERCD
+		INNER JOIN ysc.TC_TEAMPERSON c
+		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
+		LEFT JOIN ysc.TC_TEAM d
+		    ON b.TEAMCD = d.TEAMCD
+		LEFT JOIN ysc.TC_PROMOTEAM e
+			ON b.PROMOTEAMCD = e.PROMOTEAMCD
+		INNER JOIN ysc.TC_AGENCY f
+		    ON a.AGENCYCD = f.AGENCYCD
+		LEFT JOIN ysc.TC_GOODSOPTION g 
+			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD
+		LEFT JOIN insa.PAPEDTL h
+			ON c.LOGINID = h.EMPY_ID AND h.OFFICE_ID = 'YSM'
+		LEFT JOIN apps.CMDEPTCD i
+			ON h.DEPT_CDE = i.DEPT_CDE		    
+		WHERE 1 = 1
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
+		    </if>
+		    <if test="subStartDate != null and subStartDate != '' and subEndDate != null and subEndDate != ''">
+		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{subStartDate}, '-', '') AND REPLACE(#{subEndDate}, '-', '')
+		    </if>
+		    <if test="teamPersonCd != null and teamPersonCd != ''">
+		    	AND b.TEAMPERSONCD = #{teamPersonCd}
+		    </if>
+		    <if test="agencyCd != null and agencyCd != ''">
+		    	AND a.AGENCYCD = #{agencyCd}
+		    </if>
+		    <if test="promoPersonNm != null and promoPersonNm != ''">
+		    	AND a.PROMOPERSONNM LIKE '%' || REPLACE(#{promoPersonNm}, ' ', '') || '%'
+		    </if>
+		    <if test="hcStatus != null and hcStatus != ''">
+		    	AND b.HCSTATUS = #{hcStatus}
+		    </if>
+		    <if test="hcActionStatus != null and hcActionStatus != ''">
+		    	AND b.HCACTIONSTATUS = #{hcActionStatus}
+		    </if>
+		    <if test="masterCloseYn != null and masterCloseYn != ''">
+		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
+		    </if>
+		 ORDER BY a.ordercd, b.orderseq, a.agencycd
+	</select>
+	
 	<select id="selectMilkbangDetailList" resultType="MilkbangDetailDao">
 		SELECT
 			row_number() over(order by a.ordercd, b.orderseq, a.agencycd) as no,

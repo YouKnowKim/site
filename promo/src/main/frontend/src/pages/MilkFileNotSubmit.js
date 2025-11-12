@@ -523,7 +523,7 @@ const MilkFileNotSubmit = () => {
     layout: 'fitColumns',
     pagination: false,
     placeholder: '조회된 데이터가 없습니다.',
-    height: '530px'
+    height: "calc(100vh - 380px)"
   };
 
   return (

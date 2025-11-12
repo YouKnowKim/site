@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
+import com.yonseidairy.promo.dao.MilkbangDetailPivotDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoTeamDao;
@@ -83,6 +84,12 @@ public class PromoController {
 	public List<MilkbangDetailDao> getMilkbangDetailList(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao) {
 
 		return promoService.getMilkbangDetailList(inMilkbangDetailDao);
+	}
+	
+	@GetMapping("/getMilkbangDetailListPivot")
+	public List<MilkbangDetailPivotDao> getMilkbangDetailListPivot(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao) {
+
+		return promoService.getMilkbangDetailListPivot(inMilkbangDetailDao);
 	}
 
 	@GetMapping("/getMilkbangDetail")
