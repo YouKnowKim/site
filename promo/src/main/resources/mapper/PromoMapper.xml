@@ -326,6 +326,12 @@
 		    
 	</update>
 	
+	<update id="mergePromoMaster" parameterType="MilkbangDetailDao">
+	    UPDATE ysc.TC_MILKBANG
+	    SET	SAVEYN = 1
+	    WHERE ORDERCD = #{orderCd}
+	</update>
+	
 	<update id="mergePromo" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANGGOODS
 	    <set>

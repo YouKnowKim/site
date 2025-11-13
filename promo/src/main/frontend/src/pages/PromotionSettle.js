@@ -652,6 +652,42 @@ const PromotionSettle = () => {
       headerHozAlign: 'center'
     },
     {
+      title: '상태',
+      field: 'totStatus',
+      width: 80,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '';
+        }
+        
+        if (value === '저장') {
+          cell.getElement().style.color = '#28a745';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+
+        if (value === '마감') {
+          cell.getElement().style.color = '#6c757d';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+
+        if (value === '미저장') {
+          cell.getElement().style.color = '#fd7e14';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      }
+    },
+    {
       title: '대리점',
       field: 'agencyNm',
       width: 100,
@@ -810,6 +846,23 @@ const PromotionSettle = () => {
       width: 80,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      formatter: function(cell, formatterParams, onRendered) {
+        const value = cell.getValue();
+        
+        // null 또는 undefined 체크
+        if (!value) {
+          return '0';
+        }
+        
+        // 12개월 미만은 붉은색 표시
+        if (Number(value) < 12) {
+          cell.getElement().style.color = '#dc3545';
+          cell.getElement().style.fontWeight = 'bold';
+          return value;
+        }
+        
+        return value;
+      },
       // ✅ 엑셀 다운로드 시 숫자로 저장
       accessorDownload: function(value) {
         if (value === null || value === undefined || value === '') return 0;
@@ -823,42 +876,6 @@ const PromotionSettle = () => {
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
-    },
-    {
-      title: '상태',
-      field: 'totStatus',
-      width: 80,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      // ✅ formatter 함수 추가: 이중기재가 포함되면 빨간색 표시
-      formatter: function(cell, formatterParams, onRendered) {
-        const value = cell.getValue();
-        
-        // null 또는 undefined 체크
-        if (!value) {
-          return '';
-        }
-        
-        if (value === '저장') {
-          cell.getElement().style.color = '#28a745';
-          cell.getElement().style.fontWeight = 'bold';
-          return value;
-        }
-
-        if (value === '마감') {
-          cell.getElement().style.color = '#6c757d';
-          cell.getElement().style.fontWeight = 'bold';
-          return value;
-        }
-
-        if (value === '미저장') {
-          cell.getElement().style.color = '#fd7e14';
-          cell.getElement().style.fontWeight = 'bold';
-          return value;
-        }
-        
-        return value;
-      }
     },
     {
       title: '마감홉수',
@@ -1971,7 +1988,7 @@ const PromotionSettle = () => {
       const allData = table.getData();
       
       // ✅ 병합 대상 필드
-      const mergeFields = ['agencyNm', 'promoTeamNm', 'orderUserNm', 'goodsOptionNm'];
+      const mergeFields = ['agencyNm', 'promoTeamNm', 'orderUserNm', 'goodsOptionNm', 'totStatus'];
       
       // ✅ 같은 orderCd를 가진 행이 여러 개인지 확인
       const groupCount = allData.filter(r => r.orderCd === rowData.orderCd).length;
@@ -1988,15 +2005,34 @@ const PromotionSettle = () => {
           const cell = row.getCell(field);
           if (cell) {
             const cellElement = cell.getElement();
-            
+
+            if(field === "agencyNm"){
+              cellElement.style.borderRight = '0px';
+            }
+
+            if(field === "promoTeamNm"){
+              cellElement.style.borderRight = '0px';
+            }
+
+            if(field === "orderUserNm"){
+              cellElement.style.borderRight = '0px';
+            }
+
+            if(field === "totStatus"){
+              cellElement.style.borderRight = '0.5px solid #2f89e4ff';
+            }
+
+            if(field === "goodsOptionNm"){
+              cellElement.style.borderRight = '1px solid #2f89e4ff';
+            }
             // ✅ 첫 번째 행: 위쪽 테두리 진하게
-            if (isFirst) {
-              cellElement.style.borderTop = '1px solid #495057';  // 진한 회색 테두리
+            if (isFirst && field !== "totStatus") {
+              cellElement.style.borderTop = '1px solid #2f89e4ff';  // 진한 회색 테두리
             }
             
             // ✅ 마지막 행: 아래쪽 테두리 진하게
-            if (isLast) {
-              cellElement.style.borderBottom = '1px solid #495057';  // 진한 회색 테두리
+            if (isLast && field !== "totStatus") {
+              cellElement.style.borderBottom = '1px solid #2f89e4ff';  // 진한 회색 테두리
             }
           }
         });
@@ -2430,7 +2466,7 @@ const PromotionSettle = () => {
                 </span>
 
                 <span style={{fontWeight: '500' }}>
-                  상품매칭: <strong>{summaryData.abnormalUnmatched}</strong> 건
+                  상품미매칭: <strong>{summaryData.abnormalUnmatched}</strong> 건
                 </span>
 
                 <span style={{fontWeight: '500' }}>

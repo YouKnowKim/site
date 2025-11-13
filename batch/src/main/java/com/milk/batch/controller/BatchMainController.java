@@ -160,7 +160,6 @@ public class BatchMainController {
                                 clsMilkbangGoods.Day4 = clsGoodsOption.Day4;
                                 clsMilkbangGoods.Day5 = clsGoodsOption.Day5;
                                 clsMilkbangGoods.Day6 = clsGoodsOption.Day6;
-                                System.out.println("clsGoodsOption.Day6 : " + clsGoodsOption.Day6);
                             }
                         }
                         
@@ -222,8 +221,6 @@ public class BatchMainController {
                         	} else {
                         		clsMilkbangGoods.ActualHob = new BigDecimal("0");
                         	}
-                        	System.out.println("WeekQty : " + String.valueOf(clsMilkbangGoods.WeekQty));
-                        	System.out.println("clsMilkbangGoods.ActualHob : " + clsMilkbangGoods.ActualHob);
                         } else if (clsMilkbangGoods.OrderKindCD == 2) {
                         	clsMilkbangGoods.ActualHob = new BigDecimal("1");
                         } else if (clsMilkbangGoods.OrderKindCD == 3) {

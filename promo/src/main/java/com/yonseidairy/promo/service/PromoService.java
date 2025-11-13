@@ -444,6 +444,7 @@ public class PromoService {
 		for (MilkbangDetailDao data : dataList) {
 			try {
 				int updateResult = promoMapper.mergePromo(data);
+				promoMapper.mergePromoMaster(data);
 
 				if (updateResult == 0) {
 					// 마감된 데이터는 업데이트되지 않음 (이미 사전 검증 완료)
@@ -560,6 +561,7 @@ public class PromoService {
 		for (MilkbangDetailDao data : dataList) {
 			try {
 				int updateResult = promoMapper.mergePromo(data);
+				promoMapper.mergePromoMaster(data);
 
 				if (result == 0) {
 					if (promoMapper.countPromoTeamUpdateTarget(data) > 0) {

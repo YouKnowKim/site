@@ -521,45 +521,6 @@ const TeamPersonMng = () => {
       }
     },
     {
-      title: '대리점여부',
-      field: 'agencyYn',
-      width: 120,
-      hozAlign: 'center',
-      headerHozAlign: 'center',
-      editor: 'list',
-      editorParams: {
-        values: {
-          "0": "대리점X",
-          "1": "대리점O"
-        }
-      },
-      // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
-      formatter: function(cell) {
-        const value = cell.getValue();
-        
-        // null, undefined 체크
-        if (value === null || value === undefined) {
-          return '';
-        }
-        
-        // 문자열 또는 숫자로 변환하여 비교
-        const stringValue = String(value);
-        const displayValue = stringValue === '0' ? '대리점X' : '대리점O';
-        
-        // 미사용인 경우 빨간색 강조
-        if (displayValue === '대리점O') {
-          cell.getElement().style.color = '#1014eeff';
-          cell.getElement().style.fontWeight = 'bold';
-        } else {
-          // 사용인 경우 기본 스타일로 복원
-          cell.getElement().style.color = '';
-          cell.getElement().style.fontWeight = '';
-        }
-        
-        return displayValue;
-      }
-    },
-    {
       title: '직원타입',
       field: 'teamPersonType',
       width: 120,
@@ -587,6 +548,45 @@ const TeamPersonMng = () => {
         
         // 미사용인 경우 빨간색 강조
         if (displayValue === '담당자') {
+          cell.getElement().style.color = '#1014eeff';
+          cell.getElement().style.fontWeight = 'bold';
+        } else {
+          // 사용인 경우 기본 스타일로 복원
+          cell.getElement().style.color = '';
+          cell.getElement().style.fontWeight = '';
+        }
+        
+        return displayValue;
+      }
+    },
+    {
+      title: '대리점여부',
+      field: 'agencyYn',
+      width: 120,
+      hozAlign: 'center',
+      headerHozAlign: 'center',
+      editor: 'list',
+      editorParams: {
+        values: {
+          "0": "대리점X",
+          "1": "대리점O"
+        }
+      },
+      // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
+      formatter: function(cell) {
+        const value = cell.getValue();
+        
+        // null, undefined 체크
+        if (value === null || value === undefined) {
+          return '';
+        }
+        
+        // 문자열 또는 숫자로 변환하여 비교
+        const stringValue = String(value);
+        const displayValue = stringValue === '0' ? '대리점X' : '대리점O';
+        
+        // 미사용인 경우 빨간색 강조
+        if (displayValue === '대리점O') {
           cell.getElement().style.color = '#1014eeff';
           cell.getElement().style.fontWeight = 'bold';
         } else {

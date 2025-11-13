@@ -3386,14 +3386,14 @@ public class MilkbangManager {
 		MilkbangBean clsOrder = null;
 		try {
 			String strSQL = "SELECT tc_milkbang.*," + selectMilkbangGoods()
-					+ ", tc_user.UserID as OrderUserID FROM ysc.tc_milkbang INNER JOIN ysc.tc_milkbanggoods ON (tc_milkbanggoods.OrderCD = tc_milkbang.OrderCD) LEFT OUTER JOIN ysc.tc_user ON (tc_user.UserCD = tc_milkbang.OrderUserCD)";
+			+ ", tc_user.UserID as OrderUserID FROM ysc.tc_milkbang INNER JOIN ysc.tc_milkbanggoods ON (tc_milkbanggoods.OrderCD = tc_milkbang.OrderCD) LEFT OUTER JOIN ysc.tc_user ON (tc_user.UserCD = tc_milkbang.OrderUserCD)";
 			String strWhere = " AND (tc_milkbang.DeleteYN=0)";
 			if (p_Param.AgencyCD > 0L)
 				strWhere = strWhere + " AND (tc_milkbang.AgencyCD = " + p_Param.AgencyCD + ")";
 			if (p_Param.OrderDT != null) {
-			    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			    String dateStr = sdf.format(p_Param.OrderDT);
-			    strWhere = strWhere + " AND (tc_milkbang.OrderDT = TO_DATE('" + dateStr + "', 'YYYY-MM-DD'))";
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				String dateStr = sdf.format(p_Param.OrderDT);
+				strWhere = strWhere + " AND (tc_milkbang.OrderDT = TO_DATE('" + dateStr + "', 'YYYY-MM-DD'))";
 			}
 			if (!p_Param.OrderUserNM.equals(""))
 				strWhere = strWhere + " AND (tc_milkbang.OrderUserNM = '" + GF.recoverSQL(p_Param.OrderUserNM) + "')";

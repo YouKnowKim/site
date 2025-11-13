@@ -325,28 +325,28 @@ const AgencyMng = () => {
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
-      formatter: function(cell) {
-        const rowData = cell.getRow().getData();
-        const value = cell.getValue();
+      // formatter: function(cell) {
+      //   const rowData = cell.getRow().getData();
+      //   const value = cell.getValue();
         
-        // 담당자 비교
-        const teamPersonNm = rowData.teamPersonNm || '';  // 담당자(대리점)
-        const empyNme = rowData.empyNme || '';            // 담당자(본사)
+      //   // 담당자 비교
+      //   const teamPersonNm = rowData.teamPersonNm || '';  // 담당자(대리점)
+      //   const empyNme = rowData.empyNme || '';            // 담당자(본사)
         
-        // 두 담당자가 다르면 빨간색 배경
-        if (teamPersonNm !== empyNme) {
-          cell.getElement().style.backgroundColor = '#ffcccc';
-          cell.getElement().style.color = '#cc0000';
-          cell.getElement().style.fontWeight = 'bold';
-        } else {
-          // 동일하면 기본 스타일
-          cell.getElement().style.backgroundColor = '';
-          cell.getElement().style.color = '';
-          cell.getElement().style.fontWeight = '';
-        }
+      //   // 두 담당자가 다르면 빨간색 배경
+      //   if (teamPersonNm !== empyNme) {
+      //     cell.getElement().style.backgroundColor = '#ffcccc';
+      //     cell.getElement().style.color = '#cc0000';
+      //     cell.getElement().style.fontWeight = 'bold';
+      //   } else {
+      //     // 동일하면 기본 스타일
+      //     cell.getElement().style.backgroundColor = '';
+      //     cell.getElement().style.color = '';
+      //     cell.getElement().style.fontWeight = '';
+      //   }
         
-        return value;
-      },
+      //   return value;
+      // },
       editorParams: {
         elementAttributes: {
           maxlength: "5",        // 최대 5자리까지만 입력 가능
@@ -847,6 +847,18 @@ const AgencyMng = () => {
                 onClick={handleSave}
               >
                 <FaSave /> 저장
+              </Button>
+            </Col>
+
+            {/* 저장 버튼 */}
+            <Col md={1} style={{ minWidth: '200px', maxWidth: '200px' }}>
+              <Button
+                variant="info"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
+                onClick={handleSave}
+              >
+                <FaSave /> MIS 기준정보 적용
               </Button>
             </Col>
 

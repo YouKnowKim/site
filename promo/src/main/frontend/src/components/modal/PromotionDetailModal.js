@@ -636,11 +636,11 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 {/* ✅ detailData 배열을 map으로 반복 렌더링 */}
                 {detailData.map((item, index) => (
                   <tr key={index}>
-                  <td className="text-center">{item.goodsOptionNm || ''}</td>
+                  <td className="text-center" style={{color: (item.goodsOptionNm.includes('매칭안됨')) ? '#dc3545' : ''}}>{item.goodsOptionNm || ''}</td>
                   <td className="text-center">{item.quantity || ''}</td>
                   <td className="text-center">{item.weekRemark || ''}</td>
                   <td className="text-center">{item.weekQty || ''}</td>
-                  <td className="text-center">{item.contractPeriod || ''} 개월</td>
+                  <td className="text-center" style={{color: (Number(item.contractPeriod) < 12) ? '#dc3545' : ''}}>{item.contractPeriod || ''} 개월</td>
                   <td className="text-center">
                     <Form.Select
                       size="sm"

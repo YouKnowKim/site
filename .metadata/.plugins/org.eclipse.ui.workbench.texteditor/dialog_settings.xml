@@ -7,28 +7,28 @@
 	</section>
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
-		<item key="selection" value=""/>
+		<item key="selection" value="SaveYN"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="selectMilkbangDetailListPivot"/>
-			<item value="getMilkbangDetailList"/>
-			<item value="selectMilkbangDetailList"/>
-			<item value="// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)"/>
-			<item value="GoodsOptionCD"/>
-			<item value="actualhob"/>
-			<item value="actualHob"/>
-			<item value="DB에 업로드 중..."/>
-			<item value="ROOT_DIR"/>
-			<item value="convertExcel"/>
-			<item value="판촉자료"/>
-			<item value="actual"/>
-			<item value="insertgood"/>
-			<item value="insertM"/>
-			<item value="insert"/>
+			<item value="clsMilkbangGoods :"/>
+			<item value="saveYn :"/>
+			<item value="setMilkbangGoodsField"/>
+			<item value="mergePromo"/>
+			<item value="mergePromoDetail"/>
+			<item value="Update ysc.tc_milkbang"/>
+			<item value="update"/>
+			<item value="saveyn"/>
+			<item value="clsGoodsOption.Day6 :"/>
+			<item value="findMilkbang"/>
+			<item value="findMilkbangGoods"/>
+			<item value="saveYn"/>
+			<item value="clsMilkbangGoods.ActualHob"/>
+			<item value="SaveYN"/>
+			<item value="savyn"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

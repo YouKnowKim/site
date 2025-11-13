@@ -18,6 +18,7 @@ import GoodsMng from '../pages/GoodsMng';
 import PromotionClose from '../pages/PromotionClose';
 import TeamPersonMng from '../pages/TeamPersonMng';
 import PromotionSettlePivot from '../pages/PromotionSettlePivot';
+import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -255,9 +256,9 @@ const Header = () => {
                   판촉실적 마감
                 </NavDropdown.Item>
                 {/* <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot', '판촉실적 정산 (피벗)', '/PromotionSettlePivot', PromotionSettlePivot)}
+                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot3', '판촉실적 정산 (피벗3)', '/PromotionSettlePivot3', PromotionSettlePivot3)}
                 >
-                  판촉실적 정산 (피벗)
+                  판촉실적 정산 (피벗3)
                 </NavDropdown.Item> */}
               </NavDropdown>
 
@@ -278,6 +279,11 @@ const Header = () => {
               {/* 판촉실적 통계 */}
               <NavDropdown title="판촉실적 통계" id="promo-stats-dropdown">
                 <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot', '판촉분석 (피벗)', '/PromotionSettlePivot', PromotionSettlePivot)}
+                >
+                  판촉분석 (피벗)
+                </NavDropdown.Item>
+                {/* <NavDropdown.Item 
                   onClick={(e) => handleMenuClick(e, 'stat-all', '판촉 실적 보고(전체)', '/StatAll', Home)}
                 >
                   판촉 실적 보고(전체)
@@ -291,7 +297,7 @@ const Header = () => {
                   onClick={(e) => handleMenuClick(e, 'agency-weekly', '대리점별 주간 실적', '/AgencyWeekly', Home)}
                 >
                   대리점별 주간 실적
-                </NavDropdown.Item>
+                </NavDropdown.Item> */}
               </NavDropdown>
 
               {/* 해피콜 관리 */}
