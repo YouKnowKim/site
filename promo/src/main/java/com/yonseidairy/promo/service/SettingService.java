@@ -47,6 +47,11 @@ public class SettingService {
 
 		return settingMapper.updateAgency(inAgencyDao);
 	}
+	
+	public int updateAllAgencyName(AgencyDao inAgencyDao) {
+
+		return settingMapper.updateAllAgencyName(inAgencyDao);
+	}
 
 	/**
 	 * 사원 목록 일괄 저장 (신규 등록 및 수정)

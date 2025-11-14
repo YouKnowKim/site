@@ -535,6 +535,76 @@ const AgencyMng = () => {
     });
   };
 
+  const handleSync = async() => {
+
+    // ✅ 5. 저장 확인 메시지
+    const result = await Swal.fire({
+      title: '저장 확인',
+      html: `
+        <div style="text-align: left;">
+          <p>대리점명, 담당자명을 MIS와 동기화 하시겠습니까?</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '변경',
+      cancelButtonText: '취소',
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#6c757d'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    // ✅ 6. 서버에 저장 요청
+    try {
+      // 로딩 표시
+      Swal.fire({
+        title: '저장 중...',
+        html: '데이터를 저장하고 있습니다.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // API 호출
+      const response = await axios.post('/api/setting/updateAllAgencyName', {
+        params : {
+          agencyCd : 'test'
+        }
+      });
+
+      // ✅ 7. 저장 성공 처리
+      Swal.fire({
+        icon: 'success',
+        title: '저장 완료',
+        text: `MIS 동기화 완료되었습니다`,
+        confirmButtonText: '확인'
+      });
+
+      // ✅ 8. 저장 후 데이터 다시 조회 (최신 상태 반영)
+      await handleSearch();
+
+    } catch (error) {
+      console.error('저장 실패:', error);
+      
+      // 에러 메시지 추출
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          '데이터 저장에 실패했습니다.';
+      
+      Swal.fire({
+        icon: 'error',
+        title: '저장 실패',
+        text: errorMessage,
+        confirmButtonText: '확인'
+      });
+    }
+  }
+
   // 조회 버튼 클릭
   const handleSearch = async () => {
     
@@ -851,14 +921,14 @@ const AgencyMng = () => {
             </Col>
 
             {/* 저장 버튼 */}
-            <Col md={1} style={{ minWidth: '200px', maxWidth: '200px' }}>
+            <Col md={1} style={{ minWidth: '150px', maxWidth: '150px' }}>
               <Button
-                variant="info"
+                variant="outline-success"
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
-                onClick={handleSave}
+                onClick={handleSync}
               >
-                <FaSave /> MIS 기준정보 적용
+                <FaSave /> MIS 동기화
               </Button>
             </Col>
 

@@ -57,6 +57,7 @@ public interface SettingMapper {
 	 *                    - teamPersonCd: 담당자코드 (수정 대상)
 	 * @return int 수정 건수 (성공 시 1)
 	 */
+	int updateAllAgencyName(AgencyDao inAgencyDao);
 	int updateAgency(AgencyDao inAgencyDao);
 	
 	List<GoodsDao> selectGoodsList(GoodsDao inGoodsDao);

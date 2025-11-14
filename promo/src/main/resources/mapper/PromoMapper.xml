@@ -376,41 +376,34 @@
 		    b.CONTRACTPERIOD AS contractPeriod,
 		    b.WEEKQTY AS weekQty,
 		    case when b.ORDERKINDCD = '1' then '신규'
-		         when b.ORDERKINDCD = '2' then '재계약'
-		         when b.ORDERKINDCD = '3' then '무계약'
-		         else '없음' end AS orderKindCdNm,
+		         when b.ORDERKINDCD = '2' then '재계약' 
+		         else '무계약' end AS orderKindCdNm,
+		    to_char(TRUNC(b.promodt, 'IW') + 2, 'yyyy-mm') as promoYyMm,
+		    to_char(TRUNC(b.promodt, 'IW') + 2, 'W') AS weekCnt,
 		    b.ACTUALHOB AS actualHob,  
-		    c.TEAMPERSONNM AS teamPersonNm,
+		    d.TEAMPERSONNM AS teamPersonNm,
 		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
-		    f.AGENCYNM AS agencyNm,
-		 	g.MISCD as misCd,
-		 	i.DEPT_NME AS deptNme
+		    c.AGENCYNM AS agencyNm,
+		 	g.DEPT_NME AS deptNme
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
-		INNER JOIN ysc.TC_TEAMPERSON c
-		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
-		LEFT JOIN ysc.TC_TEAM d
-		    ON b.TEAMCD = d.TEAMCD
+		LEFT JOIN ysc.TC_AGENCY c
+			ON a.AGENCYCD = c.AGENCYCD
+		LEFT JOIN ysc.TC_TEAMPERSON d
+			ON c.TEAMPERSONCD = d.TEAMPERSONCD
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD
-		INNER JOIN ysc.TC_AGENCY f
-		    ON a.AGENCYCD = f.AGENCYCD
-		LEFT JOIN ysc.TC_GOODSOPTION g 
-			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD
-		LEFT JOIN insa.PAPEDTL h
-			ON c.LOGINID = h.EMPY_ID AND h.OFFICE_ID = 'YSM'
-		LEFT JOIN apps.CMDEPTCD i
-			ON h.DEPT_CDE = i.DEPT_CDE		    
-		WHERE 1 = 1
+		LEFT JOIN insa.PAPEDTL f
+			ON d.LOGINID = f.EMPY_ID AND f.OFFICE_ID = 'YSM'
+		LEFT JOIN apps.CMDEPTCD g
+			ON f.DEPT_CDE = g.DEPT_CDE	    
+		WHERE 1 = 1	
 			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
 		    </if>
-		    <if test="subStartDate != null and subStartDate != '' and subEndDate != null and subEndDate != ''">
-		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{subStartDate}, '-', '') AND REPLACE(#{subEndDate}, '-', '')
-		    </if>
 		    <if test="teamPersonCd != null and teamPersonCd != ''">
-		    	AND b.TEAMPERSONCD = #{teamPersonCd}
+		    	AND c.TEAMPERSONCD = #{teamPersonCd}
 		    </if>
 		    <if test="agencyCd != null and agencyCd != ''">
 		    	AND a.AGENCYCD = #{agencyCd}
@@ -427,7 +420,6 @@
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
 		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
 		    </if>
-		 ORDER BY a.ordercd, b.orderseq, a.agencycd
 	</select>
 	
 	<select id="selectMilkbangDetailList" resultType="MilkbangDetailDao">
@@ -558,19 +550,19 @@
 		    	 when b.saveyn = 1 then '저장'
 		    		  else '미저장' end as totStatus,
 		 	
-		 	g.MISCD as misCd,
+		 	SUBSTR(g.MISCD, 1, 5) as misCd,
 		 	
 		 	i.DEPT_NME AS deptNme
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
-		INNER JOIN ysc.TC_TEAMPERSON c
+		LEFT JOIN ysc.TC_TEAMPERSON c
 		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
 		LEFT JOIN ysc.TC_TEAM d
 		    ON b.TEAMCD = d.TEAMCD
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD
-		INNER JOIN ysc.TC_AGENCY f
+		LEFT JOIN ysc.TC_AGENCY f
 		    ON a.AGENCYCD = f.AGENCYCD
 		LEFT JOIN ysc.TC_GOODSOPTION g 
 			ON b.GOODSOPTIONCD_ORIGIN = g.MISCD
@@ -736,13 +728,13 @@
 		FROM ysc.tc_milkbang a
 		INNER JOIN ysc.TC_MILKBANGGOODS b
 		    ON a.ORDERCD = b.ORDERCD
-		INNER JOIN ysc.TC_TEAMPERSON c
+		LEFT JOIN ysc.TC_TEAMPERSON c
 		    ON b.TEAMPERSONCD = c.TEAMPERSONCD
 		LEFT JOIN ysc.TC_TEAM d
 		    ON b.TEAMCD = d.TEAMCD
 		LEFT JOIN ysc.TC_PROMOTEAM e
 			ON b.PROMOTEAMCD = e.PROMOTEAMCD
-		INNER JOIN ysc.TC_AGENCY f
+		LEFT JOIN ysc.TC_AGENCY f
 		    ON a.AGENCYCD = f.AGENCYCD		    
 		WHERE 1 = 1
 		AND   a.ordercd = #{orderCd}

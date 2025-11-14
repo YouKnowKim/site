@@ -173,6 +173,33 @@
 	    </if>
 		ORDER BY a.GOODSOPTIONCD
     </select>
+    
+    <update id="updateAllAgencyName" parameterType="AgencyDao">
+	    MERGE INTO ysc.TC_AGENCY a
+		USING (
+			SELECT
+				a.AGENCYCD AS AGENCYCD
+				, a.AGENCYNM AS AGENCYNM
+				, c.CUSTNO AS CUSTNO
+				, c.custName AS CUSTNAME
+				, MAX(d.SALES_MAN) AS SALESMAN
+				, MAX(e.TEAMPERSONCD) AS TEAMPERSONCD
+			FROM ysc.tc_agency a
+			LEFT JOIN ysc.TC_TEAMPERSON b ON a.TEAMPERSONCD = b.TEAMPERSONCD
+			LEFT JOIN apps.CD_CUSTOMER c ON 'A' || a.AGENCYCD = c.CUSTNO
+			LEFT JOIN apps.CD_CUSTOMER_SHIP d ON c.CUSTNO = d.CUSTNO
+			LEFT JOIN ysc.TC_TEAMPERSON e ON d.sales_man = e.LOGINID
+			WHERE 1 = 1
+			AND a.AGENCYTYPE = '1'
+			AND c.CUSTNO IS NOT NULL
+			GROUP BY a.AGENCYCD, a.AGENCYNM, c.CUSTNO, c.custName
+		) b
+		ON (a.AGENCYCD = b.AGENCYCD)
+		WHEN MATCHED THEN
+		UPDATE SET a.AGENCYNM = b.CUSTNAME
+				 , a.teampersoncd = b.teampersoncd
+		WHERE a.AGENCYCD = b.AGENCYCD
+	</update>
 
     <select id="selectAgencyList" resultType="AgencyDao">
         SELECT

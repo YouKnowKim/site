@@ -150,6 +150,59 @@ public class SettingController {
 			return ResponseEntity.status(500).body(errorResponse);
 		}
 	}
+	
+	@PostMapping("/updateAllAgencyName")
+	public ResponseEntity<Map<String, Object>> updateAllAgencyName(@RequestBody AgencyDao data) {
+
+		try {
+			System.out.println("=== MIS 대리점명 동기화 시작 ===");
+
+			// ✅ 1. 서비스 레이어 호출
+			int savedCount = settingService.updateAllAgencyName(data);
+
+			System.out.println("저장 완료 - 성공: " + savedCount + "건");
+			System.out.println("=== MIS 대리점명 동기화 종료 ===");
+
+			// ✅ 2. 성공 응답 (Map)
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", "MIS 대리점명 동기화 완료되었습니다.");
+
+			return ResponseEntity.ok(response);
+
+		} catch (IllegalArgumentException e) {
+			System.out.println("잘못된 요청 데이터: " + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.badRequest().body(errorResponse);
+
+		} catch (DataIntegrityViolationException e) {
+			// ✅ DB 제약 조건 위반 (중복 키 등)
+			System.out.println("데이터 무결성 제약 위반: " + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "이미 존재하는 대리점코드이거나 데이터 무결성 제약을 위반했습니다.");
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(409).body(errorResponse); // 409 Conflict
+
+		} catch (Exception e) {
+			System.out.println("대리점 정보 저장 중 오류 발생: " + e.getMessage());
+			e.printStackTrace();
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(500).body(errorResponse);
+		}
+	}
 
 	@PostMapping("/saveAgencyList")
 	public ResponseEntity<Map<String, Object>> saveAgencyList(@RequestBody List<AgencyDao> dataList) {

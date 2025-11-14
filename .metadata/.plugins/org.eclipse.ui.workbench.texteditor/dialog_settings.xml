@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="pivot"/>
+			<item value="PIVOT"/>
+			<item value="INNER JOIN"/>
+			<item value="INNER JOIN YSC.TC_AGENCY"/>
+			<item value="updateAllAgencyName"/>
+			<item value="selectMilkbangDetailList"/>
+			<item value="kbangDetailListPivot"/>
+			<item value="getMilkbangDetailListPivot"/>
+			<item value="updateAgency"/>
+			<item value="getAgencyList"/>
+			<item value="update"/>
+			<item value="sekectAgencyList"/>
+			<item value="selectAgencyList"/>
 			<item value="clsMilkbangGoods :"/>
 			<item value="saveYn :"/>
-			<item value="setMilkbangGoodsField"/>
-			<item value="mergePromo"/>
-			<item value="mergePromoDetail"/>
-			<item value="Update ysc.tc_milkbang"/>
-			<item value="update"/>
-			<item value="saveyn"/>
-			<item value="clsGoodsOption.Day6 :"/>
-			<item value="findMilkbang"/>
-			<item value="findMilkbangGoods"/>
-			<item value="saveYn"/>
-			<item value="clsMilkbangGoods.ActualHob"/>
-			<item value="SaveYN"/>
-			<item value="savyn"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

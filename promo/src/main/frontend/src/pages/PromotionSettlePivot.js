@@ -63,13 +63,16 @@ const PromotionSettlePivot = () => {
     { uniqueName: 'agencyCdMis', caption: '대리점코드', type: 'string' },
     { uniqueName: 'promoPersonNm', caption: '판촉사원', type: 'string' },
     { uniqueName: 'goodsOptionNm', caption: '제품명', type: 'string' },
-    { uniqueName: 'weekQty', caption: '주간홉수', type: 'number' },
+    // { uniqueName: 'weekQty', caption: '주간홉수', type: 'number' },
     { uniqueName: 'contractPeriod', caption: '계약기간', type: 'string' },
     { uniqueName: 'teamPersonNm', caption: '담당자명', type: 'string' },
     { uniqueName: 'misCd', caption: '제품코드', type: 'string' },
     { uniqueName: 'deptNme', caption: '부서명', type: 'string' },
     { uniqueName: 'promoTeamNm', caption: '판촉팀', type: 'string' },
-    { uniqueName: 'actualHob', caption: '실적홉수', type: 'number' }
+    { uniqueName: 'actualHob', caption: '실적홉수', type: 'number' },
+    { uniqueName: 'orderKindCdNm', caption: '계약구분', type: 'string' },
+    { uniqueName: 'promoYyMm', caption: '판촉년월', type: 'string' },
+    { uniqueName: 'weekCnt', caption: '주차', type: 'number' }
   ];
 
   // ============================================
@@ -98,17 +101,22 @@ const PromotionSettlePivot = () => {
     },
     slice: {
       rows: [
-        { uniqueName: 'agencyNm' }  // 기본으로 대리점명을 행에 배치
+        {
+          uniqueName: 'deptNme'
+        },
+        {
+          uniqueName: 'teamPersonNm'
+        },
+        {
+          uniqueName: 'agencyNm'
+        },
       ],
       columns: [
-        { uniqueName: '[Measures]' }
+        { uniqueName: '[Measures]' },
+        { uniqueName: 'promoYyMm' },
+        { uniqueName: 'weekCnt' }
       ],
       measures: [
-        {
-          uniqueName: 'weekQty',
-          aggregation: 'sum',
-          format: 'currency'
-        },
         {
           uniqueName: 'actualHob',
           aggregation: 'sum',
@@ -120,7 +128,7 @@ const PromotionSettlePivot = () => {
     },
     options: {
       grid: {
-        type: 'compact',  // 'compact', 'classic', 'flat'
+        type: 'classic',  // 'compact', 'classic', 'flat'
         showGrandTotals: 'on',
         showTotals: 'on'
       },
@@ -135,7 +143,7 @@ const PromotionSettlePivot = () => {
         name: 'currency',
         thousandsSeparator: ',',
         decimalSeparator: '.',
-        decimalPlaces: 0,
+        decimalPlaces: 1,
         currencySymbol: '',
         nullValue: '0',
         infinityValue: 'Infinity',
@@ -331,7 +339,7 @@ const PromotionSettlePivot = () => {
       // 3. Excel 내보내기 실행
       // ========================================
       const today = new Date().toISOString().split('T')[0];
-      const fileName = `촉진정산_피벗분석_${today}`;
+      const fileName = `판촉정산피벗_${today}`;
 
       console.log(`📥 Excel 내보내기 시작: ${fileName}.xlsx`);
 
@@ -340,8 +348,8 @@ const PromotionSettlePivot = () => {
       pivotRef.current.flexmonster.exportTo('excel', {
         filename: fileName,
         // Excel 내보내기 옵션
-        excelSheetName: '촉진정산_피벗분석',
-        header: '연세유업 촉진정산 피벗 분석',
+        excelSheetName: '판촉정산피벗',
+        header: '판촉정산피벗',
         footer: `작성일: ${today}`,
         pageOrientation: 'landscape',  // 'portrait' or 'landscape'
         destinationType: 'file'  // 'file' or 'server'
@@ -408,11 +416,11 @@ const PromotionSettlePivot = () => {
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const fileName = `촉진정산_피벗분석_${today}`;
+    const fileName = `판촉정산피벗__${today}`;
 
     pivotRef.current.flexmonster.exportTo('pdf', {
       filename: fileName,
-      header: '연세유업 촉진정산 피벗 분석',
+      header: '판촉정산피벗_',
       footer: `작성일: ${today}`,
       pageOrientation: 'landscape'
     });
@@ -530,7 +538,7 @@ const PromotionSettlePivot = () => {
             </Col>
 
             {/* PDF 다운로드 버튼 (선택사항) */}
-            <Col md={1} style={{ minWidth: '150px', maxWidth: '150px' }}>
+            {/* <Col md={1} style={{ minWidth: '150px', maxWidth: '150px' }}>
               <Button
                 variant="danger"
                 size="sm"
@@ -540,7 +548,7 @@ const PromotionSettlePivot = () => {
               >
                 📄 PDF 다운로드
               </Button>
-            </Col>
+            </Col> */}
           </Row>
         </Card.Body>
       </Card>
