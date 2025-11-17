@@ -14,6 +14,9 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="updateGoods"/>
+			<item value="insertGoods"/>
+			<item value="saveGoodsList"/>
 			<item value="pivot"/>
 			<item value="PIVOT"/>
 			<item value="INNER JOIN"/>
@@ -26,9 +29,6 @@
 			<item value="getAgencyList"/>
 			<item value="update"/>
 			<item value="sekectAgencyList"/>
-			<item value="selectAgencyList"/>
-			<item value="clsMilkbangGoods :"/>
-			<item value="saveYn :"/>
 		</list>
 		<list key="replacehistory">
 			<item value="String"/>

@@ -399,6 +399,7 @@
 		LEFT JOIN apps.CMDEPTCD g
 			ON f.DEPT_CDE = g.DEPT_CDE	    
 		WHERE 1 = 1	
+		AND b.MASTERCLOSEYN = 1
 			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
 		    </if>

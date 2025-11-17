@@ -99,6 +99,7 @@ const PromotionSettlePivot = () => {
         return acc;
       }, {})
     },
+    localization: "/locales/ko.json?v=1.01",
     slice: {
       rows: [
         {
@@ -598,8 +599,6 @@ const PromotionSettlePivot = () => {
               reportcomplete={onReportComplete}
               datachanged={onDataLoaded}
               update={onUpdate}
-              // 한글 UI 설정
-              localization="/flexmonster/localization/ko.json"  // 한글 로케일 파일 경로
             />
           )}
 

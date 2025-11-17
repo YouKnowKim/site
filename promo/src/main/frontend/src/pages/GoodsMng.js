@@ -293,6 +293,7 @@ const GoodsMng = () => {
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
+      visible: false,
       titleFormatter: function() {
         return '제품코드연결<br/>(대리점)';  // HTML로 줄바꿈
       },

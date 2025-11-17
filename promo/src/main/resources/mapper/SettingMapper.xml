@@ -102,7 +102,7 @@
 		) VALUES (
 	        #{goodsOptionCd}
 	        , #{optionNm}
-	        , #{misCd, jdbcType=VARCHAR}
+	        , #{goodsOptionCd, jdbcType=VARCHAR}
 	        , #{day1, jdbcType=NUMERIC}
 	        , #{day2, jdbcType=NUMERIC}
 	        , #{day3, jdbcType=NUMERIC}
@@ -116,7 +116,6 @@
 	<update id="updateGoods" parameterType="GoodsDao">
 	    UPDATE YSC.TC_GOODSOPTION
 	    SET OPTIONNM = #{optionNm}
-	    	, MISCD = #{misCd, jdbcType=VARCHAR}
 	    	, DAY1 = #{day1, jdbcType=NUMERIC}
 	    	, DAY2 = #{day2, jdbcType=NUMERIC}
 	    	, DAY3 = #{day3, jdbcType=NUMERIC}

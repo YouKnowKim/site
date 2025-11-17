@@ -235,7 +235,7 @@ const MilkFileNotSubmit = () => {
     // 2-2. 미저장 건이 있는 경우 경고
     if (unsavedRows.length > 0) {
       const unsavedList = unsavedRows.map(row => 
-        `- ${row.teamPersonNm}(${row.teamPersonCd}): ${row.unSavedCnt}건`
+        `- ${row.teamPersonNm}: ${row.unSavedCnt}건`
       ).join('\n');
       
       Swal.fire({
@@ -262,7 +262,7 @@ const MilkFileNotSubmit = () => {
     // 2-4. 이미 마감완료된 담당자가 있는 경우 확인
     if (alreadyClosedRows.length > 0) {
       const closedList = alreadyClosedRows.map(row => 
-        `- ${row.teamPersonNm}(${row.teamPersonCd})`
+        `- ${row.teamPersonNm}`
       ).join('\n');
       
       const confirmResult = await Swal.fire({
@@ -428,7 +428,7 @@ const MilkFileNotSubmit = () => {
     // 2-2. 마감완료 상태가 아닌 담당자가 있는 경우 경고
     if (notClosedRows.length > 0) {
       const notClosedList = notClosedRows.map(row => 
-        `- ${row.teamPersonNm}(${row.teamPersonCd}): ${row.masterCloseNm || '마감전'}`
+        `- ${row.teamPersonNm}: ${row.masterCloseNm || '마감전'}`
       ).join('\n');
       
       const confirmResult = await Swal.fire({

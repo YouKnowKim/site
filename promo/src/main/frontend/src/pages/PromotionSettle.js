@@ -896,6 +896,7 @@ const PromotionSettle = () => {
         min: 0,
         max: 999.9,
         step: 0.1,  // ✅ 0.1 단위로만 입력 가능
+        selectContents: true,
         elementAttributes: {
           maxlength: "5"  // 최대 5자리 (999.9)
         }
