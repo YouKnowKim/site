@@ -18,6 +18,7 @@ import GoodsMng from '../pages/GoodsMng';
 import PromotionClose from '../pages/PromotionClose';
 import TeamPersonMng from '../pages/TeamPersonMng';
 import PromotionSettlePivot from '../pages/PromotionSettlePivot';
+import PromoTeamPerf from '../pages/PromoTeamPerf';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 // 추가 페이지 컴포넌트들을 import 하세요
 
@@ -265,7 +266,7 @@ const Header = () => {
               {/* 판촉팀별 실적 */}
               <NavDropdown title="판촉팀별 실적" id="team-performance-dropdown">
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/TeamPerformance', Home)}
+                  onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)}
                 >
                   판촉팀별 실적
                 </NavDropdown.Item>

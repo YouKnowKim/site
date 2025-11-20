@@ -55,7 +55,8 @@
 	    AND to_char(PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate, jdbcType=VARCHAR}, '-', '') 
 	                                         AND REPLACE(#{endDate, jdbcType=VARCHAR}, '-', '')
 	    AND TEAMPERSONCD = #{teamPersonCd, jdbcType=VARCHAR}
-	    AND SAVEYN = 1 
+	    AND SAVEYN = 1
+	    AND DELETEYN = 0 
 	    AND (MASTERCLOSEYN IS NULL OR MASTERCLOSEYN != 1)  
 	</update>
 	
@@ -131,6 +132,7 @@
 		LEFT JOIN apps.CMDEPTCD d on c.DEPT_CDE = D.DEPT_CDE
 		LEFT JOIN ysc.TC_TEAM E ON d.DEPT_CDE = e.DEPT_CDE
 		WHERE 1 = 1
+		AND a.DELETEYN = 0
 		AND to_char(a.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
 		<if test='teamCd != null and teamCd != ""'>
 	      AND e.TEAMCD = #{teamCd}
@@ -431,7 +433,7 @@
 		    a.ORDERTYPE AS orderType,
 		    case when duplicateYn = 1 then a.ORDERUSERNM || '-이중기재' else a.ORDERUSERNM end AS orderUserNm,
 		    a.ORDERHOMEPHONE AS orderHomePhone,
-		    a.ORDERCELLPHONE AS orderCellPhone,
+		    NVL(a.ORDERCELLPHONE, a.ORDERHOMEPHONE) AS orderCellPhone,
 		    a.ORDERADDRESS1 AS orderAddress1,
 		    a.RECEIVEUSERNM AS receiveUserNm,
 		    a.RECEIVEHOMEPHONE AS receiveHomePhone,
@@ -596,6 +598,25 @@
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
 		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
 		    </if>
+		    <if test="issueStatus != null and issueStatus != ''">
+		    	<choose>
+		  			<when test="issueStatus.equalsIgnoreCase('01')">
+		  				AND a.DUPLICATEYN = 1
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('02')">
+		  				AND NVL(b.PROMOTEAMCD, -1) = -1
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('03')">
+		  				AND b.GOODSOPTIONCD = -1
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('04')">
+		  				AND NVL(a.ORDERCELLPHONE, a.ORDERHOMEPHONE) IS NULL
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('05')">
+		  				AND b.CONTRACTPERIOD &lt; 12
+		  			</when>
+		  		</choose> 
+		    </if>
 		 ORDER BY a.ordercd, b.orderseq, a.agencycd
 	</select>
 	
@@ -606,7 +627,7 @@
 		    a.ORDERTYPE AS orderType,
 		    a.ORDERUSERNM AS orderUserNm,
 		    a.ORDERHOMEPHONE AS orderHomePhone,
-		    a.ORDERCELLPHONE AS orderCellPhone,
+		    NVL(a.ORDERCELLPHONE, a.ORDERHOMEPHONE)  AS orderCellPhone,
 		    a.ORDERADDRESS1 AS orderAddress1,
 		    a.RECEIVEUSERNM AS receiveUserNm,
 		    a.RECEIVEHOMEPHONE AS receiveHomePhone,
@@ -748,6 +769,17 @@
 			a.PROMOTEAMNM AS promoTeamNm,
 			a.PROMOTYPE AS promoType
 		from ysc.TC_PROMOTEAM a
+	</select>
+	
+	<select id="selectValidPromoTeam" resultType="PromoTeamDao">
+		select
+			a.PROMOTEAMCD AS promoTeamCd,
+			a.PROMOTEAMNM AS promoTeamNm,
+			a.PROMOTYPE AS promoType
+		from ysc.TC_PROMOTEAM a
+		WHERE 1 = 1
+		AND PROMOTYPE = 1
+		ORDER BY a.PROMOTEAMCD
 	</select>
 	
 	<!-- ============================================

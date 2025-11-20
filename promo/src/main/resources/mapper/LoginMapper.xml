@@ -12,6 +12,7 @@
 	      , a.loginpw as loginPw
 	      , a.teampersonnm as teamPersonNm
 	      , a.teampersontype as teamPersonType
+	      , a.promoteamcd as promoTeamCd
 	      , a.manageryn as managerYn
 	      , a.teamcd as teamCd
 	      , a.agencyyn as agencyYn

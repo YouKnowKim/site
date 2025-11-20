@@ -14,23 +14,25 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="updateGoods"/>
-			<item value="insertGoods"/>
-			<item value="saveGoodsList"/>
-			<item value="pivot"/>
-			<item value="PIVOT"/>
-			<item value="INNER JOIN"/>
-			<item value="INNER JOIN YSC.TC_AGENCY"/>
-			<item value="updateAllAgencyName"/>
-			<item value="selectMilkbangDetailList"/>
-			<item value="kbangDetailListPivot"/>
-			<item value="getMilkbangDetailListPivot"/>
-			<item value="updateAgency"/>
-			<item value="getAgencyList"/>
-			<item value="update"/>
-			<item value="sekectAgencyList"/>
+			<item value="getAllPromoTeam"/>
+			<item value="selectAllPromoTeam"/>
+			<item value="promoteam"/>
+			<item value="promoTeamCd"/>
+			<item value=":promoTeamCd"/>
+			<item value=":stdDate"/>
+			<item value="getLoginInfo"/>
+			<item value="trunc"/>
+			<item value="mi"/>
+			<item value="selectmilkbangdetaillist"/>
+			<item value="selectmilkbangdetail"/>
+			<item value="MilkbangDetail"/>
+			<item value="getMilkbangDetail"/>
+			<item value="orderkind"/>
+			<item value="DeleteYN = 0"/>
 		</list>
 		<list key="replacehistory">
+			<item value="#{promoTeamCd}"/>
+			<item value="#{stdDate}"/>
 			<item value="String"/>
 			<item value="JAVA"/>
 			<item value="RegionMapper"/>

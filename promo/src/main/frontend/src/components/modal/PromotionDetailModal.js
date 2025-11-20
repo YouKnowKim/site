@@ -1,9 +1,11 @@
 // components/PromotionDetailModal.jsx
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Modal, Button, Form, Row, Col, Table, ModalDialog, ButtonGroup } from 'react-bootstrap';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Modal, Button, Form, Row, Col, Table } from 'react-bootstrap';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
+import { FaSave } from "react-icons/fa";
 
 /**
  * 판촉실적 상세 팝업 컴포넌트
@@ -13,7 +15,7 @@ import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
  * @param {array} originalData - 전체 원본 데이터 (no, orderCd 정렬됨)
  * @param {function} onSave - 저장 후 콜백 함수
  */
-const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave }) => {
+const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
   // ✅ 상태 관리
   const [detailData, setDetailData] = useState([{
     agencyNm: '',
@@ -310,20 +312,6 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
    */
   const handleSave = async () => {
     try {
-      // // ✅ 저장 확인
-      // const result = await Swal.fire({
-      //   icon: 'question',
-      //   title: '저장 확인',
-      //   text: '수정된 내용을 저장하시겠습니까?',
-      //   showCancelButton: true,
-      //   confirmButtonText: '저장',
-      //   cancelButtonText: '취소',
-      //   confirmButtonColor: '#28a745'
-      // });
-
-      // if (!result.isConfirmed) {
-      //   return;
-      // }
 
       // ✅ 로딩 표시
       Swal.fire({
@@ -570,7 +558,11 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderCellPhone || ''}
+                  style={{
+                    borderColor: (detailData[0].orderCellPhone) ? '' : '#dc3545',
+                    color: (detailData[0].orderCellPhone) ? '' : '#dc3545'
+                  }}
+                  value={ (detailData[0].orderCellPhone) ? detailData[0].orderCellPhone || '' : '전화번호 없음'}
                   readOnly
                   className="bg-white"
                 />
@@ -741,20 +733,19 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
               onClick={onHide}
               style={{ width: '120px' }}
             >
-              <i className="bi bi-x-circle me-1"></i>
-              닫기
+              <IoClose /> 닫기
             </Button>
             <Button 
               variant="primary" 
               onClick={handleSave}
               style={{ width: '120px' }}
             >
-              <i className="bi bi-save me-1"></i>
-              저장
+              <FaSave /> 저장
             </Button>
           </div>
         </div>
       </Modal.Footer>
+      
     </Modal>
 
   );

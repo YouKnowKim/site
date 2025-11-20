@@ -12,6 +12,7 @@ public class LoginDao {
 	private String teamPersonType;
 	private String managerYn;
 	private String teamCd;
+	private String promoTeamCd;
 	private String agencyYn;
 	private String agencyCd;
 	private String loginYn;

@@ -76,6 +76,11 @@ public class PromoService {
 
 		return promoMapper.selectAllPromoTeam(inPromoTeamDao);
 	}
+	
+	public List<PromoTeamDao> getValidPromoTeam(PromoTeamDao inPromoTeamDao) {
+
+		return promoMapper.selectValidPromoTeam(inPromoTeamDao);
+	}
 
 	/**
 	 * 판촉실적 마감 처리 (사전 검증 + 전체 마감 or 전체 취소) - 마감 전 모든 담당자의 미저장 건수 확인 - 하나라도 미저장 건이

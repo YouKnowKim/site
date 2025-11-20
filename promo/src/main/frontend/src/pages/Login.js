@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Container,
   Form,
   Button,
   Card,
@@ -58,6 +57,7 @@ const Login = () => {
         sessionStorage.setItem('teamPersonType', loginData.teamPersonType);
         sessionStorage.setItem('managerYn', loginData.managerYn);
         sessionStorage.setItem('teamCd', loginData.teamCd);
+        sessionStorage.setItem('promoTeamCd', loginData.promoTeamCd);
         sessionStorage.setItem('agencyYn', loginData.agencyYn);
         sessionStorage.setItem('agencyCd', loginData.agencyCd);
         sessionStorage.setItem('loginYn', loginData.loginYn);

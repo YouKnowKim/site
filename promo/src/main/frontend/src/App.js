@@ -4,6 +4,7 @@ import { TabProvider } from './components/TabContext'; // ✅ TabProvider import
 import Header from './layout/header.js';
 import Footer from './layout/footer.js';
 import Login from './pages/Login.js';
+import PromotionDuplModal from './components/modal/PromotionDuplModal.js';
 import Home from './pages/Home.js';
 import TabManager from './components/TabManager'; // ✅ TabManager import
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,6 +37,7 @@ function App() {
             // 로그인 페이지는 기존 라우팅 방식 사용
             <Routes>
               <Route path="/Login" element={<Login />} />
+              <Route path="/PromotionDuplModal" element={<PromotionDuplModal />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           ) : (

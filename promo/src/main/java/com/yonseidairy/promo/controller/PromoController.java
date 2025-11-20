@@ -103,6 +103,12 @@ public class PromoController {
 
 		return promoService.getAllPromoTeam(inPromoTeamDao);
 	}
+	
+	@GetMapping("/getValidPromoTeam")
+	public List<PromoTeamDao> getValidPromoTeam(@ModelAttribute PromoTeamDao inPromoTeamDao) {
+
+		return promoService.getValidPromoTeam(inPromoTeamDao);
+	}
 
 	/**
 	 * 판촉실적 마감 처리

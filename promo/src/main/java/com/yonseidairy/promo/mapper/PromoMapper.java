@@ -93,6 +93,9 @@ public interface PromoMapper {
 	// 전체 프로모션 팀 목록을 조회합니다.
 	List<PromoTeamDao> selectAllPromoTeam(PromoTeamDao inPromoTeamDao);
 	
+	// 유효한 프로모션 팀 목록을 조회합니다.
+	List<PromoTeamDao> selectValidPromoTeam(PromoTeamDao inPromoTeamDao);
+	
 	int countPromoTeamUpdateTarget(MilkbangDetailDao data);
 	
 	// 프로모션 상세 정보를 병합(Merge) 처리합니다. (존재하면 수정, 없으면 신규 등록)

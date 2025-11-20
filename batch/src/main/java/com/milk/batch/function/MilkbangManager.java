@@ -1489,7 +1489,7 @@ public class MilkbangManager {
 	                    "OrderKindCD, OrderKind, " +
 	                    "AgencyHob, HQHob, PromoGiftNM, " +
 	                    "GiveDT, GivePersonNM, StopDT, StopReason, SaveYN, " +
-	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM, ActualHob" +
+	                    "TeamPersonCD, TeamPersonNM, TeamCD, TeamNM, ActualHob, PromoTeamCd" +
 	                    ") SELECT " +
 	                    "?, " +
 	                    "(SELECT NVL(MAX(OrderSEQ),0) + 1 FROM ysc.tc_milkbanggoods WHERE OrderCD = ?), " +
@@ -1498,7 +1498,7 @@ public class MilkbangManager {
 	                    "ADD_MONTHS(?, ?), " +  // ExpireDT = PromoDT + ContractPeriod
 	                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
 	                    "tc_teamperson.TeamPersonCD, tc_teamperson.TeamPersonNM, " +
-	                    "tc_team.TeamCD, tc_team.TeamNM, ? " +
+	                    "tc_team.TeamCD, tc_team.TeamNM, ?, (SELECT nvl(max(b.PROMOTEAMCD), -1) FROM ysc.tc_milkbang a INNER JOIN ysc.TC_MILKBANGGOODS b ON a.ORDERCD = b.ORDERCD WHERE a.PROMOPERSONNM = ? AND a.ORDERDT >= a.ORDERDT - 100) " +
 	                    "FROM ysc.tc_agency " +
 	                    "LEFT OUTER JOIN ysc.tc_teamperson ON (tc_agency.TeamPersonCD = tc_teamperson.TeamPersonCD) " +
 	                    "LEFT OUTER JOIN ysc.tc_team ON (tc_team.TeamCD = tc_teamperson.TeamCD) " +
@@ -1543,6 +1543,7 @@ public class MilkbangManager {
 	                pstmt.setString(idx++, clsMilkbangGoods.StopReason);
 	                pstmt.setInt(idx++, clsMilkbangGoods.SaveYN);
 	                pstmt.setBigDecimal(idx++, clsMilkbangGoods.ActualHob);
+	                pstmt.setString(idx++, clsParam.PromoPersonNM);
 	                pstmt.setLong(idx++, clsMilkbangGoods.AgencyCD);
 	                
 	                pstmt.executeUpdate();
@@ -3784,6 +3785,7 @@ public class MilkbangManager {
 	                "OR ((tc_milkbang.OrderCellPhone = '" + clsParam.OrderCellPhone + "') " +
 	                "AND (tc_milkbang.OrderCellPhone != ''))) " +
 	                "AND (TO_DATE('" + clsParam.SearchFromDT + "', 'YYYY-MM-DD HH24:MI:SS') <= tc_milkbang.OrderDT) " +
+	                "AND (TO_DATE('" + clsParam.SearchFromDT + "', 'YYYY-MM-DD HH24:MI:SS') >= ADD_MONTHS(tc_milkbang.OrderDT, -14)) " +
 	                "AND (tc_milkbang.DeleteYN = 0) " +
 	                "ORDER BY tc_milkbang.OrderDT DESC";
 			stmt = this.FV_conDB.createStatement(1004, 1007);

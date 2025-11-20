@@ -5,8 +5,7 @@ import {
   Col,
   Form,
   Button,
-  Card,
-  Badge
+  Card
 } from 'react-bootstrap';
 import { ReactTabulator } from 'react-tabulator';
 import 'tabulator-tables/dist/css/tabulator.min.css';
@@ -14,12 +13,13 @@ import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import '../styles/PromotionSettle.css'
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
-import { FaSearch, FaSave, FaTrash, FaTrashAlt } from "react-icons/fa";
+import { FaSearch, FaSave, FaTrashAlt } from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';  // 이 줄 추가
 import PromotionDetailModal from '../components/modal/PromotionDetailModal.js';
+import PromotionDuplModal from '../components/modal/PromotionDuplModal.js';
 
 // window.XLSX에 할당 (Tabulator가 사용할 수 있도록)
 window.XLSX = XLSX;
@@ -32,7 +32,7 @@ const handleHcContentDetail = (rowData) => {
   const content = rowData.hcContent || '';
   
   // HTML 태그 제거 (필요시)
-  const cleanContent = content.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
+  // const cleanContent = content.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
   
   Swal.fire({
     title: '해피콜 상담내용',
@@ -69,7 +69,7 @@ const handleHcActionDetail = (rowData) => {
   const content = rowData.hcAction || '';
   
   // HTML 태그 제거 (필요시)
-  const cleanContent = content.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
+  // const cleanContent = content.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
   
   Swal.fire({
     title: '담당 의견/대리점 소명',
@@ -227,7 +227,6 @@ const PromotionSettle = () => {
   const [stdMonth, setStdMonth] = useState(getCurrentMonth());
   const [stdWeek, setStdWeek] = useState(getCurrentWeek());  // 주차 저장
   const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
-  const [selectedGubun, setSelectedGubun] = useState('');
   const [isClosed, setIsClosed] = useState('');  // 마감여부 체크박스 state 추가
   const [tableData, setTableData] = useState([]);
   const [teamPersonList, setTeamPersonList] = useState([]);  // 대리점 목록 state 추가
@@ -237,12 +236,11 @@ const PromotionSettle = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [selectedAgency, setSelectedAgency] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [subEndDate, setSubEndDate] = useState('');
   const [subStartDate, setSubStartDate] = useState('');
   const [promotionEmployee, setPromotionEmployee] = useState('');
   const [selectedHcStatus, setSelectedHcStatus] = useState('');
+  const [selectedIssueStatus, setSelectedIssueStatus] = useState('');
   const [selectedHcActionStatus, setSelectedHcActionStatus] = useState('');
   const [originalData, setOriginalData] = useState([]);  // 조회 시점의 원본 데이터 저장
   // ✅ 1. 현재 선택된 주차의 label을 저장할 state 추가
@@ -250,7 +248,9 @@ const PromotionSettle = () => {
 
   // ✅ 모달 관련 state 추가
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDuplModal, setShowDuplModal] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
+  const [selectedDuplRowData, setSelectedDuplRowData] = useState(null);
   const tableRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -565,6 +565,11 @@ const PromotionSettle = () => {
     setShowDetailModal(true);
   };
 
+  const handleDuplClick = (rowData) => {
+    setSelectedDuplRowData(rowData);
+    setShowDuplModal(true);
+  };
+
   /**
    * ✅ 모달 저장 후 콜백
    */
@@ -607,16 +612,6 @@ const PromotionSettle = () => {
       .pop();
     
     return currentIndex === lastIndex;
-  };
-
-  /**
-   * orderCd가 같은 행의 개수를 세는 함수
-   * @param {string} orderCd - 주문 코드
-   * @param {Array} allData - 전체 테이블 데이터
-   * @returns {number} 같은 orderCd를 가진 행의 개수
-   */
-  const getGroupRowCount = (orderCd, allData) => {
-    return allData.filter(row => row.orderCd === orderCd).length;
   };
 
   // 테이블 컬럼 정의
@@ -761,6 +756,13 @@ const PromotionSettle = () => {
       }
     },
     {
+      title: '판촉사원',
+      field: 'promoPersonNm',
+      width: 100,
+      hozAlign: 'center',
+      headerHozAlign: 'center'
+    },
+    {
       title: '고객',
       field: 'orderUserNm',
       width: 120,
@@ -787,6 +789,18 @@ const PromotionSettle = () => {
         }
         
         return value;
+      },
+      cellClick: function(e, cell) {
+        const value = cell.getValue();
+
+        if (!value) {
+          return '';
+        }
+
+        if (value.includes('이중기재')) {
+          const rowData = cell.getRow().getData();
+          handleDuplClick(rowData);
+        }
       }
     },
     {
@@ -970,13 +984,6 @@ const PromotionSettle = () => {
     {
       title: '투입일',
       field: 'putDt',
-      width: 100,
-      hozAlign: 'center',
-      headerHozAlign: 'center'
-    },
-    {
-      title: '판촉사원',
-      field: 'promoPersonNm',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
@@ -1282,6 +1289,11 @@ const PromotionSettle = () => {
       visible: false
     },
     {
+      title: 'duplOrderCd',
+      field: 'duplOrderCd',
+      visible: false
+    },
+    {
       title: 'orderCd',
       field: 'orderCd',
       visible: false
@@ -1325,14 +1337,6 @@ const PromotionSettle = () => {
 
   // ✅ 한 줄로 모든 컬럼의 정렬 비활성화
   columns.forEach(col => col.headerSort = false);
-
-  // 엑셀 업로드 함수
-  const handleExcelUpload = () => {
-    // 파일 선택 다이얼로그 열기
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
 
   // 파일 선택 시 처리 함수
   const handleFileChange = async (event) => {
@@ -1545,7 +1549,9 @@ const PromotionSettle = () => {
 
           subStartDate: subStartDate,
 
-          subEndDate: subEndDate
+          subEndDate: subEndDate,
+
+          issueStatus: selectedIssueStatus
         }
       });
 
@@ -1989,7 +1995,7 @@ const PromotionSettle = () => {
       const allData = table.getData();
       
       // ✅ 병합 대상 필드
-      const mergeFields = ['agencyNm', 'promoTeamNm', 'orderUserNm', 'goodsOptionNm', 'totStatus'];
+      const mergeFields = ['agencyNm', 'promoTeamNm', 'promoPersonNm', 'orderUserNm', 'goodsOptionNm', 'totStatus'];
       
       // ✅ 같은 orderCd를 가진 행이 여러 개인지 확인
       const groupCount = allData.filter(r => r.orderCd === rowData.orderCd).length;
@@ -2015,25 +2021,29 @@ const PromotionSettle = () => {
               cellElement.style.borderRight = '0px';
             }
 
+            if(field === "promoPersonNm"){
+              cellElement.style.borderRight = '0px';
+            }
+
             if(field === "orderUserNm"){
               cellElement.style.borderRight = '0px';
             }
 
             if(field === "totStatus"){
-              cellElement.style.borderRight = '0.5px solid #2f89e4ff';
+              cellElement.style.borderRight = '2px solid #2f89e4ff';
             }
 
             if(field === "goodsOptionNm"){
-              cellElement.style.borderRight = '1px solid #2f89e4ff';
+              cellElement.style.borderRight = '2px solid #2f89e4ff';
             }
             // ✅ 첫 번째 행: 위쪽 테두리 진하게
             if (isFirst && field !== "totStatus") {
-              cellElement.style.borderTop = '1px solid #2f89e4ff';  // 진한 회색 테두리
+              cellElement.style.borderTop = '2px solid #2f89e4ff';  // 진한 회색 테두리
             }
             
             // ✅ 마지막 행: 아래쪽 테두리 진하게
             if (isLast && field !== "totStatus") {
-              cellElement.style.borderBottom = '1px solid #2f89e4ff';  // 진한 회색 테두리
+              cellElement.style.borderBottom = '2px solid #2f89e4ff';  // 진한 회색 테두리
             }
           }
         });
@@ -2050,6 +2060,14 @@ const PromotionSettle = () => {
         rowData={selectedRowData}
         originalData={originalData}
         onSave={handleModalSave}
+      />
+
+      {/* ✅ 이중기재 모달 추가 */}
+      <PromotionDuplModal
+        show={showDuplModal}
+        onHide={() => setShowDuplModal(false)}
+        rowData={selectedDuplRowData}
+        originalData={originalData}
       />
 
       {/* 숨겨진 파일 입력 */}
@@ -2077,7 +2095,7 @@ const PromotionSettle = () => {
         <Card.Body className="py-2">
           <Row className="align-items-end mb-2">
             {/* 날짜 범위 */}
-            <Col md={5} style={{ minWidth: '500px', maxWidth: '550px' }}>
+            <Col md={5} style={{ minWidth: '500px', maxWidth: '500px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
@@ -2184,6 +2202,29 @@ const PromotionSettle = () => {
               </Form.Group>
             </Col>
 
+            <Col md={1} style={{ minWidth: '220px', maxWidth: '220px' }}>
+              <Form.Group>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '60px' }}>
+                    특이사항 :
+                  </Form.Label>
+                  <Form.Select
+                    size="sm"
+                    value={selectedIssueStatus}
+                    onChange={(e) => setSelectedIssueStatus(e.target.value)}
+                    style={{ width: '130px' }}
+                  >
+                    <option value="">전체</option>
+                    <option value="01">이중기재</option>
+                    <option value="02">판촉팀미매칭</option>
+                    <option value="03">상품미매칭</option>
+                    <option value="04">전화번호없음</option>
+                    <option value="05">주간수량미달</option>
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            </Col>
+
             {/* 판촉사원 입력 */}
             <Col md={1} style={{ minWidth: '200px', maxWidth: '250px' }}>
               <Form.Group>
@@ -2207,7 +2248,7 @@ const PromotionSettle = () => {
           {/* 두 번째 줄: 조회 버튼 */}
           <Row className="align-items-end mb-2">
             {/* 날짜 범위 */}
-            <Col md={5} style={{ minWidth: '500px', maxWidth: '550px' }}>
+            <Col md={5} style={{ minWidth: '500px', maxWidth: '500px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '185px' , fontSize: '0.75rem'}}>
