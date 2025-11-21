@@ -13,4 +13,7 @@ public interface ExtPromoMapper {
 	
 	// 판촉팀별 실적 조회
 	public List<ExtPromoDao> selectPromoTeamPerf(ExtPromoDao inExtPromoDao);
+	
+	// 판촉팀별 실적 조회 (합계)
+	public ExtPromoDao selectPromoTeamPerfTot(ExtPromoDao inExtPromoDao);
 }

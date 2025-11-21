@@ -227,35 +227,35 @@ const PromoteamPerf = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '1주',
+      title: '1주차',
       field: 'week1',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '2주',
+      title: '2주차',
       field: 'week2',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '3주',
+      title: '3주차',
       field: 'week3',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '4주',
+      title: '4주차',
       field: 'week4',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '5주',
+      title: '5주차',
       field: 'week5',
       width: 100,
       hozAlign: 'center',
@@ -311,7 +311,7 @@ const PromoteamPerf = () => {
       // 조회 API 호출
       const response = await axios.get('/api/extPromo/getPromoTeamPerf', {
         params: { stdDate : stdDate,
-                  promoTeamCd: '1' }
+                  promoTeamCd: selectedPromoTeamCd }
       });
 
       // placeholder 원래대로 복원
@@ -328,6 +328,45 @@ const PromoteamPerf = () => {
         setTableData([]);  // 빈 배열로 설정
         return;
       }
+
+
+      // 합계 계산
+      let sumTot = {
+        deptNme : "구분",
+        week1 : 0,
+        week2 : 0,
+        week3 : 0,
+        week4 : 0,
+        week5 : 0,
+        sumWeek : 0,
+        avgWeek : 0,
+        beforeAvgWeek : 0,
+        fluctWeek : 0
+      }
+
+      for(var i=0; i<response.data.length; i++){
+        sumTot.week1 += Number(response.data[i].week1);
+        sumTot.week2 += Number(response.data[i].week2);
+        sumTot.week3 += Number(response.data[i].week3);
+        sumTot.week4 += Number(response.data[i].week4);
+        sumTot.week5 += Number(response.data[i].week5);
+        sumTot.sumWeek += Number(response.data[i].sumWeek);
+        sumTot.avgWeek += Number(response.data[i].avgWeek);
+        sumTot.beforeAvgWeek += Number(response.data[i].beforeAvgWeek);
+        sumTot.fluctWeek += Number(response.data[i].fluctWeek);
+      }
+
+      sumTot.week1 = sumTot.week1.toFixed(1);
+      sumTot.week2 = sumTot.week2.toFixed(1);
+      sumTot.week3 = sumTot.week3.toFixed(1);
+      sumTot.week4 = sumTot.week4.toFixed(1);
+      sumTot.week5 = sumTot.week5.toFixed(1);
+      sumTot.sumWeek = sumTot.sumWeek.toFixed(1);
+      sumTot.avgWeek = sumTot.avgWeek.toFixed(1);
+      sumTot.beforeAvgWeek = sumTot.beforeAvgWeek.toFixed(1);
+      sumTot.fluctWeek = sumTot.fluctWeek.toFixed(1);
+
+      response.data.push(sumTot);
 
       setTableData(response.data);
 

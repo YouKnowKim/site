@@ -19,7 +19,6 @@ public class ExtPromoController {
 	
 	@GetMapping("/getPromoTeamPerf")
 	public List<ExtPromoDao> getPromoTeamPerf(ExtPromoDao inExtPromoDao) {
-		
 		return extPromoService.getPromoTeamPerf(inExtPromoDao);
 	}
 }

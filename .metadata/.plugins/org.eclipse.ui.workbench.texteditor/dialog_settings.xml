@@ -7,31 +7,32 @@
 	</section>
 	<section name="java.lang.Class">
 		<item key="replaceBarOpen" value="true"/>
-		<item key="selection" value="SaveYN"/>
+		<item key="selection" value="inExtPromoDao"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="getPromoTeamPerf"/>
+			<item value="#{promoTeamCd}"/>
+			<item value=":"/>
+			<item value=":promoTeamCd"/>
+			<item value="inExtPromoDao"/>
+			<item value="#{stdDate}"/>
+			<item value="stdDate,"/>
+			<item value="stdDate"/>
 			<item value="getAllPromoTeam"/>
 			<item value="selectAllPromoTeam"/>
 			<item value="promoteam"/>
 			<item value="promoTeamCd"/>
-			<item value=":promoTeamCd"/>
 			<item value=":stdDate"/>
 			<item value="getLoginInfo"/>
 			<item value="trunc"/>
-			<item value="mi"/>
-			<item value="selectmilkbangdetaillist"/>
-			<item value="selectmilkbangdetail"/>
-			<item value="MilkbangDetail"/>
-			<item value="getMilkbangDetail"/>
-			<item value="orderkind"/>
-			<item value="DeleteYN = 0"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>
+			<item value="#{stdDate},"/>
 			<item value="#{stdDate}"/>
 			<item value="String"/>
 			<item value="JAVA"/>
