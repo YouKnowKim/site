@@ -94,6 +94,8 @@
 			, round(nvl(c.avgWeek, 0), 1) AS avgWeek
 			, round(nvl(d.avgWeek, 0), 1) AS beforeAvgWeek
 			, round(nvl(c.avgWeek, 0) - nvl(d.avgWeek, 0), 1) AS fluctWeek
+			, SUBSTR((SELECT startDate FROM temp2), 1, 4) || '-' || SUBSTR((SELECT startDate FROM temp2), 5, 2) || '-' || SUBSTR((SELECT startDate FROM temp2), 7, 2) as startDate
+			, SUBSTR((SELECT endDate FROM temp2), 1, 4) || '-' || SUBSTR((SELECT endDate FROM temp2), 5, 2) || '-' || SUBSTR((SELECT endDate FROM temp2), 7, 2) as endDate
 		FROM ysc.TC_TEAM a
 		INNER JOIN apps.CMDEPTCD b ON a.DEPT_CDE = b.dept_cde
 		LEFT JOIN temp3 c ON b.DEPT_CDE = c.deptCde
@@ -102,7 +104,7 @@
 		ORDER BY b.dept_nme	
     </select>
     
-    <select id="selectPromoTeamPerfTot" resultType="ExtPromoDao">
+    <select id="selectPromoPersonPerf" resultType="ExtPromoDao">
         WITH temp1 AS (
 			SELECT #{stdDate} AS stdDate
 				, TO_CHAR(ADD_MONTHS(TO_DATE(#{stdDate}, 'yyyymmdd'), -1), 'yyyymmdd') AS beforeStdDate
@@ -116,101 +118,36 @@
 				
 				TO_CHAR(CASE WHEN TO_CHAR(TRUNC(LAST_DAY(to_date(stdDate, 'yyyymmdd')), 'IW') + 2, 'yyyymm') = TO_CHAR(to_date(stdDate, 'yyyymmdd'), 'yyyymm')
 					 THEN TRUNC(LAST_DAY(to_date(stdDate, 'yyyymmdd')), 'IW') + 6
-					 ELSE TRUNC(LAST_DAY(to_date(stdDate, 'yyyymmdd')), 'IW') - 1 END, 'yyyymmdd') AS endDate,
-					 
-				TO_CHAR(CASE WHEN to_char(TRUNC(TRUNC(to_date(beforeStdDate, 'yyyymmdd'),'MM'), 'IW') + 2, 'yyyymm') = to_char(to_date(beforeStdDate, 'yyyymmdd'), 'yyyymm')
-					 THEN TRUNC(TRUNC(to_date(beforeStdDate, 'yyyymmdd'),'MM'), 'IW')
-					 ELSE TRUNC(TRUNC(to_date(beforeStdDate, 'yyyymmdd'),'MM'), 'IW') + 7 END, 'yyyymmdd') AS beforeStartDate,
-				
-				TO_CHAR(CASE WHEN TO_CHAR(TRUNC(LAST_DAY(to_date(beforeStdDate, 'yyyymmdd')), 'IW') + 2, 'yyyymm') = TO_CHAR(to_date(beforeStdDate, 'yyyymmdd'), 'yyyymm')
-					 THEN TRUNC(LAST_DAY(to_date(beforeStdDate, 'yyyymmdd')), 'IW') + 6
-					 ELSE TRUNC(LAST_DAY(to_date(beforeStdDate, 'yyyymmdd')), 'IW') - 1 END, 'yyyymmdd') AS beforeEndDate
+					 ELSE TRUNC(LAST_DAY(to_date(stdDate, 'yyyymmdd')), 'IW') - 1 END, 'yyyymmdd') AS endDate
 			FROM temp1
-		),
-		temp3 AS (
-			SELECT g.dept_nme AS deptNme
-				, g.dept_cde AS deptCde
-				, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 1, nvl(b.ACTUALHOB,0), 0)) AS week1
-				, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 2, nvl(b.ACTUALHOB,0), 0)) AS week2
-				, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 3, nvl(b.ACTUALHOB,0), 0)) AS week3
-				, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 4, nvl(b.ACTUALHOB,0), 0)) AS week4
-				, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 5, nvl(b.ACTUALHOB,0), 0)) AS week5
-				, max(to_char(TRUNC((SELECT to_date(endDate, 'yyyymmdd') FROM temp2), 'IW') + 2, 'W')) AS maxWeekCnt
-				, sum(nvl(b.ACTUALHOB,0)) AS sumWeek
-				, sum(nvl(b.ACTUALHOB,0)) / max(to_char(TRUNC((SELECT to_date(endDate, 'yyyymmdd') FROM temp2), 'IW') + 2, 'W')) AS avgWeek
-			FROM ysc.tc_milkbang a
-			INNER JOIN ysc.TC_MILKBANGGOODS b
-			    ON a.ORDERCD = b.ORDERCD
-			INNER JOIN ysc.TC_AGENCY c
-				ON a.AGENCYCD = c.AGENCYCD
-			INNER JOIN ysc.TC_TEAMPERSON d
-				ON c.TEAMPERSONCD = d.TEAMPERSONCD
-			INNER JOIN ysc.TC_PROMOTEAM e
-				ON b.PROMOTEAMCD = e.PROMOTEAMCD
-			INNER JOIN insa.PAPEDTL f
-				ON d.LOGINID = f.EMPY_ID AND f.OFFICE_ID = 'YSM'
-			INNER JOIN apps.CMDEPTCD g
-						ON f.DEPT_CDE = g.DEPT_CDE
-			WHERE 1 = 1
-			AND b.PROMOTEAMCD = #{promoTeamCd}
-			AND b.mastercloseyn = 1
-			AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN (SELECT startDate FROM temp2) AND (SELECT endDate FROM temp2)
-			GROUP BY g.dept_nme, g.dept_cde
-		),
-		temp4 AS (
-			SELECT g.dept_nme AS deptNme
-				, g.dept_cde AS deptCde
-				, sum(nvl(b.ACTUALHOB,0)) / max(to_char(TRUNC((SELECT to_date(beforeEndDate, 'yyyymmdd') FROM temp2), 'IW') + 2, 'W')) AS avgWeek
-			FROM ysc.tc_milkbang a
-			INNER JOIN ysc.TC_MILKBANGGOODS b
-			    ON a.ORDERCD = b.ORDERCD
-			INNER JOIN ysc.TC_AGENCY c
-				ON a.AGENCYCD = c.AGENCYCD
-			INNER JOIN ysc.TC_TEAMPERSON d
-				ON c.TEAMPERSONCD = d.TEAMPERSONCD
-			INNER JOIN ysc.TC_PROMOTEAM e
-				ON b.PROMOTEAMCD = e.PROMOTEAMCD
-			INNER JOIN insa.PAPEDTL f
-				ON d.LOGINID = f.EMPY_ID AND f.OFFICE_ID = 'YSM'
-			INNER JOIN apps.CMDEPTCD g
-						ON f.DEPT_CDE = g.DEPT_CDE
-			WHERE 1 = 1
-			AND b.PROMOTEAMCD = #{promoTeamCd}
-			AND b.mastercloseyn = 1
-			AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN (SELECT beforeStartDate FROM temp2) AND (SELECT beforeEndDate FROM temp2)
-			GROUP BY g.dept_nme, g.dept_cde
-		),
-		temp5 AS (
-			SELECT 
-				b.dept_nme AS deptNme
-				, nvl(c.week1, 0) AS week1
-				, nvl(c.week2, 0) AS week2
-				, nvl(c.week3, 0) AS week3
-				, nvl(c.week4, 0) AS week4
-				, nvl(c.week5, 0) AS week5
-				, nvl(c.sumWeek, 0) AS sumWeek
-				, round(nvl(c.avgWeek, 0), 1) AS avgWeek
-				, round(nvl(d.avgWeek, 0), 1) AS beforeAvgWeek
-				, round(nvl(c.avgWeek, 0) - nvl(d.avgWeek, 0), 1) AS fluctWeek
-			FROM ysc.TC_TEAM a
-			INNER JOIN apps.CMDEPTCD b ON a.DEPT_CDE = b.dept_cde
-			LEFT JOIN temp3 c ON b.DEPT_CDE = c.deptCde
-			LEFT JOIN temp4 d ON c.deptCde = d.deptCde
-			WHERE a.TEAMTYPE = 1
-			ORDER BY b.dept_nme	
 		)
-		SELECT
-			'구분' AS deptNme
-			, sum(week1) AS week1
-			, sum(week2) AS week2
-			, sum(week3) AS week3
-			, sum(week4) AS week4
-			, sum(week5) AS week5
-			, sum(sumWeek) AS sumWeek
-			, sum(avgWeek) AS avgWeek
-			, sum(beforeAvgWeek) AS beforeAvgWeek
-			, sum(fluctWeek) AS fluctWeek
-		FROM temp5
+		SELECT a.promoPersonNm AS promoPersonNm
+			, c.agencyNm AS agencyNm
+			, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 1, nvl(b.ACTUALHOB,0), 0)) AS week1
+			, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 2, nvl(b.ACTUALHOB,0), 0)) AS week2
+			, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 3, nvl(b.ACTUALHOB,0), 0)) AS week3
+			, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 4, nvl(b.ACTUALHOB,0), 0)) AS week4
+			, sum(decode(to_char(TRUNC(b.promodt, 'IW') + 2, 'W'), 5, nvl(b.ACTUALHOB,0), 0)) AS week5
+			, sum(nvl(b.ACTUALHOB,0)) as sumWeek
+		FROM ysc.tc_milkbang a
+		INNER JOIN ysc.TC_MILKBANGGOODS b
+		    ON a.ORDERCD = b.ORDERCD
+		INNER JOIN ysc.TC_AGENCY c
+			ON a.AGENCYCD = c.AGENCYCD
+		INNER JOIN ysc.TC_TEAMPERSON d
+			ON c.TEAMPERSONCD = d.TEAMPERSONCD
+		INNER JOIN ysc.TC_PROMOTEAM e
+			ON b.PROMOTEAMCD = e.PROMOTEAMCD
+		INNER JOIN insa.PAPEDTL f
+			ON d.LOGINID = f.EMPY_ID AND f.OFFICE_ID = 'YSM'
+		INNER JOIN apps.CMDEPTCD g
+					ON f.DEPT_CDE = g.DEPT_CDE
+		WHERE 1 = 1
+		AND b.PROMOTEAMCD = #{promoTeamCd}
+		AND b.mastercloseyn = 1
+		AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN (SELECT startDate FROM temp2) AND (SELECT endDate FROM temp2)
+		GROUP BY a.promoPersonNm, c.agencyNm
+		ORDER BY a.promoPersonNm
     </select>
 
 </mapper>

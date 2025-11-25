@@ -19,6 +19,7 @@ import PromotionClose from '../pages/PromotionClose';
 import TeamPersonMng from '../pages/TeamPersonMng';
 import PromotionSettlePivot from '../pages/PromotionSettlePivot';
 import PromoTeamPerf from '../pages/PromoTeamPerf';
+import PromoPersonPerf from '../pages/PromoPersonPerf';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 // 추가 페이지 컴포넌트들을 import 하세요
 
@@ -271,7 +272,7 @@ const Header = () => {
                   판촉팀별 실적
                 </NavDropdown.Item>
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/WeeklyPerformance', Home)}
+                  onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
                 >
                   판촉사원별 주간 실적
                 </NavDropdown.Item>

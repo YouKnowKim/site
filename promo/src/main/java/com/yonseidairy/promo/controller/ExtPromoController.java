@@ -21,4 +21,9 @@ public class ExtPromoController {
 	public List<ExtPromoDao> getPromoTeamPerf(ExtPromoDao inExtPromoDao) {
 		return extPromoService.getPromoTeamPerf(inExtPromoDao);
 	}
+	
+	@GetMapping("/getPromoPersonPerf")
+	public List<ExtPromoDao> getPromoPersonPerf(ExtPromoDao inExtPromoDao) {
+		return extPromoService.getPromoPersonPerf(inExtPromoDao);
+	}
 }

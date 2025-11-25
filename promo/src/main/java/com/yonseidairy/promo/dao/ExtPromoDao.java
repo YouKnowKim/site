@@ -7,6 +7,8 @@ public class ExtPromoDao {
 	
 	private String stdDate;
 	private String promoTeamCd;
+	private String promoPersonNm;
+	private String agencyNm;
 	
 	private String deptNme;
 	private String week1;
@@ -18,5 +20,8 @@ public class ExtPromoDao {
 	private String avgWeek;
 	private String beforeAvgWeek;
 	private String fluctWeek;
+	
+	private String startDate;
+	private String endDate;
 
 }

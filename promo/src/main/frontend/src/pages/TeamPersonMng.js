@@ -1,19 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Container,
   Row,
   Col,
   Form,
   Button,
-  Card,
-  Modal
+  Card
 } from 'react-bootstrap';
 import { ReactTabulator } from 'react-tabulator';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
-import { FaSearch, FaSave, FaPlus, FaTrashAlt } from "react-icons/fa";
+import { FaSearch, FaSave, FaPlus} from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -36,7 +35,6 @@ const TeamPersonMng = () => {
   const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
   const [selectedTeamPersonType, setSelectedTeamPersonType] = useState('1');
   const [tableData, setTableData] = useState([]);
-  const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [teamList, setTeamList] = useState([]);
   const [teamOptions, setTeamOptions] = useState({});
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
@@ -414,42 +412,6 @@ const TeamPersonMng = () => {
       headerHozAlign: 'center',
       editor: 'input'
     },
-    // {
-    //   title: '소속 팀',
-    //   field: 'teamCd',
-    //   width: 150,
-    //   editor: 'list',
-    //   hozAlign: 'center',
-    //   headerHozAlign: 'center',
-    //   editorParams: {
-    //     values: teamOptions,  // { "01": "영업1팀", ... }
-    //     autocomplete: true,
-    //     listOnEmpty: true
-    //   },
-    //   // ✅ formatter: 팀코드 대신 팀명 표시
-    //   formatter: function(cell) {
-    //     const teamCd = cell.getValue();
-        
-    //     // 빈 값인 경우
-    //     if (!teamCd || teamCd === '' || teamCd === '0') {
-    //       cell.getElement().style.color = '#999';
-    //       return '- 선택 -';
-    //     }
-        
-    //     // ✅ teamOptions에서 해당 팀코드의 팀명 찾기
-    //     const teamNm = teamOptions[teamCd];
-        
-    //     if (teamNm && teamNm !== '- 선택 -') {
-    //       // 팀명이 있으면 팀명 표시
-    //       cell.getElement().style.color = '';
-    //       return teamNm;
-    //     } else {
-    //       // 팀명을 찾을 수 없으면 팀코드 그대로 표시
-    //       cell.getElement().style.color = '#dc3545';  // 빨간색 (오류 표시)
-    //       return teamCd;
-    //     }
-    //   }
-    // },
     {
       title: 'MIS 코드',
       field: 'empyId',

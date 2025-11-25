@@ -146,6 +146,8 @@ const PromoteamPerf = () => {
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [isManager, setIsManager] = useState(false);  // 매니저 여부 state 추가
   const [weekOptions, setWeekOptions] = useState([]);  // 주차 옵션 목록 state 추가
+  const [headerStartDate, setHeaderStartDate] = useState('');
+  const [headerEndDate, setHeaderEndDate] = useState('');
   const tableRef = useRef(null);
 
   // 컴포넌트 마운트 시 대리점 목록 조회
@@ -227,35 +229,35 @@ const PromoteamPerf = () => {
       headerHozAlign: 'center'
     },
     {
-      title: '1주차',
+      title: '1주',
       field: 'week1',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '2주차',
+      title: '2주',
       field: 'week2',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '3주차',
+      title: '3주',
       field: 'week3',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '4주차',
+      title: '4주',
       field: 'week4',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
     },
     {
-      title: '5주차',
+      title: '5주',
       field: 'week5',
       width: 100,
       hozAlign: 'center',
@@ -290,6 +292,26 @@ const PromoteamPerf = () => {
       headerHozAlign: 'center'
     }
   ];
+
+  const totalBackgroundFormatter = (cell) => {
+
+    let row = cell.getRow().getData();
+    const value = cell.getValue();
+
+    if(row.deptNme === '합계'){
+      cell.getElement().style.color = '#ebf3edff';
+      cell.getElement().style.fontWeight = 'bold';
+      cell.getElement().style.backgroundColor = '#878a87ff';
+      return value;
+    } else {
+      return value;
+    }
+  };
+
+  columns.forEach(col => {
+    
+    col.formatter = totalBackgroundFormatter;
+  });
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
@@ -329,10 +351,9 @@ const PromoteamPerf = () => {
         return;
       }
 
-
       // 합계 계산
       let sumTot = {
-        deptNme : "구분",
+        deptNme : "합계",
         week1 : 0,
         week2 : 0,
         week3 : 0,
@@ -354,6 +375,10 @@ const PromoteamPerf = () => {
         sumTot.avgWeek += Number(response.data[i].avgWeek);
         sumTot.beforeAvgWeek += Number(response.data[i].beforeAvgWeek);
         sumTot.fluctWeek += Number(response.data[i].fluctWeek);
+
+        // 시작일 종료일 header 표시
+        setHeaderStartDate(response.data[i].startDate);
+        setHeaderEndDate(response.data[i].endDate);
       }
 
       sumTot.week1 = sumTot.week1.toFixed(1);
@@ -515,7 +540,25 @@ const PromoteamPerf = () => {
       {/* Tabulator 그리드 */}
       <Card>
         <Card.Header className="bg-light text-dark fw-bold">
-          판촉팀별 실적
+          <Row className="align-items-center">
+            <Col xs="auto">
+              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>판촉팀별 실적</span>
+            </Col>
+
+            <Col>
+              <div style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '14px'
+              }}>
+                <span style={{ color: '#6c757d', fontWeight: 'bold'}}> | </span>
+                <span style={{fontWeight: '500' }}>
+                  판촉기간 : {headerStartDate} ~ {headerEndDate}
+                </span>
+              </div>
+            </Col>
+          </Row>
         </Card.Header>
         <Card.Body>
           <ReactTabulator

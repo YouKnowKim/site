@@ -10,7 +10,6 @@ import { RiFileExcel2Line } from "react-icons/ri";
 import { FaSearch } from "react-icons/fa";
 import axios from 'axios';
 import "../styles/PromotionSettlePivot.css";
-import * as FlexmonsterReact from "react-flexmonster";
 import {
   Container,
   Row,

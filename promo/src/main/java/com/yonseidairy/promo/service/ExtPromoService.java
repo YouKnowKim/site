@@ -17,16 +17,14 @@ public class ExtPromoService {
 	
 	// 판촉팀 월별 실적
 	public List<ExtPromoDao> getPromoTeamPerf(ExtPromoDao inExtPromoDao) {
-		List<ExtPromoDao> perfList = new ArrayList<>();
-		
-//		ExtPromoDao perfTot = new ExtPromoDao();
-		
-		perfList =  extPromoMapper.selectPromoTeamPerf(inExtPromoDao);
-//		perfTot = extPromoMapper.selectPromoTeamPerfTot(inExtPromoDao);
-
-//		perfList.add(perfTot);
 				
-		return perfList;
+		return extPromoMapper.selectPromoTeamPerf(inExtPromoDao);
+	}
+	
+	// 판촉팀원 월별 실적
+	public List<ExtPromoDao> getPromoPersonPerf(ExtPromoDao inExtPromoDao) {
+		
+		return extPromoMapper.selectPromoPersonPerf(inExtPromoDao);
 	}
 
 }

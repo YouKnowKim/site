@@ -203,6 +203,173 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
   };
 
   /**
+   * 이중기재 상세 데이터 조회 및 표시
+   * @param {object} targetRowData - 조회할 행 데이터
+   */
+  const fetchDuplDetailData = async (targetRowData) => {
+    try {
+      setLoading(true);
+      
+      const response = await axios.get('/api/promo/getMilkbangDetail', {
+        params: {
+          orderCd: targetRowData.duplOrderCd
+        }
+      });
+      
+      // ✅ 데이터가 없는 경우 처리
+      if(!response.data || response.data.length < 1) {
+        Swal.fire({
+          icon: 'error',
+          title: '조회 실패',
+          text: '상세 정보가 존재하지 않습니다.',
+          confirmButtonText: '확인'
+        });
+        return;
+      }
+
+      // ✅ 응답 데이터 배열로 변환
+      const duplDataArray = Array.isArray(response.data) ? response.data : [response.data];
+      const duplData = duplDataArray[0]; // 첫 번째 데이터 사용
+
+      // ✅ SweetAlert2로 상세 정보 표시
+      Swal.fire({
+        title: '<strong>이중기재 주문 상세정보</strong>',
+        width: '60%',
+        html: `
+          <div style="text-align: left; max-height: 70vh; overflow-y: auto;">
+            
+            <!-- 대리점 및 판촉팀 정보 -->
+            <div style="border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 1rem; margin-bottom: 1rem; background-color: #f8f9fa;">
+              <h6 style="font-weight: bold; margin-bottom: 0.75rem;">
+                <i class="bi bi-building"></i> 대리점 및 판촉팀 정보
+                ${duplData.saveYn === '1' ? '<span class="badge bg-success ms-2" style="font-size: 11px;">저장완료</span>' : ''}
+                ${duplData.masterCloseYn === '1' ? '<span class="badge bg-danger ms-2" style="font-size: 11px;">마감</span>' : ''}
+              </h6>
+              <div class="row g-2">
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">대리점</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.agencyNm || ''} (${duplData.agencyCd || ''})" readonly style="background-color: white;">
+                </div>
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">담당자</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.teamPersonNm || ''}" readonly style="background-color: white;">
+                </div>
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">판촉팀</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.promoTeamNm || ''}" readonly style="background-color: white;">
+                </div>
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">판촉사원</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.promoPersonNm || ''}" readonly style="background-color: white;">
+                </div>
+              </div>
+            </div>
+
+            <!-- 고객 정보 -->
+            <div style="border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 1rem; margin-bottom: 1rem;">
+              <h6 style="font-weight: bold; margin-bottom: 0.75rem;">
+                <i class="bi bi-person"></i> 고객 정보
+              </h6>
+              <div class="row g-2 mb-2">
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">주문번호</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.orderCd || ''}" readonly style="background-color: white;">
+                </div>
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">주문자명</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.orderUserNm || ''}" readonly style="background-color: white;">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-bold mb-1">주소</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.orderAddress1 || ''}" readonly style="background-color: white;">
+                </div>
+                <div class="col-2">
+                  <label class="form-label small fw-bold mb-1">전화번호</label>
+                  <input type="text" class="form-control form-control-sm" 
+                    value="${duplData.orderCellPhone || '전화번호 없음'}" 
+                    readonly 
+                    style="background-color: white; ${!duplData.orderCellPhone ? 'border-color: #dc3545; color: #dc3545;' : ''}">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-3">
+                  <label class="form-label small fw-bold mb-1">주문일자</label>
+                  <input type="text" class="form-control form-control-sm" value="${duplData.orderDt || ''}" readonly style="background-color: white;">
+                </div>
+              </div>
+            </div>
+
+            <!-- 제품 정보 테이블 -->
+            <div style="border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 1rem;">
+              <h6 style="font-weight: bold; margin-bottom: 0.75rem;">
+                <i class="bi bi-box-seam"></i> 제품 정보
+              </h6>
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm mb-0">
+                  <thead class="table-light">
+                    <tr class="text-center align-middle small">
+                      <th style="width: 200px;">상품</th>
+                      <th style="width: 50px;">1회투입<br/>수량</th>
+                      <th style="width: 80px;">배송요일</th>
+                      <th style="width: 50px;">주간<br/>총수량</th>
+                      <th style="width: 70px;">음용기간</th>
+                      <th style="width: 60px;">계약구분</th>
+                      <th style="width: 140px;">판촉물 / 중단일<br/>(중단사유)</th>
+                      <th style="width: 80px;">마감홉수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${duplDataArray.map(item => `
+                      <tr>
+                        <td class="text-center" style="${item.goodsOptionNm && item.goodsOptionNm.includes('매칭안됨') ? 'color: #dc3545;' : ''}">${item.goodsOptionNm || ''}</td>
+                        <td class="text-center">${item.quantity || ''}</td>
+                        <td class="text-center">${item.weekRemark || ''}</td>
+                        <td class="text-center">${item.weekQty || ''}</td>
+                        <td class="text-center" style="${Number(item.contractPeriod) < 12 ? 'color: #dc3545;' : ''}">${item.contractPeriod || ''} 개월</td>
+                        <td class="text-center">${
+                          item.orderKindCd === '1' ? '신규' : 
+                          item.orderKindCd === '2' ? '재계약' : 
+                          item.orderKindCd === '3' ? '무계약' : '신규'
+                        }</td>
+                        <td class="text-center">${
+                          [item.promoGiftNm, item.stopDt, item.stopReason]
+                            .filter(value => value)
+                            .join(' / ') || ''
+                        }</td>
+                        <td class="text-center">${item.actualHob || ''}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: true,
+        confirmButtonText: '확인',
+        confirmButtonColor: '#6c757d',
+        customClass: {
+          popup: 'swal-wide',
+          htmlContainer: 'swal-html-container'
+        }
+      });
+      
+    } catch (error) {
+      console.error('이중기재 상세 데이터 조회 실패:', error);
+      Swal.fire({
+        icon: 'error',
+        title: '조회 실패',
+        text: '상세 정보를 조회하는 중 오류가 발생했습니다.',
+        confirmButtonText: '확인'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
    * ✅ 이전 버튼 클릭 핸들러
    */
   const handlePrevious = () => {
@@ -243,6 +410,13 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
       fetchDetailData(nextRowData);
     }
   };
+
+  const duplClick = (detailData) => {
+
+    if(detailData.duplOrderCd !== "-1"){
+      fetchDuplDetailData(detailData);
+    }
+  }
 
   /**
    * ✅ 마감홉수 입력값 변경 핸들러 (숫자만 허용)
@@ -586,6 +760,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
               <Form.Group className="mb-2">
                 <Form.Label className="small fw-bold mb-1">이중기재 여부</Form.Label>
                 <Form.Control
+                  onClick={() => duplClick(detailData[0])}
                   type="text"
                   size="sm"
                   value={detailData[0].duplicateNm || ''}
