@@ -30,7 +30,7 @@ import {
  * - 다양한 집계 함수 (합계, 평균, 최소, 최대, 개수 등)
  * - 조건부 서식 및 커스터마이징
  */
-const PromotionSettlePivot = () => {
+const PromotionTeamSettlePivot = () => {
   // ============================================
   // State 관리
   // ============================================
@@ -38,6 +38,60 @@ const PromotionSettlePivot = () => {
   const [endDate, setEndDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [rawData, setRawData] = useState([]);
+  const [promoTeamList, setPromoTeamList] = useState([]); // 판촉팀 목록 state 추가
+  const [isManager, setIsManager] = useState(false);  // 매니저 여부 state 추가
+  const [selectedPromoTeamCd, setSelectedPromoTeamCd] = useState('');
+
+  // 컴포넌트 마운트 시 대리점 목록 조회
+  useEffect(() => {
+
+    fetchPromoTeamList();
+  }, []);
+
+  // 판촉팀 목록 조회 함수
+  const fetchPromoTeamList = async () => {
+    try {
+      const response = await axios.get('/api/promo/getValidPromoTeam');  // API 엔드포인트 수정 필요
+      
+      // API 응답 구조에 따라 수정
+      // 예: response.data 또는 response.data.data
+      setPromoTeamList(response.data);
+
+      // 매니저가 아니면 판촉팀 변경 불가
+      // 매니저 여부 확인
+        const managerYn = sessionStorage.getItem("managerYn");
+        const isManagerUser = managerYn === "1";
+        setIsManager(isManagerUser);
+
+    // sessionStorage에서 promoTeamCd 가져오기
+    const promoTeamCd = sessionStorage.getItem("promoTeamCd");
+    
+    // promoTeamCd 일치하는 promoTeamCd 찾기
+    if (promoTeamCd && response.data && response.data.length > 0) {
+      const matchedPromoTeam = response.data.find(
+        promoTeam => promoTeam.promoTeamCd === promoTeamCd
+      );
+      
+      // 일치하는 항목이 있으면 해당 값으로 설정
+      if (matchedPromoTeam) {
+        setSelectedPromoTeamCd(matchedPromoTeam.promoTeamCd);
+      } else {
+        setSelectedPromoTeamCd(response.data[0].promoTeamCd);
+      }
+    }
+      
+    } catch (error) {
+      Swal.fire({
+        icon: 'warning',
+        title: '오류',
+        text: '판촉팀 목록 조회 실패',
+        confirmButtonText: '확인'
+      });
+      console.error('판촉팀 목록 조회 실패:', error);
+      // 에러 시 빈 배열 설정
+      setPromoTeamList([]);
+    }
+  };
   
   /**
    * Flexmonster 인스턴스 참조
@@ -60,17 +114,9 @@ const PromotionSettlePivot = () => {
    */
   const fieldMapping = [
     { uniqueName: 'agencyNm', caption: '대리점명', type: 'string' },
-    { uniqueName: 'agencyCdMis', caption: '대리점코드', type: 'string' },
     { uniqueName: 'promoPersonNm', caption: '판촉사원', type: 'string' },
     { uniqueName: 'goodsOptionNm', caption: '제품명', type: 'string' },
-    // { uniqueName: 'weekQty', caption: '주간홉수', type: 'number' },
-    { uniqueName: 'contractPeriod', caption: '계약기간', type: 'string' },
-    { uniqueName: 'teamPersonNm', caption: '담당자명', type: 'string' },
-    { uniqueName: 'misCd', caption: '제품코드', type: 'string' },
-    { uniqueName: 'deptNme', caption: '부서명', type: 'string' },
-    { uniqueName: 'promoTeamNm', caption: '판촉팀', type: 'string' },
     { uniqueName: 'actualHob', caption: '실적홉수', type: 'number' },
-    { uniqueName: 'orderKindCdNm', caption: '계약구분', type: 'string' },
     { uniqueName: 'promoYyMm', caption: '판촉년월', type: 'string' },
     { uniqueName: 'weekCnt', caption: '주차', type: 'number' }
   ];
@@ -103,13 +149,10 @@ const PromotionSettlePivot = () => {
     slice: {
       rows: [
         {
-          uniqueName: 'deptNme'
+          uniqueName: 'promoPersonNm'
         },
         {
-          uniqueName: 'teamPersonNm'
-        },
-        {
-          uniqueName: 'agencyNm'
+          uniqueName: 'goodsOptionNm'
         },
       ],
       columns: [
@@ -241,7 +284,7 @@ const PromotionSettlePivot = () => {
       // ========================================
       // 3. API 호출
       // ========================================
-      const response = await axios.get('/api/promo/getMilkbangDetailListPivot', {
+      const response = await axios.get('/api/promo/getMilkbangDetailListTeamPivot', {
         params: {
           startDate: startDate,
           endDate: endDate
@@ -402,42 +445,6 @@ const PromotionSettlePivot = () => {
   };
 
   // ============================================
-  // PDF 내보내기 함수 (추가 기능)
-  // ============================================
-  
-  /**
-   * PDF 내보내기 처리
-   * 
-   * @description
-   * Flexmonster의 PDF 내보내기 기능
-   * - 보고서 형태로 인쇄 및 배포에 적합
-   */
-  const handleExportPDF = () => {
-    if (!rawData || rawData.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: '데이터 없음',
-        text: '내보낼 데이터가 없습니다.'
-      });
-      return;
-    }
-
-    if (!pivotRef.current || !pivotRef.current.flexmonster) {
-      return;
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-    const fileName = `판촉정산피벗__${today}`;
-
-    pivotRef.current.flexmonster.exportTo('pdf', {
-      filename: fileName,
-      header: '판촉정산피벗_',
-      footer: `작성일: ${today}`,
-      pageOrientation: 'landscape'
-    });
-  };
-
-  // ============================================
   // Flexmonster 이벤트 핸들러
   // ============================================
   
@@ -485,7 +492,7 @@ const PromotionSettlePivot = () => {
           <h5>
             <i className="bi bi-circle-fill text-warning me-1"></i>
             <CiViewList size={22} />
-            판촉실적 정산 (피벗)
+            판촉사원 제품별 홉수 (피벗)
           </h5>
         </Col>
       </Row>
@@ -522,6 +529,32 @@ const PromotionSettlePivot = () => {
               </Form.Group>
             </Col>
 
+            {/* 판촉팀 선택 */}
+            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
+              <Form.Group>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
+                    판촉팀 :
+                  </Form.Label>
+                  <Form.Select
+                    size="sm"
+                    value={selectedPromoTeamCd}
+                    onChange={(e) => {
+                      setSelectedPromoTeamCd(e.target.value);
+                    }}
+                    disabled={!isManager}  // 매니저가 아니면 비활성화
+                    style={{ width: '150px' }}  // 고정 크기
+                  >
+                    {promoTeamList.map((promoTeam) => (
+                      <option key={promoTeam.promoTeamCd} value={promoTeam.promoTeamCd}>
+                        {promoTeam.promoTeamNm}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            </Col>
+
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button
@@ -547,19 +580,6 @@ const PromotionSettlePivot = () => {
                 <RiFileExcel2Line /> 엑셀 다운로드
               </Button>
             </Col>
-
-            {/* PDF 다운로드 버튼 (선택사항) */}
-            {/* <Col md={1} style={{ minWidth: '150px', maxWidth: '150px' }}>
-              <Button
-                variant="danger"
-                size="sm"
-                className="w-100 d-flex align-items-center justify-content-center gap-1"
-                onClick={handleExportPDF}
-                disabled={!rawData || rawData.length === 0}
-              >
-                📄 PDF 다운로드
-              </Button>
-            </Col> */}
           </Row>
         </Card.Body>
       </Card>
@@ -636,4 +656,4 @@ const PromotionSettlePivot = () => {
   );
 };
 
-export default PromotionSettlePivot;
+export default PromotionTeamSettlePivot;

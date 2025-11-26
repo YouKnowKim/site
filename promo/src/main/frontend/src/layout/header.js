@@ -20,6 +20,7 @@ import TeamPersonMng from '../pages/TeamPersonMng';
 import PromotionSettlePivot from '../pages/PromotionSettlePivot';
 import PromoTeamPerf from '../pages/PromoTeamPerf';
 import PromoPersonPerf from '../pages/PromoPersonPerf';
+import PromotionTeamSettlePivot from '../pages/PromotionTeamSettlePivot';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 // 추가 페이지 컴포넌트들을 import 하세요
 
@@ -275,6 +276,11 @@ const Header = () => {
                   onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
                 >
                   판촉사원별 주간 실적
+                </NavDropdown.Item>
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
+                >
+                  판촉사원 제품별 홉수 (피벗)
                 </NavDropdown.Item>
               </NavDropdown>
 

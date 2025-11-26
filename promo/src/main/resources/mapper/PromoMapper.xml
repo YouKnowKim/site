@@ -356,6 +356,7 @@
 	    UPDATE ysc.TC_MILKBANG
 	    <set>
 	        PROMOPERSONNM = REPLACE(#{promoPersonNm}, ' ', ''),
+	        ORDERCELLPHONE = REPLACE(#{orderCellPhone}, ' ', ''),
 	        UPDATEDT = SYSDATE
 	    </set>
 	    WHERE ORDERCD = #{orderCd}
@@ -422,6 +423,49 @@
 		    </if>
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
 		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
+		    </if>
+	</select>
+	
+	<select id="selectMilkbangDetailListTeamPivot" resultType="MilkbangDetailTeamPivotDao">
+		SELECT
+		    'A' || a.AGENCYCD as agencyCdMis,
+		    a.PROMOPERSONNM AS promoPersonNm,    
+		    a.DUPLICATEYN AS duplicateYn,    
+		    case when b.GOODSCD = -1 then b.GOODSOPTIONNM || '-' || b.GOODSOPTIONNM_ORIGIN
+				 else b.GOODSOPTIONNM end AS goodsOptionNm,
+		    b.QUANTITY AS quantity,
+		    b.CONTRACTPERIOD AS contractPeriod,
+		    b.WEEKQTY AS weekQty,
+		    case when b.ORDERKINDCD = '1' then '신규'
+		         when b.ORDERKINDCD = '2' then '재계약' 
+		         else '무계약' end AS orderKindCdNm,
+		    to_char(TRUNC(b.promodt, 'IW') + 2, 'yyyy-mm') as promoYyMm,
+		    to_char(TRUNC(b.promodt, 'IW') + 2, 'W') AS weekCnt,
+		    b.ACTUALHOB AS actualHob,  
+		    d.TEAMPERSONNM AS teamPersonNm,
+		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
+		    c.AGENCYNM AS agencyNm,
+		 	g.DEPT_NME AS deptNme
+		FROM ysc.tc_milkbang a
+		INNER JOIN ysc.TC_MILKBANGGOODS b
+		    ON a.ORDERCD = b.ORDERCD
+		LEFT JOIN ysc.TC_AGENCY c
+			ON a.AGENCYCD = c.AGENCYCD
+		LEFT JOIN ysc.TC_TEAMPERSON d
+			ON c.TEAMPERSONCD = d.TEAMPERSONCD
+		LEFT JOIN ysc.TC_PROMOTEAM e
+			ON b.PROMOTEAMCD = e.PROMOTEAMCD
+		LEFT JOIN insa.PAPEDTL f
+			ON d.LOGINID = f.EMPY_ID AND f.OFFICE_ID = 'YSM'
+		LEFT JOIN apps.CMDEPTCD g
+			ON f.DEPT_CDE = g.DEPT_CDE	    
+		WHERE 1 = 1	
+		AND b.MASTERCLOSEYN = 1
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{startDate}, '-', '') AND REPLACE(#{endDate}, '-', '')
+		    </if>
+		    <if test="promoTeamCd != null and promoTeamCd != ''">
+		    	AND b.PROMOTEAMCD = #{promoTeamCd}
 		    </if>
 	</select>
 	
@@ -614,6 +658,9 @@
 		  			</when>
 		  			<when test="issueStatus.equalsIgnoreCase('05')">
 		  				AND b.CONTRACTPERIOD &lt; 12
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('06')">
+		  				AND (SELECT count(*) FROM ysc.TC_MILKBANGGOODS WHERE ordercd = a.ordercd) > 1
 		  			</when>
 		  		</choose> 
 		    </if>

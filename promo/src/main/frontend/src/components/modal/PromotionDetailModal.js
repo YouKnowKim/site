@@ -46,6 +46,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
   const [promoTeamList, setPromoTeamList] = useState([]);  // 판촉팀 목록 state 추가
   const [selectedPromoTeamCd, setSelectedPromoTeamCd] = useState('');
   const [selectedPromoPersonNm, setSelectedPromoPersonNm] = useState('');
+  const [selectedOrderCellPhone, setSelectedOrderCellPhone] = useState('');
 
   // 컴포넌트 마운트 시 대리점 목록 조회
   useEffect(() => {
@@ -171,6 +172,13 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
       } else {
         // 데이터가 없거나 판촉팀 정보가 없으면 초기화
         setSelectedPromoPersonNm('');
+      }
+
+      if (dataArray.length > 0 && dataArray[0].orderCellPhone) {
+        setSelectedOrderCellPhone(dataArray[0].orderCellPhone);
+      } else {
+        // 데이터가 없거나 전화번호 정보가 없으면 초기화
+        setSelectedOrderCellPhone('');
       }
       
       // ✅ 편집 가능한 필드 초기화 - 배열의 각 항목에 대해
@@ -501,8 +509,11 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
       const saveData = editableData.map(item => ({
         ...item,                                    // 기존 편집 데이터 (orderCd, orderSeq, actualHob 등)
         promoTeamCd: selectedPromoTeamCd,            // 선택된 판촉팀 코드
-        promoPersonNm: selectedPromoPersonNm        // 입력된 판촉사원 이름
+        promoPersonNm: selectedPromoPersonNm,        // 입력된 판촉사원 이름
+        orderCellPhone : selectedOrderCellPhone
       }));
+
+      console.log(saveData);
 
       await axios.post('/api/promo/savePromoDetail', saveData);
 
@@ -732,12 +743,16 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                 <Form.Control
                   type="text"
                   size="sm"
+                  onChange={(e) => {
+                    setSelectedOrderCellPhone(e.target.value);
+                  }}
                   style={{
                     borderColor: (detailData[0].orderCellPhone) ? '' : '#dc3545',
-                    color: (detailData[0].orderCellPhone) ? '' : '#dc3545'
+                    color: (detailData[0].orderCellPhone) ? '' : '#dc3545',
+                    borderWidth: '2px'
                   }}
-                  value={ (detailData[0].orderCellPhone) ? detailData[0].orderCellPhone || '' : '전화번호 없음'}
-                  readOnly
+                  value={selectedOrderCellPhone}
+                  placeholder="전화번호 없음"
                   className="bg-white"
                 />
               </Form.Group>

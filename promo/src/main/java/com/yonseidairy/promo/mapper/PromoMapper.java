@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangDetailPivotDao;
+import com.yonseidairy.promo.dao.MilkbangDetailTeamPivotDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoDao;
@@ -86,6 +87,9 @@ public interface PromoMapper {
 	
 	// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)
 	List<MilkbangDetailPivotDao> selectMilkbangDetailListPivot(MilkbangDetailDao inMilkbangDetailDao);
+	
+	// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)
+	List<MilkbangDetailTeamPivotDao> selectMilkbangDetailListTeamPivot(MilkbangDetailDao inMilkbangDetailDao);
 
 	// 특정 우유방 상세 정보를 조회합니다. (단건 또는 특정 조건의 상세 배달 내역)
 	List<MilkbangDetailDao> selectMilkbangDetail(MilkbangDetailDao inMilkbangDetailDao);

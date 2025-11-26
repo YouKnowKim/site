@@ -2220,6 +2220,7 @@ const PromotionSettle = () => {
                     <option value="03">상품미매칭</option>
                     <option value="04">전화번호없음</option>
                     <option value="05">주간수량미달</option>
+                    <option value="06">한가구혼합</option>
                   </Form.Select>
                 </div>
               </Form.Group>

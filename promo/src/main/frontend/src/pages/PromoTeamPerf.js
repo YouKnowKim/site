@@ -174,7 +174,7 @@ const PromoteamPerf = () => {
     }
   }, [stdYear, stdMonth]);
   
-  // 담당자 목록 조회 함수
+  // 판촉팀 목록 조회 함수
   const fetchPromoTeamList = async () => {
     try {
       const response = await axios.get('/api/promo/getValidPromoTeam');  // API 엔드포인트 수정 필요

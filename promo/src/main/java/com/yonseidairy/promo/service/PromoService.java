@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.yonseidairy.promo.dao.AgencyDao;
 import com.yonseidairy.promo.dao.MilkbangDetailDao;
 import com.yonseidairy.promo.dao.MilkbangDetailPivotDao;
+import com.yonseidairy.promo.dao.MilkbangDetailTeamPivotDao;
 import com.yonseidairy.promo.dao.MilkbangFileDao;
 import com.yonseidairy.promo.dao.PromoCloseDao;
 import com.yonseidairy.promo.dao.PromoTeamDao;
@@ -65,6 +66,11 @@ public class PromoService {
 	public List<MilkbangDetailPivotDao> getMilkbangDetailListPivot(MilkbangDetailDao inMilkbangDetailDao) {
 
 		return promoMapper.selectMilkbangDetailListPivot(inMilkbangDetailDao);
+	}
+	
+	public List<MilkbangDetailTeamPivotDao> getMilkbangDetailListTeamPivot(MilkbangDetailDao inMilkbangDetailDao) {
+
+		return promoMapper.selectMilkbangDetailListTeamPivot(inMilkbangDetailDao);
 	}
 
 	public List<MilkbangDetailDao> getMilkbangDetail(MilkbangDetailDao inMilkbangDetailDao) {
