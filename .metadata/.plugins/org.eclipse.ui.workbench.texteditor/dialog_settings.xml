@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="selectPromoPersonPerf"/>
-			<item value="ExtPromoDao"/>
-			<item value="getPromoTeamPerf"/>
-			<item value="#{promoTeamCd}"/>
-			<item value=":"/>
-			<item value=":promoTeamCd"/>
-			<item value="inExtPromoDao"/>
-			<item value="#{stdDate}"/>
-			<item value="stdDate,"/>
-			<item value="stdDate"/>
-			<item value="getAllPromoTeam"/>
-			<item value="selectAllPromoTeam"/>
-			<item value="promoteam"/>
 			<item value="promoTeamCd"/>
-			<item value=":stdDate"/>
+			<item value="promoteamcd"/>
+			<item value="selectMilkbangDetailListTeamPivot"/>
+			<item value="infobycustno"/>
+			<item value="infoby"/>
+			<item value="getInfoByCustno"/>
+			<item value="PHONE_MOBILE1"/>
+			<item value="getMilkbangDetailListPivot"/>
+			<item value="selectMilkbangDetailListPivot"/>
+			<item value="ordercellphone"/>
+			<item value="UPDATE ysc.TC_MILKBANG"/>
+			<item value="mergePromoMaster"/>
+			<item value="mergePromo"/>
+			<item value="savePromoDetail"/>
+			<item value="save"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>

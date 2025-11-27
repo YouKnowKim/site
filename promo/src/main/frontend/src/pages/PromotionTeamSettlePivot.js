@@ -287,7 +287,8 @@ const PromotionTeamSettlePivot = () => {
       const response = await axios.get('/api/promo/getMilkbangDetailListTeamPivot', {
         params: {
           startDate: startDate,
-          endDate: endDate
+          endDate: endDate,
+          promoTeamCd: selectedPromoTeamCd
         }
       });
 
