@@ -814,7 +814,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                   
                 </tr>
               </thead>
-              <tbody>
+              <tbody class="align-middle">
                 {/* ✅ detailData 배열을 map으로 반복 렌더링 */}
                 {detailData.map((item, index) => (
                   <tr key={index}>

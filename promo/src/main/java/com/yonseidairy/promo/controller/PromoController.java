@@ -62,6 +62,12 @@ public class PromoController {
 
 		return promoService.getMyAgencyList(inAgencyDao);
 	}
+	
+	@GetMapping("/getHappyAgencyList")
+	public List<AgencyDao> getHappyAgencyList(@ModelAttribute AgencyDao inAgencyDao) {
+
+		return promoService.getHappyAgencyList(inAgencyDao);
+	}
 
 	@GetMapping("/getMilkbangFileList")
 	public List<MilkbangFileDao> getMilkbangFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao) {
@@ -85,6 +91,12 @@ public class PromoController {
 	public List<MilkbangDetailDao> getMilkbangDetailList(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao) {
 
 		return promoService.getMilkbangDetailList(inMilkbangDetailDao);
+	}
+	
+	@GetMapping("/getHappyMilkbangDetailList")
+	public List<MilkbangDetailDao> getHappyMilkbangDetailList(@ModelAttribute MilkbangDetailDao inMilkbangDetailDao) {
+
+		return promoService.getHappyMilkbangDetailList(inMilkbangDetailDao);
 	}
 	
 	@GetMapping("/getMilkbangDetailListPivot")
@@ -347,6 +359,62 @@ public class PromoController {
 			return ResponseEntity.status(500).body(errorResponse);
 		}
 	}
+	
+	// 해피콜 상세 저장
+	@PostMapping("/saveHappyDetail")
+	public ResponseEntity<Map<String, Object>> saveHappyDetail(@RequestBody List<MilkbangDetailDao> dataList) {
+
+		try {
+			System.out.println("=== 해피콜 저장 시작 ===");
+			System.out.println("변경된 데이터 개수: {}" + dataList != null ? dataList.size() : 0);
+
+			// 데이터 유효성 검증
+			if (dataList == null || dataList.isEmpty()) {
+				System.out.println("저장할 데이터가 없습니다.");
+
+				Map<String, Object> errorResponse = new HashMap<>();
+				errorResponse.put("success", false);
+				errorResponse.put("message", "저장할 데이터가 없습니다.");
+				errorResponse.put("savedCount", 0);
+
+				return ResponseEntity.badRequest().body(errorResponse);
+			}
+
+			// 서비스 호출
+			int savedCount = promoService.saveHappyDetail(dataList);
+
+			System.out.println("저장 완료 - 성공: {}건" + savedCount);
+			System.out.println("=== 해피콜 저장 완료 ===");
+
+			// ✅ 성공 응답 (Map)
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", savedCount + "건의 데이터가 성공적으로 저장되었습니다.");
+			response.put("savedCount", savedCount);
+
+			return ResponseEntity.ok(response);
+
+		} catch (IllegalArgumentException e) {
+			System.out.println("잘못된 요청 데이터: {}" + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.badRequest().body(errorResponse);
+
+		} catch (Exception e) {
+			System.out.println("판촉실적 저장 중 오류 발생" + e);
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(500).body(errorResponse);
+		}
+	}
 
 	@PostMapping("/savePromo")
 	public ResponseEntity<Map<String, Object>> savePromo(@RequestBody List<MilkbangDetailDao> dataList) {
@@ -393,6 +461,61 @@ public class PromoController {
 
 		} catch (Exception e) {
 			System.out.println("판촉실적 저장 중 오류 발생" + e);
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", "데이터 저장 중 오류가 발생했습니다: " + e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.status(500).body(errorResponse);
+		}
+	}
+	
+	@PostMapping("/saveHappyCall")
+	public ResponseEntity<Map<String, Object>> saveHappyCall(@RequestBody List<MilkbangDetailDao> dataList) {
+
+		try {
+			System.out.println("=== 판촉실적 저장 시작 ===");
+			System.out.println("변경된 데이터 개수: {}" + dataList != null ? dataList.size() : 0);
+
+			// 데이터 유효성 검증
+			if (dataList == null || dataList.isEmpty()) {
+				System.out.println("저장할 데이터가 없습니다.");
+
+				Map<String, Object> errorResponse = new HashMap<>();
+				errorResponse.put("success", false);
+				errorResponse.put("message", "저장할 데이터가 없습니다.");
+				errorResponse.put("savedCount", 0);
+
+				return ResponseEntity.badRequest().body(errorResponse);
+			}
+
+			// 서비스 호출
+			int savedCount = promoService.saveHappyCall(dataList);
+
+			System.out.println("저장 완료 - 성공: {}건" + savedCount);
+			System.out.println("=== 해피콜 저장 완료 ===");
+
+			// ✅ 성공 응답 (Map)
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("message", savedCount + "건의 데이터가 성공적으로 저장되었습니다.");
+			response.put("savedCount", savedCount);
+
+			return ResponseEntity.ok(response);
+
+		} catch (IllegalArgumentException e) {
+			System.out.println("잘못된 요청 데이터: {}" + e.getMessage());
+
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("success", false);
+			errorResponse.put("message", e.getMessage());
+			errorResponse.put("savedCount", 0);
+
+			return ResponseEntity.badRequest().body(errorResponse);
+
+		} catch (Exception e) {
+			System.out.println("해피콜 저장 중 오류 발생" + e);
 
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("success", false);

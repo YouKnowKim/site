@@ -19,6 +19,8 @@ public class MilkbangDetailDao {
 	private String promoTeamNm;
 	private String issueStatus;
 	
+	private String hcSaveYn;
+	
 	private String agencyCdMis;
 	
 	private String status;

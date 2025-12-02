@@ -21,6 +21,7 @@ import PromotionSettlePivot from '../pages/PromotionSettlePivot';
 import PromoTeamPerf from '../pages/PromoTeamPerf';
 import PromoPersonPerf from '../pages/PromoPersonPerf';
 import PromotionTeamSettlePivot from '../pages/PromotionTeamSettlePivot';
+import HappyCall from '../pages/HappyCall';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 // 추가 페이지 컴포넌트들을 import 하세요
 
@@ -265,25 +266,6 @@ const Header = () => {
                 </NavDropdown.Item> */}
               </NavDropdown>
 
-              {/* 판촉팀별 실적 */}
-              <NavDropdown title="판촉팀별 실적" id="team-performance-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)}
-                >
-                  판촉팀별 실적
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
-                >
-                  판촉사원별 주간 실적
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
-                >
-                  판촉사원 제품별 홉수 (피벗)
-                </NavDropdown.Item>
-              </NavDropdown>
-
               {/* 판촉실적 통계 */}
               <NavDropdown title="판촉실적 통계" id="promo-stats-dropdown">
                 <NavDropdown.Item 
@@ -308,10 +290,29 @@ const Header = () => {
                 </NavDropdown.Item> */}
               </NavDropdown>
 
+              {/* 판촉팀별 실적 */}
+              <NavDropdown title="판촉팀별 실적" id="team-performance-dropdown">
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)}
+                >
+                  판촉팀별 실적
+                </NavDropdown.Item>
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
+                >
+                  판촉사원별 주간 실적
+                </NavDropdown.Item>
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
+                >
+                  판촉사원 제품별 홉수 (피벗)
+                </NavDropdown.Item>
+              </NavDropdown>
+
               {/* 해피콜 관리 */}
               <NavDropdown title="해피콜 관리" id="happy-call-dropdown">
                 <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'happy-call', '해피콜', '/HappyCall', Home)}
+                  onClick={(e) => handleMenuClick(e, 'happy-call', '해피콜', '/HappyCall', HappyCall)}
                 >
                   해피콜
                 </NavDropdown.Item>

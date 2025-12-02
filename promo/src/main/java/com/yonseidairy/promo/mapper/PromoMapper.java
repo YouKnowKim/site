@@ -60,6 +60,12 @@ public interface PromoMapper {
 
 	// 사용자 권한에 따른 담당 대리점 목록을 조회합니다.
 	List<AgencyDao> selectMyAgencyList(AgencyDao inAgencyDao);
+	
+	// 해피콜 담당 대리점 목록을 조회합니다.
+	List<AgencyDao> selectHappyAgencyList(AgencyDao inAgencyDao);
+	
+	// 해피콜 대리점 목록을 조회합니다.
+	List<AgencyDao> selectHappyCallAgencyList(AgencyDao inAgencyDao);
 
 	// 전체 우유방 파일 목록을 조회합니다. (주차별 업로드된 모든 엑셀 파일 정보 포함)
 	List<MilkbangFileDao> selectAllMilkbangFileList();
@@ -86,6 +92,9 @@ public interface PromoMapper {
 	List<MilkbangDetailDao> selectMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao);
 	
 	// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)
+	List<MilkbangDetailDao> selectHappyMilkbangDetailList(MilkbangDetailDao inMilkbangDetailDao);
+	
+	// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)
 	List<MilkbangDetailPivotDao> selectMilkbangDetailListPivot(MilkbangDetailDao inMilkbangDetailDao);
 	
 	// 우유방 상세 정보 목록을 조회합니다. (업로드된 엑셀 파일의 상세 배달 내역)
@@ -107,6 +116,12 @@ public interface PromoMapper {
 
 	// 프로모션 정보를 병합(Merge) 처리합니다. (존재하면 수정, 없으면 신규 등록)
 	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);
+	
+	// 해피콜 상세 정보를 수정 합니다.
+	Integer updateHappyDetail(MilkbangDetailDao inMilkbangDetailDao);
+	
+	// 해피콜 저장
+	Integer updateHappyCall(MilkbangDetailDao inMilkbangDetailDao);
 	
 	Integer mergePromoMaster(MilkbangDetailDao inMilkbangDetailDao);
 
