@@ -97,6 +97,7 @@ const MilkFileMng = () => {
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const tableRef = useRef(null);
   const fileInputRef = useRef(null);
   const uploadRowDataRef = useRef(null);
@@ -368,8 +369,12 @@ const MilkFileMng = () => {
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
+
+    if (isLoading) return;
     
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -422,6 +427,8 @@ const MilkFileMng = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -513,6 +520,7 @@ const MilkFileMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                   <FaSearch /> 조회
                 
@@ -526,6 +534,7 @@ const MilkFileMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleExcelUpload}
+                disabled={isLoading}
               >
                   <RiFileExcel2Line /> 개별파일 업로드
                 

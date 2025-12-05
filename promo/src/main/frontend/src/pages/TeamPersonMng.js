@@ -40,6 +40,7 @@ const TeamPersonMng = () => {
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [originalData, setOriginalData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const isInitialLoadRef = useRef(true);
   const tableRef = useRef(null);
   // 담당자 선택 팝업 관련 state
@@ -491,34 +492,24 @@ const TeamPersonMng = () => {
       editor: 'list',
       editorParams: {
         values: {
-          "0": "담당자X",
-          "1": "담당자O"
+          "0": "없음",
+          "1": "담당자O",
+          "2": "대리점",
+          "3": "판촉팀장",
+          "4": "해피콜"
         }
       },
-      // ✅ formatter 함수: 0이면 "사용", 1이면 "미사용" 표시 (미사용은 빨간색)
+      // ✅ formatter 추가: key를 value로 변환하여 표시
       formatter: function(cell) {
         const value = cell.getValue();
-        
-        // null, undefined 체크
-        if (value === null || value === undefined) {
-          return '담당자X';
-        }
-        
-        // 문자열 또는 숫자로 변환하여 비교
-        const stringValue = String(value);
-        const displayValue = stringValue === '1' ? '담당자O' : '담당자X';
-        
-        // 미사용인 경우 빨간색 강조
-        if (displayValue === '담당자') {
-          cell.getElement().style.color = '#1014eeff';
-          cell.getElement().style.fontWeight = 'bold';
-        } else {
-          // 사용인 경우 기본 스타일로 복원
-          cell.getElement().style.color = '';
-          cell.getElement().style.fontWeight = '';
-        }
-        
-        return displayValue;
+        const valueMap = {
+          "0": "없음",
+          "1": "담당자O",
+          "2": "대리점",
+          "3": "판촉팀장",
+          "4": "해피콜"
+        };
+        return valueMap[value] || value || "";
       }
     },
     {
@@ -527,6 +518,7 @@ const TeamPersonMng = () => {
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      visible:false,
       editor: 'list',
       editorParams: {
         values: {
@@ -595,8 +587,12 @@ const TeamPersonMng = () => {
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
+
+    if (isLoading) return;
     
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -655,6 +651,8 @@ const TeamPersonMng = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -871,6 +869,9 @@ const TeamPersonMng = () => {
                   >
                     <option value="">전체</option>
                     <option value="1">담당자</option>
+                    <option value="2">대리점</option>
+                    <option value="3">판촉팀장</option>
+                    <option value="4">해피콜</option>
                   </Form.Select>
                 </div>
               </Form.Group>
@@ -883,6 +884,7 @@ const TeamPersonMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>
@@ -895,6 +897,7 @@ const TeamPersonMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSave}
+                disabled={isLoading}
               >
                 <FaSave /> 저장
               </Button>
@@ -907,6 +910,7 @@ const TeamPersonMng = () => {
                 size="sm"
                 className="w-100"
                 onClick={handleExcelDownload}
+                disabled={isLoading}
               >
                 <RiFileExcel2Line /> 엑셀다운로드
               </Button>

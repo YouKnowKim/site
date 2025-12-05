@@ -366,7 +366,8 @@
 	
 	<update id="updateHappyCall" parameterType="MilkbangDetailDao">
 	    UPDATE ysc.TC_MILKBANGGOODS
-	    SET HCDT = sysdate
+	    SET HCDT = sysdate,
+	    	HCTEAMPERSONCD = #{teamPersonCd}
 	    WHERE ORDERCD = #{orderCd}
 	    AND ORDERSEQ = #{orderSeq}
 	    AND MASTERCLOSEYN = 1
@@ -377,7 +378,8 @@
 	    SET HCDT = sysdate,
 	    	HCHOB = #{hcHob},
 	    	HCCONTENT = #{hcContent},
-	    	HCSTATUS = #{hcStatus}
+	    	HCSTATUS = #{hcStatus},
+	    	HCTEAMPERSONCD = #{teamPersonCd}
 	    WHERE ORDERCD = #{orderCd}
 	    AND ORDERSEQ = #{orderSeq}
 	    AND MASTERCLOSEYN = 1
@@ -869,6 +871,15 @@
 		    </if>
 		    <if test="hcActionStatus != null and hcActionStatus != ''">
 		    	AND b.HCACTIONSTATUS = #{hcActionStatus}
+		    </if>
+		    <if test="masterCloseYn != null and masterCloseYn != ''">
+		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
+		    </if>
+		    <if test="orderUserNm != null and orderUserNm != ''">
+		    	AND a.ORDERUSERNM = #{orderUserNm}
+		    </if>
+		    <if test="orderCellPhone != null and orderCellPhone != ''">
+		    	AND (a.ORDERCELLPHONE LIKE '%' || #{orderCellPhone} || '%' OR a.ORDERHOMEPHONE LIKE '%' || #{orderCellPhone} || '%')
 		    </if>
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
 		    	AND b.MASTERCLOSEYN = #{masterCloseYn}

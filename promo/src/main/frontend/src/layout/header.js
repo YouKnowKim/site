@@ -23,6 +23,7 @@ import PromoPersonPerf from '../pages/PromoPersonPerf';
 import PromotionTeamSettlePivot from '../pages/PromotionTeamSettlePivot';
 import HappyCall from '../pages/HappyCall';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
+import AgencyMangement from '../pages/AgencyMangement';
 // 추가 페이지 컴포넌트들을 import 하세요
 
 /**
@@ -217,7 +218,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="header p-3 bg-white text-black">
+      <header className="header p-2 bg-white text-black">
         <div className="container">
           <div className="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
             
@@ -306,6 +307,15 @@ const Header = () => {
                   onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
                 >
                   판촉사원 제품별 홉수 (피벗)
+                </NavDropdown.Item>
+              </NavDropdown>
+
+              {/* 대리점 */}
+              <NavDropdown title="대리점" id="agency-dropdown">
+                <NavDropdown.Item 
+                  onClick={(e) => handleMenuClick(e, 'close-manage', '마감실적관리', '/AgencyMangement', AgencyMangement)}
+                >
+                  마감실적관리
                 </NavDropdown.Item>
               </NavDropdown>
 

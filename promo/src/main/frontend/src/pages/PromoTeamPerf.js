@@ -148,6 +148,7 @@ const PromoteamPerf = () => {
   const [weekOptions, setWeekOptions] = useState([]);  // 주차 옵션 목록 state 추가
   const [headerStartDate, setHeaderStartDate] = useState('');
   const [headerEndDate, setHeaderEndDate] = useState('');
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const tableRef = useRef(null);
 
   // 컴포넌트 마운트 시 대리점 목록 조회
@@ -316,7 +317,11 @@ const PromoteamPerf = () => {
   // 조회 버튼 클릭
   const handleSearch = async () => {
 
+    if (isLoading) return;
+
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -412,6 +417,8 @@ const PromoteamPerf = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -529,6 +536,7 @@ const PromoteamPerf = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>

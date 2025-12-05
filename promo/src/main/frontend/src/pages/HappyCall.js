@@ -239,10 +239,13 @@ const HappyCall = () => {
   const [subEndDate, setSubEndDate] = useState('');
   const [subStartDate, setSubStartDate] = useState('');
   const [promotionEmployee, setPromotionEmployee] = useState('');
+  const [orderCellPhone, setOrderCellPhone] = useState('');
+  const [orderUserNm, setOrderUserNm] = useState('');
   const [selectedHcStatus, setSelectedHcStatus] = useState('');
   const [selectedIssueStatus, setSelectedIssueStatus] = useState('');
   const [selectedHcActionStatus, setSelectedHcActionStatus] = useState('');
   const [originalData, setOriginalData] = useState([]);  // 조회 시점의 원본 데이터 저장
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   // ✅ 1. 현재 선택된 주차의 label을 저장할 state 추가
   const [currentWeekLabel, setCurrentWeekLabel] = useState('');
 
@@ -1147,6 +1150,7 @@ const HappyCall = () => {
       width: 120,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      visible:false,
       titleFormatter: function() {
         return '담당 해피콜<br/>결과확인';  // HTML로 줄바꿈
       }
@@ -1157,6 +1161,7 @@ const HappyCall = () => {
       width: 200,
       hozAlign: 'left',
       headerHozAlign: 'center',
+      visible: false,
       formatter: function(cell) {
         const value = cell.getValue() || '';
         // HTML 태그 제거하여 순수 텍스트만 표시
@@ -1491,7 +1496,10 @@ const HappyCall = () => {
   // 조회 버튼 클릭
   const handleSearch = async () => {
 
+    if (isLoading) return;
+
     try {
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -1544,7 +1552,11 @@ const HappyCall = () => {
 
           subEndDate: subEndDate,
 
-          issueStatus: selectedIssueStatus
+          issueStatus: selectedIssueStatus,
+
+          orderCellPhone: orderCellPhone,
+
+          orderUserNm: orderUserNm
         }
       });
 
@@ -1584,6 +1596,8 @@ const HappyCall = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -1622,11 +1636,16 @@ const HappyCall = () => {
     // Map을 사용하여 orderCd + orderSeq를 키로 중복 제거
     const saveDataMap = new Map();
 
+    // 4. 저장 teamPersonCd 추출
+    const happyCallPersonCd = sessionStorage.getItem("teamPersonCd");
+    console.log("happyCallPersonCd : ", happyCallPersonCd);
+
     // 변경된 데이터 추가
     changedData.forEach(row => {
       const key = `${row.orderCd}_${row.orderSeq}`;
       saveDataMap.set(key, {
         ...row,
+        teamPersonCd: happyCallPersonCd,
         isChanged: true,
         isSelected: false
       });
@@ -1640,6 +1659,7 @@ const HappyCall = () => {
         const existingRow = saveDataMap.get(key);
         saveDataMap.set(key, {
           ...existingRow,
+          teamPersonCd: happyCallPersonCd,
           isSelected: true
         });
       } else {
@@ -1647,6 +1667,7 @@ const HappyCall = () => {
         saveDataMap.set(key, {
           ...row,
           isChanged: false,
+          teamPersonCd: happyCallPersonCd,
           isSelected: true
         });
       }
@@ -2266,30 +2287,44 @@ const HappyCall = () => {
               </Form.Group>
             </Col>
 
-            {/* 해피콜 결과확인 선택 */}
-            <Col md={3} style={{ minWidth: '220px', maxWidth: '250px' }}>
+            {/* 전화번호 입력 */}
+            <Col md={1} style={{ minWidth: '250px', maxWidth: '250px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
-                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '103px' }}>
-                    해피콜 결과확인 :
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '70px' }}>
+                    전화번호 :
                   </Form.Label>
-                  <Form.Select
+                  <Form.Control
+                    type="text"
                     size="sm"
-                    value={selectedHcActionStatus}
-                    onChange={(e) => setSelectedHcActionStatus(e.target.value)}
-                    style={{ width: '90px' }}
-                  >
-                    <option value="">= 전체 =</option>
-                    <option value="10">미확인</option>
-                    <option value="11">정상</option>
-                    <option value="12">부재중</option>
-                    <option value="13">상이건</option>
-                    <option value="14">결번</option>
-                    <option value="15">내용변경</option>
-                  </Form.Select>
+                    value={orderCellPhone}
+                    onChange={(e) => setOrderCellPhone(e.target.value)}
+                    placeholder="전화번호 입력"
+                    style={{ width: '120px' }}
+                  />
                 </div>
               </Form.Group>
             </Col>
+
+            {/* 고객명 입력 */}
+            <Col md={1} style={{ minWidth: '250px', maxWidth: '250px' }}>
+              <Form.Group>
+                <div className="d-flex align-items-center gap-2">
+                  <Form.Label className="fw-bold small mb-0" style={{ minWidth: '60px' }}>
+                    고객명 :
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    size="sm"
+                    value={orderUserNm}
+                    onChange={(e) => setOrderUserNm(e.target.value)}
+                    placeholder="고객명 입력"
+                    style={{ width: '120px' }}
+                  />
+                </div>
+              </Form.Group>
+            </Col>
+
           </Row>
 
           {/* 세 번째 줄: 조회 버튼 */}
@@ -2301,6 +2336,7 @@ const HappyCall = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>
@@ -2313,6 +2349,7 @@ const HappyCall = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSave}
+                disabled={isLoading}
               >
                 <FaSave /> 저장
               </Button>
@@ -2325,6 +2362,7 @@ const HappyCall = () => {
                 size="sm"
                 className="w-100  d-flex align-items-center justify-content-center gap-1"
                 onClick={handleExcelDownload}
+                disabled={isLoading}
               >
                 <RiFileExcel2Line /> 엑셀다운로드
               </Button>

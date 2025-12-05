@@ -335,11 +335,14 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
         }
       });
 
+      const happyCallPersonCd = sessionStorage.getItem("teamPersonCd");
+
       // ✅ editableData 배열의 각 항목에 판촉팀 정보 추가
       // 모든 제품에 대해 동일한 판촉팀과 판촉사원 정보가 적용됨
       const saveData = editableData.map(item => ({
         ...item,                                    // 기존 편집 데이터 (orderCd, orderSeq, actualHob 등)
         hcContent: item.hcContent ? item.hcContent.replace(/(?:\r\n|\r|\n)/g, '<br>') : item.hcContent,
+        teamPersonCd: happyCallPersonCd,
         promoTeamCd: selectedPromoTeamCd,            // 선택된 판촉팀 코드
         promoPersonNm: selectedPromoPersonNm,        // 입력된 판촉사원 이름
         orderCellPhone : selectedOrderCellPhone
@@ -654,14 +657,14 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                   </td>
                   <td className="text-center">
                     {item.hcDt || ''}
-                    <br/><br/>
+                    <br/>
                     <Form.Select
                       size="sm"
                       value={editableData[index]?.hcStatus || '10'}
                       onChange={(e) => handleInputChange(index, 'hcStatus', e.target.value)}
                       style={{ 
                         fontSize: '14px',
-                        padding: '1px 14px'
+                        padding: '0px 20px'
                       }}
                     >
                       <option value="10">미확인</option>
@@ -672,15 +675,16 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                       <option value="15">내용변경</option>
                     </Form.Select>
                   </td>
-                  
-                  <textarea 
-                    style={{ fontSize: '13px', whiteSpace: "pre-wrap"}}
-                    size="sm"
-                    value={editableData[index]?.hcContent.replace(/<br\s*\/?>/gi, '\r\n') || ''}
-                    class="form-control" 
-                    onChange={(e) => handleInputChange(index, 'hcContent', e.target.value)}
-                    rows="4">
-                  </textarea>
+                  <td class="text-center">
+                    <textarea 
+                      style={{ fontSize: '13px', whiteSpace: "pre-wrap"}}
+                      size="sm"
+                      value={editableData[index]?.hcContent.replace(/<br\s*\/?>/gi, '\r\n') || ''}
+                      class="form-control" 
+                      onChange={(e) => handleInputChange(index, 'hcContent', e.target.value)}
+                      rows="4">
+                    </textarea>
+                  </td>
                 </tr>
                 ))}
                 

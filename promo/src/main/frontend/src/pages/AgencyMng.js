@@ -42,6 +42,7 @@ const AgencyMng = () => {
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [originalData, setOriginalData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const isInitialLoadRef = useRef(true);
   const tableRef = useRef(null);
   // 담당자 선택 팝업 관련 state
@@ -607,8 +608,12 @@ const AgencyMng = () => {
 
   // 조회 버튼 클릭
   const handleSearch = async () => {
+
+    if (isLoading) return;
     
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -669,6 +674,8 @@ const AgencyMng = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -903,6 +910,7 @@ const AgencyMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>
@@ -915,6 +923,7 @@ const AgencyMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSave}
+                disabled={isLoading}
               >
                 <FaSave /> 저장
               </Button>
@@ -927,6 +936,7 @@ const AgencyMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSync}
+                disabled={isLoading}
               >
                 <FaSave /> MIS 동기화
               </Button>
@@ -939,6 +949,7 @@ const AgencyMng = () => {
                 size="sm"
                 className="w-100"
                 onClick={handleExcelDownload}
+                disabled={isLoading}
               >
                 <RiFileExcel2Line /> 엑셀다운로드
               </Button>

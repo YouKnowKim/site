@@ -148,6 +148,7 @@ const MilkFileNotSubmit = () => {
   const [weekOptions, setWeekOptions] = useState([]);  // 주차 옵션 목록 state 추가
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [agencyList, setAgencyList] = useState([]);  // 대리점 목록 state 추가
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -683,7 +684,11 @@ const MilkFileNotSubmit = () => {
   // 조회 버튼 클릭
   const handleSearch = async () => {
 
+    if (isLoading) return;
+
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -737,6 +742,8 @@ const MilkFileNotSubmit = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -853,6 +860,7 @@ const MilkFileNotSubmit = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>
@@ -865,6 +873,7 @@ const MilkFileNotSubmit = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleClose}
+                disabled={isLoading}
               >
                 <FaLock /> 마감
               </Button>
@@ -877,6 +886,7 @@ const MilkFileNotSubmit = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleUnclose}
+                disabled={isLoading}
               >
                 <FaLockOpen /> 마감해제
               </Button>

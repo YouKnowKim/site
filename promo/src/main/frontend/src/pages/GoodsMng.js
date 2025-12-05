@@ -42,6 +42,7 @@ const GoodsMng = () => {
   const [tabulatorInstance, setTabulatorInstance] = useState(null);
   const [originalData, setOriginalData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);  // 조회 중 상태
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -470,7 +471,11 @@ const GoodsMng = () => {
   // 조회 버튼 클릭
   const handleSearch = async () => {
     
+    if (isLoading) return;
+
     try {
+
+      setIsLoading(true);
 
       // ✅ 1. 테이블 alert 표시 (조회 중 메시지)
       if (tabulatorInstance && tabulatorInstance.current) {
@@ -531,6 +536,8 @@ const GoodsMng = () => {
       if (tabulatorInstance && tabulatorInstance.current) {
         tabulatorInstance.current.clearAlert();
       }
+
+      setIsLoading(false);
     }
   };
 
@@ -788,6 +795,7 @@ const GoodsMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSearch}
+                disabled={isLoading}
               >
                 <FaSearch /> 조회
               </Button>
@@ -800,6 +808,7 @@ const GoodsMng = () => {
                 size="sm"
                 className="w-100 d-flex align-items-center justify-content-center gap-1"
                 onClick={handleSave}
+                disabled={isLoading}
               >
                 <FaSave /> 저장
               </Button>
@@ -812,6 +821,7 @@ const GoodsMng = () => {
                 size="sm"
                 className="w-100"
                 onClick={handleExcelDownload}
+                disabled={isLoading}
               >
                 <RiFileExcel2Line /> 엑셀다운로드
               </Button>
@@ -834,6 +844,7 @@ const GoodsMng = () => {
                 size="sm"
                 onClick={handleAddRow}
                 className="d-flex align-items-center gap-1"
+                disabled={isLoading}
               >
                 <FaPlus size={12} /> 행추가
               </Button>

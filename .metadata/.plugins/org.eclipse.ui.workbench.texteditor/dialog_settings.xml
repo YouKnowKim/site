@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="HappyMilkbangDetailList"/>
+			<item value="getHappyMilkbangDetailList"/>
+			<item value="ordercellphone"/>
+			<item value="ORDERCELLPHONE"/>
+			<item value="saveHappyDetail"/>
+			<item value="updateHappyDetail"/>
+			<item value="dupl"/>
+			<item value="팀장님, 혹시 앱개발 관련 온라인 강의를 수강하고 싶은데, 교육 비용도 지원받을 수 있는지 궁금합니다."/>
+			<item value="Dupli"/>
+			<item value="dupli"/>
 			<item value="nvl(b.hcdt"/>
 			<item value="nvl(b."/>
-			<item value="HappyMilkbangDetailList"/>
 			<item value="detaillist"/>
 			<item value="selectMilkbangDetailList"/>
 			<item value="selectMilkbangDetail"/>
-			<item value="NVL(b.HCDT"/>
-			<item value="hc"/>
-			<item value="selectmilkbang"/>
-			<item value="selectHappyMilkbangDetail"/>
-			<item value="hcdt"/>
-			<item value="selectHappyMilkbangDetailList"/>
-			<item value="selecthappy"/>
-			<item value="updatePromoTeam"/>
-			<item value="countPromoTeamUpdateTarget"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>

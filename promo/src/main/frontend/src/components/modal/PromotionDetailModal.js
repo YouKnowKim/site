@@ -925,13 +925,16 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
             >
               <IoClose /> 닫기
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleSave}
-              style={{ width: '120px' }}
-            >
-              <FaSave /> 저장
-            </Button>
+            {detailData[0].masterCloseYn !== '1' && (
+              <Button 
+                variant="primary" 
+                onClick={handleSave}
+                style={{ width: '120px' }}
+              >
+                <FaSave /> 저장
+              </Button>
+            )}
+            
           </div>
         </div>
       </Modal.Footer>
