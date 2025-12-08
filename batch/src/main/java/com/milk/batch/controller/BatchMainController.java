@@ -36,6 +36,10 @@ public class BatchMainController {
     @GetMapping({ "/batch/_milkbang_file" })
     @Scheduled(fixedDelay = 3600000L)
     public void _milkbang_file() {
+    	
+    	Connection conDB1 = null;  // 첫 번째 커넥션 (파일 처리용)
+        Connection conDB2 = null;  // 두 번째 커넥션 (엑셀 처리용)
+        
         try {
             // ======== 1단계: 초기 설정 ========
             String ROOT_URL = "http://ftp.yonseidairy.com/판촉자료";  // FTP 서버 URL
@@ -43,8 +47,8 @@ public class BatchMainController {
             SimpleDateFormat fullDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             
             // DB 연결 및 매니저 객체 생성
-            this.conDB = DBManager.openDB();
-            MilkbangManager clsMilkbangManager = new MilkbangManager(this.conDB);
+            conDB1 = DBManager.openDB();
+            MilkbangManager clsMilkbangManager = new MilkbangManager(conDB1);
             
             // DB에 이미 등록된 파일 목록 조회
             ArrayList<MilkbangBean> arrResult = clsMilkbangManager.findAllFile();
@@ -110,8 +114,8 @@ public class BatchMainController {
             String TARGET_DIR = "c:\\operation\\temp";     // 변환된 엑셀 저장 경로
             
             // 새 DB 연결 및 상품 정보 조회
-            this.conDB = DBManager.openDB();
-            GoodsManager clsGoodsManager = new GoodsManager(this.conDB);
+            conDB2 = DBManager.openDB();
+            GoodsManager clsGoodsManager = new GoodsManager(conDB2);
             ArrayList<GoodsOptionBean> arrGoodsOption = clsGoodsManager.findGoodsOption();  // 상품 옵션 목록 조회
             
             // 미처리 파일 목록 조회 (UploadYN = -1)
@@ -316,7 +320,25 @@ public class BatchMainController {
             System.out.println(this.strError + e);
         } finally {
             // DB 연결 해제
-            DBManager.closeDB(this.conDB);
+        	closeConnectionSafely(conDB1);
+            closeConnectionSafely(conDB2);
+        }
+    }
+    
+    /**
+     * 커넥션을 안전하게 닫는 헬퍼 메서드
+     * - null 체크 및 예외 처리 포함
+     * @param conn 닫을 커넥션 객체
+     */
+    private void closeConnectionSafely(Connection conn) {
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) {
+                    DBManager.closeDB(conn);
+                }
+            } catch (Exception e) {
+                System.out.println("커넥션 닫기 실패: " + e.getMessage());
+            }
         }
     }
 }

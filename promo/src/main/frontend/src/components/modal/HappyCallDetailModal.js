@@ -15,7 +15,7 @@ import { FaSave } from "react-icons/fa";
  * @param {array} originalData - 전체 원본 데이터 (no, orderCd 정렬됨)
  * @param {function} onSave - 저장 후 콜백 함수
  */
-const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
+const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave, showSaveButton }) => {
   // ✅ 상태 관리
   const [detailData, setDetailData] = useState([{
     agencyNm: '',
@@ -734,13 +734,16 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
             >
               <IoClose /> 닫기
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleSave}
-              style={{ width: '120px' }}
-            >
-              <FaSave /> 저장
-            </Button>
+
+            {showSaveButton && (
+              <Button 
+                variant="primary" 
+                onClick={handleSave}
+                style={{ width: '120px' }}
+              >
+                <FaSave /> 저장
+              </Button>
+            )}
           </div>
         </div>
       </Modal.Footer>

@@ -1204,6 +1204,7 @@ const PromotionSettle = () => {
       width: 110,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      visible: false,
       titleFormatter: function() {
         return '해피콜 담당<br/>확인 홉수';  // HTML로 줄바꿈
       },

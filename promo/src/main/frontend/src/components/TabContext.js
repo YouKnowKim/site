@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import Home from '../pages/Home'; // ✅ Home 컴포넌트 import 추가
 
 /**
  * 탭 컨텍스트 생성
@@ -95,6 +96,21 @@ export const TabProvider = ({ children }) => {
   }, []);
 
   /**
+   * ✅ 탭 초기화 함수 (로그인 시 호출)
+   * - 홈 탭을 기본으로 설정
+   */
+  const initializeTabs = useCallback(() => {
+    const homeTab = {
+      id: 'home',
+      title: '홈',
+      path: '/',
+      component: Home
+    };
+    setTabs([homeTab]);
+    setActiveTabId('home');
+  }, []);
+
+  /**
    * 현재 활성화된 탭 정보 조회
    */
   const getActiveTab = useCallback(() => {
@@ -109,7 +125,8 @@ export const TabProvider = ({ children }) => {
     removeTab,      // 탭 제거 함수
     setActiveTab,   // 탭 활성화 함수
     closeAllTabs,   // 모든 탭 닫기 함수
-    getActiveTab    // 활성 탭 조회 함수
+    getActiveTab,   // 활성 탭 조회 함수
+    initializeTabs  // ✅ 탭 초기화 함수 추가
   };
 
   return (

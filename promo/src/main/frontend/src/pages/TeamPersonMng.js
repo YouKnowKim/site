@@ -33,7 +33,7 @@ const getTodayDate = () => {
 const TeamPersonMng = () => {
   const [selectedTeamPersonNm, setSelectedTeamPersonNm] = useState('');
   const [selectedTeamPersonCd, setSelectedTeamPersonCd] = useState('');
-  const [selectedTeamPersonType, setSelectedTeamPersonType] = useState('1');
+  const [selectedTeamPersonType, setSelectedTeamPersonType] = useState('');
   const [tableData, setTableData] = useState([]);
   const [teamList, setTeamList] = useState([]);
   const [teamOptions, setTeamOptions] = useState({});

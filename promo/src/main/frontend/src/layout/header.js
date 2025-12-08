@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import '../styles/Header.css';
 import logo from '../assets/images/logo.png';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,7 +24,28 @@ import PromotionTeamSettlePivot from '../pages/PromotionTeamSettlePivot';
 import HappyCall from '../pages/HappyCall';
 import PromotionSettlePivot3 from '../pages/PromotionSettlePivot3';
 import AgencyMangement from '../pages/AgencyMangement';
-// 추가 페이지 컴포넌트들을 import 하세요
+import HappyCallResult from '../pages/HappyCallResult'
+
+
+/**
+ * ============================================
+ * 메뉴 권한 상수 정의
+ * ============================================
+ * MENU_PERMISSIONS: 각 메뉴별 접근 가능한 teamPersonType 배열
+ * - 'ALL': 모든 사용자 접근 가능
+ * - 'MANAGER_ONLY': managerYn = '1'인 경우만 접근 가능
+ * - ['1', '2', ...]: 해당 teamPersonType만 접근 가능
+ */
+const MENU_PERMISSIONS = {
+  HOME: 'ALL',                        // 홈: 전체 접근 가능
+  PROMO_FILE: ['1'],                  // 판촉파일 관리: teamPersonType = 1
+  PROMO_SETTLE: ['1'],                // 판촉실적 정산: teamPersonType = 1
+  PROMO_STATS: ['1'],                 // 판촉실적 통계: teamPersonType = 1
+  PROMO_TEAM_PERF: ['3'],             // 판촉팀별 실적: teamPersonType = 3
+  AGENCY: ['2'],                      // 대리점: teamPersonType = 2
+  HAPPY_CALL: ['4'],                  // 해피콜 관리: teamPersonType = 4
+  SETTINGS: 'MANAGER_ONLY'            // 설정: 관리자 전용
+};
 
 /**
  * 헤더 컴포넌트
@@ -48,6 +69,58 @@ const Header = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  /**
+   * ============================================
+   * 권한 관련 상태 및 함수
+   * ============================================
+   */
+  
+  // ✅ 세션에서 권한 정보 가져오기 (useMemo로 불필요한 재계산 방지)
+  const userPermissions = useMemo(() => {
+    return {
+      managerYn: sessionStorage.getItem('managerYn'),           // 관리자 여부 ('1': 관리자)
+      teamPersonType: sessionStorage.getItem('teamPersonType')  // 사용자 유형 ('1', '2', '3', '4')
+    };
+  }, []);
+
+  /**
+   * 메뉴 접근 권한 체크 함수
+   * @param {string|Array} permission - MENU_PERMISSIONS에 정의된 권한 값
+   * @returns {boolean} - 접근 가능 여부
+   * 
+   * 권한 체크 우선순위:
+   * 1. managerYn = '1'이면 모든 메뉴 접근 가능
+   * 2. permission이 'ALL'이면 모든 사용자 접근 가능
+   * 3. permission이 'MANAGER_ONLY'이면 관리자만 접근 가능
+   * 4. permission 배열에 teamPersonType이 포함되어 있으면 접근 가능
+   */
+  const hasPermission = (permission) => {
+    const { managerYn, teamPersonType } = userPermissions;
+
+    // 1. 관리자는 모든 메뉴 접근 가능
+    if (managerYn === '1') {
+      return true;
+    }
+
+    // 2. 'ALL' 권한: 모든 사용자 접근 가능
+    if (permission === 'ALL') {
+      return true;
+    }
+
+    // 3. 'MANAGER_ONLY' 권한: 관리자만 접근 가능 (위에서 이미 체크됨)
+    if (permission === 'MANAGER_ONLY') {
+      return false;
+    }
+
+    // 4. 배열 형태의 권한: teamPersonType이 배열에 포함되어 있는지 확인
+    if (Array.isArray(permission)) {
+      return permission.includes(teamPersonType);
+    }
+
+    // 기본값: 접근 불가
+    return false;
+  };
 
   /**
    * 로그아웃 버튼 클릭 핸들러
@@ -231,126 +304,136 @@ const Header = () => {
               <img src={logo} alt="연세우유 로고" width="200" height="auto" className="me-2" />
             </a>
 
-            {/* ✅ 네비게이션 메뉴 - 탭 방식으로 변경 */}
+            {/* ============================================
+                ✅ 네비게이션 메뉴 - 권한 기반 조건부 렌더링
+                ============================================ */}
             <Nav className="me-auto">
               
-              {/* 판촉파일 관리 */}
-              <NavDropdown title="판촉파일 관리" id="promo-file-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'milk-file-mng', '밀크방 파일 관리', '/MilkFileMng', MilkFileMng)}
-                >
-                  밀크방 파일 관리
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'milk-file-not-submit', '밀크방 미전송 대리점', '/MilkFileNotSubmit', MilkFileNotSubmit)}
-                >
-                  밀크방 미전송 대리점
-                </NavDropdown.Item>
-              </NavDropdown>
+              {/* ----------------------------------------
+                  판촉파일 관리 (teamPersonType: 1)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.PROMO_FILE) && (
+                <NavDropdown title="판촉파일 관리" id="promo-file-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'milk-file-mng', '밀크방 파일 관리', '/MilkFileMng', MilkFileMng)}
+                  >
+                    밀크방 파일 관리
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'milk-file-not-submit', '밀크방 미전송 대리점', '/MilkFileNotSubmit', MilkFileNotSubmit)}
+                  >
+                    밀크방 미전송 대리점
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 판촉실적 정산 */}
-              <NavDropdown title="판촉실적 정산" id="promo-settle-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-settle', '판촉실적 정산', '/PromotionSettle', PromotionSettle)}
-                >
-                  판촉실적 정산
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promo-close', '판촉실적 마감', '/PromotionClose', PromotionClose)}
-                >
-                  판촉실적 마감
-                </NavDropdown.Item>
-                {/* <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot3', '판촉실적 정산 (피벗3)', '/PromotionSettlePivot3', PromotionSettlePivot3)}
-                >
-                  판촉실적 정산 (피벗3)
-                </NavDropdown.Item> */}
-              </NavDropdown>
+              {/* ----------------------------------------
+                  판촉실적 정산 (teamPersonType: 1)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.PROMO_SETTLE) && (
+                <NavDropdown title="판촉실적 정산" id="promo-settle-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'promotion-settle', '판촉실적 정산', '/PromotionSettle', PromotionSettle)}
+                  >
+                    판촉실적 정산
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'promo-close', '판촉실적 마감', '/PromotionClose', PromotionClose)}
+                  >
+                    판촉실적 마감
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 판촉실적 통계 */}
-              <NavDropdown title="판촉실적 통계" id="promo-stats-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot', '판촉분석 (피벗)', '/PromotionSettlePivot', PromotionSettlePivot)}
-                >
-                  판촉분석 (피벗)
-                </NavDropdown.Item>
-                {/* <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'stat-all', '판촉 실적 보고(전체)', '/StatAll', Home)}
-                >
-                  판촉 실적 보고(전체)
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'stat-team', '판촉 실적 보고(팀)', '/StatTeam', Home)}
-                >
-                  판촉 실적 보고(팀)
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'agency-weekly', '대리점별 주간 실적', '/AgencyWeekly', Home)}
-                >
-                  대리점별 주간 실적
-                </NavDropdown.Item> */}
-              </NavDropdown>
+              {/* ----------------------------------------
+                  판촉실적 통계 (teamPersonType: 1)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.PROMO_STATS) && (
+                <NavDropdown title="판촉실적 통계" id="promo-stats-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'promotion-settle-pivot', '판촉분석 (피벗)', '/PromotionSettlePivot', PromotionSettlePivot)}
+                  >
+                    판촉분석 (피벗)
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 판촉팀별 실적 */}
-              <NavDropdown title="판촉팀별 실적" id="team-performance-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)}
-                >
-                  판촉팀별 실적
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
-                >
-                  판촉사원별 주간 실적
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
-                >
-                  판촉사원 제품별 홉수 (피벗)
-                </NavDropdown.Item>
-              </NavDropdown>
+              {/* ----------------------------------------
+                  판촉팀별 실적 (teamPersonType: 3)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.PROMO_TEAM_PERF) && (
+                <NavDropdown title="판촉팀별 실적" id="team-performance-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)}
+                  >
+                    판촉팀별 실적
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)}
+                  >
+                    판촉사원별 주간 실적
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)}
+                  >
+                    판촉사원 제품별 홉수 (피벗)
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 대리점 */}
-              <NavDropdown title="대리점" id="agency-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'close-manage', '마감실적관리', '/AgencyMangement', AgencyMangement)}
-                >
-                  마감실적관리
-                </NavDropdown.Item>
-              </NavDropdown>
+              {/* ----------------------------------------
+                  대리점 (teamPersonType: 2)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.AGENCY) && (
+                <NavDropdown title="대리점" id="agency-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'close-manage', '마감실적관리', '/AgencyMangement', AgencyMangement)}
+                  >
+                    마감실적관리
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 해피콜 관리 */}
-              <NavDropdown title="해피콜 관리" id="happy-call-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'happy-call', '해피콜', '/HappyCall', HappyCall)}
-                >
-                  해피콜
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'happy-call-result', '해피콜 결과', '/HappyCallResult', Home)}
-                >
-                  해피콜 결과
-                </NavDropdown.Item>
-              </NavDropdown>
+              {/* ----------------------------------------
+                  해피콜 관리 (teamPersonType: 4)
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.HAPPY_CALL) && (
+                <NavDropdown title="해피콜 관리" id="happy-call-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'happy-call', '해피콜', '/HappyCall', HappyCall)}
+                  >
+                    해피콜
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'happy-call-result', '해피콜 결과', '/HappyCallResult', HappyCallResult)}
+                  >
+                    해피콜 결과
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
 
-              {/* 설정 */}
-              <NavDropdown title="설정" id="setting-dropdown">
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'agency-manage', '대리점 등록 관리', '/AgencyMng', AgencyMng)}
-                >
-                  대리점 등록 관리
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉 제품 관리', '/GoodsMng', GoodsMng)}
-                >
-                  판촉 제품 관리
-                </NavDropdown.Item>
-                <NavDropdown.Item 
-                  onClick={(e) => handleMenuClick(e, 'teamperson-manage', '사원 관리', '/TeamPersonMng', TeamPersonMng)}
-                >
-                  사원 관리
-                </NavDropdown.Item>
-              </NavDropdown>
+              {/* ----------------------------------------
+                  설정 (관리자 전용: managerYn = '1')
+                  ---------------------------------------- */}
+              {hasPermission(MENU_PERMISSIONS.SETTINGS) && (
+                <NavDropdown title="설정" id="setting-dropdown">
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'agency-manage', '대리점 등록 관리', '/AgencyMng', AgencyMng)}
+                  >
+                    대리점 등록 관리
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'promo-count-setting', '판촉 제품 관리', '/GoodsMng', GoodsMng)}
+                  >
+                    판촉 제품 관리
+                  </NavDropdown.Item>
+                  <NavDropdown.Item 
+                    onClick={(e) => handleMenuClick(e, 'teamperson-manage', '사원 관리', '/TeamPersonMng', TeamPersonMng)}
+                  >
+                    사원 관리
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
             </Nav>
 
             {/* 사용자 정보 및 로그아웃 */}

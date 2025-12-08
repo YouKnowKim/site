@@ -9,12 +9,23 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/images/logo.png';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useTab } from '../components/TabContext'; // ✅ useTab Hook import
 
 const Login = () => {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // ✅ 탭 컨텍스트에서 initializeTabs 함수 가져오기
+  const { initializeTabs } = useTab();
+
+  // 페이지 로딩 시 이미 로그인되어 있다면 리다이렉트
+  useEffect(() => {
+    if (sessionStorage.getItem('authenticated') === 'true') {
+      navigate('/');
+    }
+  }, [navigate]);
 
   // 페이지 로딩 시 이미 로그인되어 있다면 리다이렉트
   useEffect(() => {
@@ -61,6 +72,10 @@ const Login = () => {
         sessionStorage.setItem('agencyYn', loginData.agencyYn);
         sessionStorage.setItem('agencyCd', loginData.agencyCd);
         sessionStorage.setItem('loginYn', loginData.loginYn);
+
+        // ✅ 탭 초기화 (홈 화면으로)
+        initializeTabs();
+
         navigate('/');
       }
     } catch (error) {

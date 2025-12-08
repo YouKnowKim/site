@@ -879,7 +879,7 @@
 		    	AND a.ORDERUSERNM = #{orderUserNm}
 		    </if>
 		    <if test="orderCellPhone != null and orderCellPhone != ''">
-		    	AND (a.ORDERCELLPHONE LIKE '%' || #{orderCellPhone} || '%' OR a.ORDERHOMEPHONE LIKE '%' || #{orderCellPhone} || '%')
+		    	AND (a.ORDERCELLPHONE LIKE '%' || REPLACE(#{orderCellPhone}, '-', '') || '%' OR a.ORDERHOMEPHONE LIKE '%' || REPLACE(#{orderCellPhone}, '-', '') || '%')
 		    </if>
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
 		    	AND b.MASTERCLOSEYN = #{masterCloseYn}

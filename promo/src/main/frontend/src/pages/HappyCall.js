@@ -251,6 +251,7 @@ const HappyCall = () => {
 
   // ✅ 모달 관련 state 추가
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(true);
   const [showDuplModal, setShowDuplModal] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [selectedDuplRowData, setSelectedDuplRowData] = useState(null);
@@ -566,6 +567,7 @@ const HappyCall = () => {
   const handlePromoDtClick = (rowData) => {
     setSelectedRowData(rowData);
     setShowDetailModal(true);
+    setShowSaveButton(true);
   };
 
   const handleDuplClick = (rowData) => {
@@ -1199,6 +1201,7 @@ const HappyCall = () => {
       width: 110,
       hozAlign: 'center',
       headerHozAlign: 'center',
+      visible: false,
       titleFormatter: function() {
         return '해피콜 담당<br/>확인 홉수';  // HTML로 줄바꿈
       },
@@ -2064,6 +2067,7 @@ const HappyCall = () => {
         rowData={selectedRowData}
         originalData={originalData}
         onSave={handleModalSave}
+        showSaveButton={showSaveButton}
       />
 
       {/* ✅ 이중기재 모달 추가 */}
