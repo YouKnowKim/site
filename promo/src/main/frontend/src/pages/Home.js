@@ -132,7 +132,7 @@ function Home() {
       title: '판촉팀별 실적',
       description: '판촉팀별 실적 현황 조회',
       color: '#ED7D31',
-      permission: ['3'],
+      permission: ['1', '3'],
       action: () => handleQuickMenu('team-performance', '판촉팀별 실적', '/PromoTeamPerf', PromoTeamPerf)
     },
     {
@@ -140,7 +140,7 @@ function Home() {
       title: '판촉사원별 주간 실적',
       description: '판촉사원 주간 실적 조회',
       color: '#F39C12',
-      permission: ['3'],
+      permission: ['1', '3'],
       action: () => handleQuickMenu('weekly-performance', '판촉사원별 주간 실적', '/PromoPersonPerf', PromoPersonPerf)
     },
     {
@@ -148,7 +148,7 @@ function Home() {
       title: '판촉사원 제품별 홉수 (피벗)',
       description: '판촉사원 제품별 홉수 분석',
       color: '#E67E22',
-      permission: ['3'],
+      permission: ['1', '3'],
       action: () => handleQuickMenu('promotion-team-settle-pivot', '판촉사원 제품별 홉수 (피벗)', '/PromotionTeamSettlePivot', PromotionTeamSettlePivot)
     },
 

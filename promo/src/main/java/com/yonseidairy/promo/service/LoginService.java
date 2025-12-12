@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.yonseidairy.promo.dao.LoginDao;
 import com.yonseidairy.promo.mapper.LoginMapper;
+import com.yonseidairy.promo.util.AESEncryptUtil;
 
 @Service
 public class LoginService {
@@ -16,7 +17,13 @@ public class LoginService {
 		
 		LoginDao loginTmp = new LoginDao();
 		
+		String decryptPassword = "";
+		
 		loginTmp = loginMapper.selectLoginInfo(inLoginDao);
+		
+		if(loginTmp != null) {
+			decryptPassword = AESEncryptUtil.decrypt(loginTmp.getLoginPw());
+		}
 		
 		// 계정 조회가 안되는 경우 0 반환
 		if(loginTmp == null) {
@@ -26,10 +33,10 @@ public class LoginService {
 			loginTmp.setStatus("0");
 			
 		// 계정 조회가 되고, 비밀번호가 같은 경우
-		} else if (loginTmp.getLoginPw().equals(inLoginDao.getLoginPw())) {
+		} else if (decryptPassword.equals(inLoginDao.getLoginPw())) {
 			
 			loginTmp.setStatus("2");
-			
+			loginTmp.setLoginPw(decryptPassword);
 			loginMapper.updateIpBrowser(inLoginDao);
 			
 		//	비밀번호 틀림

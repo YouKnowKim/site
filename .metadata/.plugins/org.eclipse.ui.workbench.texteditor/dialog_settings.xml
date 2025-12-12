@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="conDB1"/>
-			<item value="DBManager"/>
-			<item value="insertMilkbang"/>
-			<item value="MilkbangManager"/>
-			<item value="clsMilkbangManager2"/>
-			<item value="condb"/>
-			<item value="this.condb"/>
-			<item value="this.strError"/>
-			<item value="this.conDB"/>
-			<item value="make"/>
-			<item value="ordercd"/>
-			<item value="updateFileStatus"/>
-			<item value="clsParam.ordercd"/>
-			<item value="makeMilkbangCD"/>
-			<item value="BatchMainController"/>
+			<item value="updateTeamPerson"/>
+			<item value="insertTeamPerson"/>
+			<item value="saveTeamPersonList"/>
+			<item value="selectTeamPersonList"/>
+			<item value="getTeamPersonList"/>
+			<item value="getLoginInfo"/>
+			<item value="ALGORITHM"/>
+			<item value="AND f.TEAMPERSONCD = #{teamPersonCd}"/>
+			<item value="b.teampersoncd ="/>
+			<item value="selecthappymilkbangdetail"/>
+			<item value="selectclose"/>
+			<item value="close"/>
+			<item value="AND b.TEAMPERSONCD"/>
+			<item value="AND b.TEAMPERSONCD = #{teamPersonCd}"/>
+			<item value="selectMilkbangDetailList"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>

@@ -19,3 +19,14 @@
   width: 90%;
   min-width: 1300px;  /* 추가 */
 }
+
+/* NavDropdown 타이틀 (드롭다운 토글 버튼) */
+.nav-link,
+.nav-link.dropdown-toggle {
+  font-size: 0.9rem !important;
+}
+
+/* 드롭다운 메뉴 항목 */
+.dropdown-menu .dropdown-item {
+  font-size: 0.9rem;
+}

@@ -373,18 +373,7 @@ const TeamPersonMng = () => {
       hozAlign: 'center',
       headerHozAlign: 'center',
       editor: 'input',
-      editorParams: {
-        elementAttributes: {
-          maxlength: "5",        // 최대 5자리까지만 입력 가능
-          inputMode: "numeric",  // 모바일에서 숫자 키패드 표시
-          pattern: "[0-9]*"      // 숫자만 입력 가능 (브라우저 힌트)
-        }
-      },
-      // ✅ 새로 추가된 행(isNew=true)에서만 편집 가능
-      editable: function(cell) {
-        const rowData = cell.getRow().getData();
-        return rowData.isNew === true;  // isNew가 true일 때만 편집 가능
-      }
+      editable: false
     },
     {
       title: '사원명',

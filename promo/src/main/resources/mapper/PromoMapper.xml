@@ -658,7 +658,7 @@
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{subStartDate}, '-', '') AND REPLACE(#{subEndDate}, '-', '')
 		    </if>
 		    <if test="teamPersonCd != null and teamPersonCd != ''">
-		    	AND b.TEAMPERSONCD = #{teamPersonCd}
+		    	AND f.TEAMPERSONCD = #{teamPersonCd}
 		    </if>
 		    <if test="agencyCd != null and agencyCd != ''">
 		    	AND a.AGENCYCD = #{agencyCd}
@@ -858,7 +858,7 @@
 		    	AND to_char(b.PROMODT, 'yyyymmdd') BETWEEN REPLACE(#{subStartDate}, '-', '') AND REPLACE(#{subEndDate}, '-', '')
 		    </if>
 		    <if test="teamPersonCd != null and teamPersonCd != ''">
-		    	AND b.TEAMPERSONCD = #{teamPersonCd}
+		    	AND f.TEAMPERSONCD = #{teamPersonCd}
 		    </if>
 		    <if test="agencyCd != null and agencyCd != ''">
 		    	AND a.AGENCYCD = #{agencyCd}

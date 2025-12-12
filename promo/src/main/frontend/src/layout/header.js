@@ -41,7 +41,7 @@ const MENU_PERMISSIONS = {
   PROMO_FILE: ['1'],                  // 판촉파일 관리: teamPersonType = 1
   PROMO_SETTLE: ['1'],                // 판촉실적 정산: teamPersonType = 1
   PROMO_STATS: ['1'],                 // 판촉실적 통계: teamPersonType = 1
-  PROMO_TEAM_PERF: ['3'],             // 판촉팀별 실적: teamPersonType = 3
+  PROMO_TEAM_PERF: ['1', '3'],             // 판촉팀별 실적: teamPersonType = 3
   AGENCY: ['2'],                      // 대리점: teamPersonType = 2
   HAPPY_CALL: ['4'],                  // 해피콜 관리: teamPersonType = 4
   SETTINGS: 'MANAGER_ONLY'            // 설정: 관리자 전용
@@ -308,6 +308,14 @@ const Header = () => {
                 ✅ 네비게이션 메뉴 - 권한 기반 조건부 렌더링
                 ============================================ */}
             <Nav className="me-auto">
+
+              <Nav.Link 
+                href="/"
+                onClick={(e) => handleMenuClick(e, 'home', 'Home', '/', Home)}
+                style={{ cursor: 'pointer' }}
+              >
+                Home
+              </Nav.Link>
               
               {/* ----------------------------------------
                   판촉파일 관리 (teamPersonType: 1)

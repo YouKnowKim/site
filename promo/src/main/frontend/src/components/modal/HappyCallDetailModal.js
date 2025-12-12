@@ -17,34 +17,7 @@ import { FaSave } from "react-icons/fa";
  */
 const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave, showSaveButton }) => {
   // ✅ 상태 관리
-  const [detailData, setDetailData] = useState([{
-    agencyNm: '',
-    agencyCd: '',
-    teamPersonNm: '',
-    orderCd: '',
-    orderUserNm: '',
-    orderAddress1: '',
-    orderCellPhone: '',
-    orderDt: '',
-    duplicateNm: '',
-    duplicateYn: '',
-    saveYn: '',
-    hcSaveYn: '',
-    masterCloseYn: '',
-    promoTeamCd: '',
-    promoPersonNm: '',
-    goodsOptionNm: '',
-    quantity: '',
-    weekRemark: '',
-    weekQty: '',
-    contractPeriod: '',
-    stopReason: '',
-    promoGiftNm: '',
-    hcHob : '',
-    hcDt : '',
-    hcStatus : '',
-    hcContent : ''
-  }]);
+  const [detailData, setDetailData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentOrderCd, setCurrentOrderCd] = useState('');  // ✅ 현재 조회 중인 orderCd
   const [currentIndex, setCurrentIndex] = useState(-1);  // ✅ orderCdList에서의 현재 인덱스
@@ -65,7 +38,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
   useEffect(() => {
     // ✅ 판촉팀 목록과 상세 데이터가 모두 준비되었을 때
     if (promoTeamList.length > 0 && detailData.length > 0) {
-      const promoTeamCd = detailData[0].promoTeamCd;
+      const promoTeamCd = detailData?.[0]?.promoTeamCd;
       
       // ✅ null, undefined, 빈 문자열인 경우 '-1'(배치X)로 처리
       if (!promoTeamCd || promoTeamCd === '' || promoTeamCd === null || promoTeamCd === undefined) {
@@ -437,12 +410,12 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
             {detailData && detailData.length > 0 && (
               <>
                 {/* 저장완료 표시 */}
-                {detailData[0].hcSaveYn === '1' && (
+                {detailData?.[0]?.hcSaveYn === '1' && (
                   <span className="badge bg-success ms-2" style={{ fontSize: '12px' }}>
                     저장완료
                   </span>
                 )}
-                {detailData[0].hcSaveYn !== '1' && (
+                {detailData?.[0]?.hcSaveYn !== '1' && (
                   <span className="badge bg-warning ms-2" style={{ fontSize: '12px' }}>
                     미저장
                   </span>
@@ -457,7 +430,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={`${detailData[0].agencyNm || ''} (${detailData[0].agencyCd || ''})`}
+                  value={`${detailData?.[0]?.agencyNm || ''} (${detailData?.[0]?.agencyCd || ''})`}
                   readOnly
                   className="bg-white"
                 />
@@ -469,7 +442,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].teamPersonNm || ''}
+                  value={detailData?.[0]?.teamPersonNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -481,7 +454,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].promoTeamNm || ''}
+                  value={detailData?.[0]?.promoTeamNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -518,7 +491,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderCd || ''}
+                  value={detailData?.[0]?.orderCd || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -530,7 +503,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderUserNm || ''}
+                  value={detailData?.[0]?.orderUserNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -542,7 +515,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderAddress1 || ''}
+                  value={detailData?.[0]?.orderAddress1 || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -558,8 +531,8 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                     setSelectedOrderCellPhone(e.target.value);
                   }}
                   style={{
-                    borderColor: (detailData[0].orderCellPhone) ? '' : '#dc3545',
-                    color: (detailData[0].orderCellPhone) ? '' : '#dc3545',
+                    borderColor: (detailData?.[0]?.orderCellPhone) ? '' : '#dc3545',
+                    color: (detailData?.[0]?.orderCellPhone) ? '' : '#dc3545',
                     borderWidth: '2px'
                   }}
                   value={selectedOrderCellPhone}
@@ -577,7 +550,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderDt || ''}
+                  value={detailData?.[0]?.orderDt || ''}
                   readOnly
                   className="bg-white"
                 />

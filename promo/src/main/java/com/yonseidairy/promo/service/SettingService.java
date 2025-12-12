@@ -11,6 +11,7 @@ import com.yonseidairy.promo.dao.GoodsDao;
 import com.yonseidairy.promo.dao.TeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.mapper.SettingMapper;
+import com.yonseidairy.promo.util.AESEncryptUtil;
 
 @Service
 public class SettingService {
@@ -24,8 +25,14 @@ public class SettingService {
 	}
 
 	public List<TeamPersonDao> getTeamPersonList(TeamPersonDao inTeamPersonDao) {
+		
+		List<TeamPersonDao> arrList = settingMapper.selectTeamPersonList(inTeamPersonDao);
+		
+		for(TeamPersonDao dao : arrList ) {
+			dao.setLoginPw(AESEncryptUtil.decrypt(dao.getLoginPw()));
+		}
 
-		return settingMapper.selectTeamPersonList(inTeamPersonDao);
+		return arrList;
 	}
 
 	public List<GoodsDao> getGoodsList(GoodsDao inGoodsDao) {
@@ -74,10 +81,10 @@ public class SettingService {
 				System.out.println("INSERT - 사원코드: " + data.getTeamPersonCd());
 
 				// ✅ 중복 체크
-				int existingTeamPerson = settingMapper.existsTeamPersonCd(data);
-				if (existingTeamPerson != 0) {
-					throw new IllegalArgumentException("이미 존재하는 사원코드입니다: " + data.getTeamPersonCd());
-				}
+//				int existingTeamPerson = settingMapper.existsTeamPersonCd(data);
+//				if (existingTeamPerson != 0) {
+//					throw new IllegalArgumentException("이미 존재하는 사원코드입니다: " + data.getTeamPersonCd());
+//				}
 
 				// ✅ INSERT 실행
 				int insertResult = settingMapper.insertTeamPerson(data);
@@ -87,6 +94,8 @@ public class SettingService {
 
 				// ✅ 수정
 				System.out.println("UPDATE - 사원코드: " + data.getTeamPersonCd());
+				
+				data.setLoginPw(AESEncryptUtil.encrypt(data.getLoginPw()));
 
 				// ✅ UPDATE 실행
 				int updateResult = settingMapper.updateTeamPerson(data);

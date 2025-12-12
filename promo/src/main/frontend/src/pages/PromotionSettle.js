@@ -2495,7 +2495,7 @@ const PromotionSettle = () => {
                 </span>
                 
                 <span style={{fontWeight: '500' }}>
-                  판촉팀배치: <strong>{summaryData.abnormalBaechiX}</strong> 건
+                  판촉팀미배치: <strong>{summaryData.abnormalBaechiX}</strong> 건
                 </span>
 
                 <span style={{fontWeight: '500' }}>

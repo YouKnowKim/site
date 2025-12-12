@@ -13,29 +13,7 @@ import Swal from 'sweetalert2';
  */
 const PromotionDuplModal = ({ show, onHide, rowData }) => {
   // ✅ 상태 관리
-  const [detailData, setDetailData] = useState([{
-    agencyNm: '',
-    agencyCd: '',
-    teamPersonNm: '',
-    orderCd: '',
-    orderUserNm: '',
-    orderAddress1: '',
-    orderCellPhone: '',
-    orderDt: '',
-    duplicateNm: '',
-    duplicateYn: '',
-    saveYn: '',
-    masterCloseYn: '',
-    promoTeamCd: '',
-    promoPersonNm: '',
-    goodsOptionNm: '',
-    quantity: '',
-    weekRemark: '',
-    weekQty: '',
-    contractPeriod: '',
-    stopReason: '',
-    promoGiftNm: ''
-  }]);
+  const [detailData, setDetailData] = useState([]);
   const [subDetailData, setSubDetailData] = useState({});
   const [loading, setLoading] = useState(false);
   const [promoTeamList, setPromoTeamList] = useState([]);  // 판촉팀 목록 state 추가
@@ -44,30 +22,6 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
 
   // 컴포넌트 마운트 시 대리점 목록 조회
   useEffect(() => {
-    setDetailData([{
-    agencyNm: '',
-    agencyCd: '',
-    teamPersonNm: '',
-    orderCd: '',
-    orderUserNm: '',
-    orderAddress1: '',
-    orderCellPhone: '',
-    orderDt: '',
-    duplicateNm: '',
-    duplicateYn: '',
-    saveYn: '',
-    masterCloseYn: '',
-    promoTeamCd: '',
-    promoPersonNm: '',
-    goodsOptionNm: '',
-    quantity: '',
-    weekRemark: '',
-    weekQty: '',
-    contractPeriod: '',
-    stopReason: '',
-    promoGiftNm: ''
-  }]);
-    console.log("detailData : ", detailData);
     fetchPromoTeamList();
   }, []);
 
@@ -78,7 +32,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
   useEffect(() => {
     // ✅ 판촉팀 목록과 상세 데이터가 모두 준비되었을 때
     if (promoTeamList.length > 0 && detailData.length > 0) {
-      const promoTeamCd = detailData[0].promoTeamCd;
+      const promoTeamCd = detailData?.[0]?.promoTeamCd;
       
       // ✅ null, undefined, 빈 문자열인 경우 '-1'(배치X)로 처리
       if (!promoTeamCd || promoTeamCd === '' || promoTeamCd === null || promoTeamCd === undefined) {
@@ -210,7 +164,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={`${detailData[0].agencyNm || ''} (${detailData[0].agencyCd || ''})`}
+                  value={`${detailData?.[0]?.agencyNm || ''} (${detailData?.[0]?.agencyCd || ''})`}
                   readOnly
                   className="bg-white"
                 />
@@ -222,7 +176,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].teamPersonNm || ''}
+                  value={detailData?.[0]?.teamPersonNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -234,7 +188,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].promoTeamNm || ''}
+                  value={detailData?.[0]?.promoTeamNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -268,7 +222,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderCd || ''}
+                  value={detailData?.[0]?.orderCd || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -280,7 +234,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderUserNm || ''}
+                  value={detailData?.[0]?.orderUserNm || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -292,7 +246,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderAddress1 || ''}
+                  value={detailData?.[0]?.orderAddress1 || ''}
                   readOnly
                   className="bg-white"
                 />
@@ -305,10 +259,10 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                   type="text"
                   size="sm"
                   style={{
-                    borderColor: (detailData[0].orderCellPhone) ? '' : '#dc3545',
-                    color: (detailData[0].orderCellPhone) ? '' : '#dc3545'
+                    borderColor: (detailData?.[0]?.orderCellPhone) ? '' : '#dc3545',
+                    color: (detailData?.[0]?.orderCellPhone) ? '' : '#dc3545'
                   }}
-                  value={ (detailData[0].orderCellPhone) ? detailData[0].orderCellPhone || '' : '전화번호 없음'}
+                  value={ (detailData?.[0]?.orderCellPhone) ? detailData?.[0]?.orderCellPhone || '' : '전화번호 없음'}
                   readOnly
                   className="bg-white"
                 />
@@ -322,7 +276,7 @@ const PromotionDuplModal = ({ show, onHide, rowData }) => {
                 <Form.Control
                   type="text"
                   size="sm"
-                  value={detailData[0].orderDt || ''}
+                  value={detailData?.[0]?.orderDt || ''}
                   readOnly
                   className="bg-white"
                 />

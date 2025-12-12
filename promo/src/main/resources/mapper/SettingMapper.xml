@@ -16,9 +16,9 @@
 			, TEAMCD
 			, AGENCYYN
 		) VALUES (
-			#{teamPersonCd, jdbcType=VARCHAR}
+			(SELECT NVL(MAX(TEAMPERSONCD), 0) + 1 FROM YSC.TC_TEAMPERSON)
 			, #{loginId, jdbcType=VARCHAR}
-			, #{loginPw, jdbcType=VARCHAR}
+			, 'AOZRCURBNOARpiIvQ1lINA=='
 			, #{teamPersonNm, jdbcType=VARCHAR}
 			, #{teamPersonType, jdbcType=VARCHAR}
 			, #{managerYn, jdbcType=VARCHAR}
