@@ -18,17 +18,6 @@ import {
 
 /**
  * 촉진정산 피벗 분석 컴포넌트 (Flexmonster 사용)
- * - Flexmonster 피벗 테이블 라이브러리 사용
- * - 데이터 분석, 차트 시각화 및 다양한 형식 내보내기 기능
- * 
- * @component
- * @description
- * Flexmonster는 react-pivottable보다 향상된 기능을 제공합니다:
- * - 더 빠른 대용량 데이터 처리
- * - 내장된 Excel/PDF/CSV/HTML 내보내기
- * - 드릴다운 및 필터링 기능
- * - 다양한 집계 함수 (합계, 평균, 최소, 최대, 개수 등)
- * - 조건부 서식 및 커스터마이징
  */
 const PromotionSettlePivot = () => {
   // ============================================
@@ -39,31 +28,16 @@ const PromotionSettlePivot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rawData, setRawData] = useState([]);
   
-  /**
-   * Flexmonster 인스턴스 참조
-   * - API 메서드 호출 및 제어를 위한 ref
-   */
   const pivotRef = useRef(null);
 
   // ============================================
   // 필드명 매핑 정의
   // ============================================
-  
-  /**
-   * ✅ 영문 필드명 -> 한글 필드명 매핑
-   * Flexmonster의 mapping 기능을 위한 구조
-   * 
-   * @description
-   * - uniqueName: 데이터의 실제 필드명 (영문)
-   * - caption: 화면에 표시될 필드명 (한글)
-   * - type: 데이터 타입 (string, number, date 등)
-   */
   const fieldMapping = [
     { uniqueName: 'agencyNm', caption: '대리점명', type: 'string' },
     { uniqueName: 'agencyCdMis', caption: '대리점코드', type: 'string' },
     { uniqueName: 'promoPersonNm', caption: '판촉사원', type: 'string' },
     { uniqueName: 'goodsOptionNm', caption: '제품명', type: 'string' },
-    // { uniqueName: 'weekQty', caption: '주간홉수', type: 'number' },
     { uniqueName: 'contractPeriod', caption: '계약기간', type: 'string' },
     { uniqueName: 'teamPersonNm', caption: '담당자명', type: 'string' },
     { uniqueName: 'misCd', caption: '제품코드', type: 'string' },
@@ -78,16 +52,6 @@ const PromotionSettlePivot = () => {
   // ============================================
   // Flexmonster 리포트 초기 설정
   // ============================================
-  
-  /**
-   * ✅ Flexmonster 초기 리포트 구조
-   * 
-   * @description
-   * - dataSource: 데이터 소스 및 필드 매핑 정보
-   * - slice: 피벗 테이블 구조 정의 (행, 열, 측정값)
-   * - options: 그리드 및 차트 옵션
-   * - formats: 숫자 및 날짜 형식 정의
-   */
   const getInitialReport = (data) => ({
     dataSource: {
       data: data,
@@ -102,15 +66,9 @@ const PromotionSettlePivot = () => {
     localization: "/locales/ko.json?v=1.01",
     slice: {
       rows: [
-        {
-          uniqueName: 'deptNme'
-        },
-        {
-          uniqueName: 'teamPersonNm'
-        },
-        {
-          uniqueName: 'agencyNm'
-        },
+        { uniqueName: 'deptNme' },
+        { uniqueName: 'teamPersonNm' },
+        { uniqueName: 'agencyNm' },
       ],
       columns: [
         { uniqueName: '[Measures]' },
@@ -124,20 +82,20 @@ const PromotionSettlePivot = () => {
           format: 'currency'
         }
       ],
-      expandAll: true,  // ✅ 모든 데이터 펼치기
-      drillAll: true    // ✅ 모든 레벨 드릴다운
+      expandAll: true,
+      drillAll: true
     },
     options: {
       grid: {
-        type: 'classic',  // 'compact', 'classic', 'flat'
+        type: 'classic',
         showGrandTotals: 'on',
         showTotals: 'off'
       },
-      configuratorActive: true,  // 필드 목록 표시 여부
-      configuratorButton: true,  // 필드 목록 버튼 표시
+      configuratorActive: true,
+      configuratorButton: true,
       showAggregations: true,
       showCalculatedValuesButton: true,
-      drillThrough: true  // 드릴스루 활성화
+      drillThrough: true
     },
     formats: [
       {
@@ -159,8 +117,6 @@ const PromotionSettlePivot = () => {
   
   /**
    * 오늘 날짜 구하기 (로컬 시간대)
-   * 
-   * @returns {string} YYYY-MM-DD 형식의 날짜 문자열
    */
   const getTodayDate = () => {
     const today = new Date();
@@ -170,6 +126,9 @@ const PromotionSettlePivot = () => {
     return `${year}-${month}-${day}`;
   };
 
+  /**
+   * 2개월 전 날짜 구하기
+   */
   const getBeforeDate = () => {
     const today = new Date();
     today.setMonth(today.getMonth() - 2);
@@ -179,14 +138,139 @@ const PromotionSettlePivot = () => {
     return `${year}-${month}-${day}`;
   };
 
+  /**
+   * ✅ ISO 8601 기준 주차 계산 (수요일 기준)
+   * @param {number|string} year - 년도
+   * @param {number|string} month - 월
+   * @returns {Array} 주차 정보 배열
+   */
+  const getWeeksInMonth = (year, month) => {
+    const weeks = [];
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    // 해당 월의 1일
+    const firstDate = new Date(yearNum, monthNum - 1, 1);
+    
+    // 해당 월 1일이 속한 주의 월요일 찾기
+    const firstDayOfWeek = firstDate.getDay();
+    let daysToMonday = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    
+    const firstMonday = new Date(firstDate);
+    firstMonday.setDate(firstDate.getDate() - daysToMonday);
+    
+    let weekCount = 0;
+    let currentMonday = new Date(firstMonday);
+    
+    // 최대 6주까지 확인
+    for (let i = 0; i < 6; i++) {
+      const currentSunday = new Date(currentMonday);
+      currentSunday.setDate(currentMonday.getDate() + 6);
+      
+      // 해당 주의 수요일 계산
+      const wednesday = new Date(currentMonday);
+      wednesday.setDate(currentMonday.getDate() + 2);
+      
+      // 수요일이 해당 월에 속하는지 확인
+      if (wednesday.getMonth() + 1 === monthNum && wednesday.getFullYear() === yearNum) {
+        weekCount++;
+        
+        const startYear = currentMonday.getFullYear();
+        const startMonth = currentMonday.getMonth() + 1;
+        const startDay = currentMonday.getDate();
+        const endYear = currentSunday.getFullYear();
+        const endMonth = currentSunday.getMonth() + 1;
+        const endDay = currentSunday.getDate();
+        
+        const startDateStr = `${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+        const endDateStr = `${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+
+        // value용 전체 날짜 형식 (YYYY-MM-DD)
+        const startDateFull = `${startYear}-${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+        const endDateFull = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+        const dateRangeValue = `${startDateFull}|${endDateFull}`;
+        
+        weeks.push({
+          weekNum: weekCount,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          startDateFull: startDateFull,  // ✅ 전체 날짜 형식 추가
+          endDateFull: endDateFull,      // ✅ 전체 날짜 형식 추가
+          dateRange: dateRangeValue,
+          label: `${weekCount}주차: ${startDateStr} ~ ${endDateStr}`
+        });
+      }
+      
+      // 다음 주 월요일로 이동
+      currentMonday.setDate(currentMonday.getDate() + 7);
+      
+      // 조기 종료 조건: 수요일이 다음 월을 넘어가면
+      const nextWednesday = new Date(currentMonday);
+      nextWednesday.setDate(currentMonday.getDate() + 2);
+      if (nextWednesday.getFullYear() > yearNum || 
+          (nextWednesday.getFullYear() === yearNum && nextWednesday.getMonth() + 1 > monthNum)) {
+        break;
+      }
+    }
+    
+    return weeks;
+  };
+
+  /**
+   * ✅ 전월 날짜 범위 설정
+   * 전월 1주차 시작일 ~ 마지막 주차 종료일
+   */
+  const handlePreviousMonth = () => {
+    const today = new Date();
+    // 전월 계산
+    const prevMonth = today.getMonth();  // 0-based, 현재 달 -1 = 전월
+    const year = prevMonth === 0 ? today.getFullYear() - 1 : today.getFullYear();
+    const month = prevMonth === 0 ? 12 : prevMonth;
+    
+    // 전월의 주차 정보 가져오기
+    const weeks = getWeeksInMonth(year, String(month).padStart(2, '0'));
+    
+    if (weeks.length > 0) {
+      // 1주차 시작일
+      const firstWeekStart = weeks[0].startDateFull;
+      // 마지막 주차 종료일
+      const lastWeekEnd = weeks[weeks.length - 1].endDateFull;
+      
+      setStartDate(firstWeekStart);
+      setEndDate(lastWeekEnd);
+      
+      console.log(`📅 전월 설정: ${firstWeekStart} ~ ${lastWeekEnd}`);
+    }
+  };
+
+  /**
+   * ✅ 당월 날짜 범위 설정
+   * 당월 1주차 시작일 ~ 마지막 주차 종료일
+   */
+  const handleCurrentMonth = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;  // 1-based
+    
+    // 당월의 주차 정보 가져오기
+    const weeks = getWeeksInMonth(year, String(month).padStart(2, '0'));
+    
+    if (weeks.length > 0) {
+      // 1주차 시작일
+      const firstWeekStart = weeks[0].startDateFull;
+      // 마지막 주차 종료일
+      const lastWeekEnd = weeks[weeks.length - 1].endDateFull;
+      
+      setStartDate(firstWeekStart);
+      setEndDate(lastWeekEnd);
+      
+      console.log(`📅 당월 설정: ${firstWeekStart} ~ ${lastWeekEnd}`);
+    }
+  };
+
   // ============================================
   // 초기화 Effect
   // ============================================
-  
-  /**
-   * 컴포넌트 마운트 시 초기 날짜 설정
-   * - 시작일과 종료일을 오늘 날짜로 설정
-   */
   useEffect(() => {
     const today = getTodayDate();
     const beforeday = getBeforeDate();
@@ -197,21 +281,7 @@ const PromotionSettlePivot = () => {
   // ============================================
   // 데이터 조회 함수
   // ============================================
-  
-  /**
-   * 데이터 조회 처리
-   * 
-   * @description
-   * 1. 날짜 유효성 검사
-   * 2. API 호출로 데이터 조회
-   * 3. Flexmonster에 데이터 로드
-   * 
-   * @async
-   */
   const handleSearch = async () => {
-    // ========================================
-    // 1. 날짜 유효성 검사
-    // ========================================
     if (!startDate || !endDate) {
       Swal.fire({
         icon: 'warning',
@@ -230,17 +300,11 @@ const PromotionSettlePivot = () => {
       return;
     }
 
-    // ========================================
-    // 2. 로딩 시작 및 로그
-    // ========================================
     setIsLoading(true);
     console.log("📊 데이터 조회 시작");
     console.log(`📅 조회 기간: ${startDate} ~ ${endDate}`);
 
     try {
-      // ========================================
-      // 3. API 호출
-      // ========================================
       const response = await axios.get('/api/promo/getMilkbangDetailListPivot', {
         params: {
           startDate: startDate,
@@ -252,9 +316,6 @@ const PromotionSettlePivot = () => {
       console.log("✅ 데이터 로드 완료:", data);
       console.log(`📊 조회된 데이터 건수: ${data.length}건`);
 
-      // ========================================
-      // 4. 데이터 없음 처리
-      // ========================================
       if (!data || data.length === 0) {
         Swal.fire({
           icon: 'info',
@@ -266,12 +327,8 @@ const PromotionSettlePivot = () => {
         return;
       }
 
-      // ========================================
-      // 5. 데이터 저장 및 Flexmonster 업데이트
-      // ========================================
       setRawData(data);
       
-      // Flexmonster에 새 리포트 설정
       if (pivotRef.current) {
         const newReport = getInitialReport(data);
         pivotRef.current.flexmonster.setReport(newReport);
@@ -280,9 +337,6 @@ const PromotionSettlePivot = () => {
 
       setIsLoading(false);
 
-      // ========================================
-      // 6. 성공 메시지
-      // ========================================
       Swal.fire({
         icon: 'success',
         title: '조회 완료',
@@ -292,9 +346,6 @@ const PromotionSettlePivot = () => {
       });
 
     } catch (error) {
-      // ========================================
-      // 7. 오류 처리
-      // ========================================
       console.error('❌ 데이터 로드 실패:', error);
       setIsLoading(false);
 
@@ -309,21 +360,7 @@ const PromotionSettlePivot = () => {
   // ============================================
   // Excel 내보내기 함수
   // ============================================
-  
-  /**
-   * Excel 내보내기 처리
-   * 
-   * @description
-   * Flexmonster의 내장 exportTo 메서드 사용
-   * - 현재 피벗 테이블의 상태를 그대로 Excel로 내보냄
-   * - 서식, 집계, 필터링이 모두 반영됨
-   * 
-   * @see https://www.flexmonster.com/api/export/
-   */
   const handleExportExcel = () => {
-    // ========================================
-    // 1. 데이터 존재 여부 확인
-    // ========================================
     if (!rawData || rawData.length === 0) {
       Swal.fire({
         icon: 'warning',
@@ -333,9 +370,6 @@ const PromotionSettlePivot = () => {
       return;
     }
 
-    // ========================================
-    // 2. Flexmonster 인스턴스 확인
-    // ========================================
     if (!pivotRef.current || !pivotRef.current.flexmonster) {
       Swal.fire({
         icon: 'error',
@@ -346,28 +380,19 @@ const PromotionSettlePivot = () => {
     }
 
     try {
-      // ========================================
-      // 3. Excel 내보내기 실행
-      // ========================================
       const today = new Date().toISOString().split('T')[0];
       const fileName = `판촉정산피벗_${today}`;
 
       console.log(`📥 Excel 내보내기 시작: ${fileName}.xlsx`);
 
-      // Flexmonster의 exportTo 메서드 호출
-      // - 'excel' 외에도 'pdf', 'csv', 'html', 'image' 지원
       pivotRef.current.flexmonster.exportTo('excel', {
         filename: fileName,
-        // Excel 내보내기 옵션
         excelSheetName: '판촉정산피벗',
         header: '판촉정산피벗',
         footer: `작성일: ${today}`,
-        pageOrientation: 'landscape',  // 'portrait' or 'landscape'
-        destinationType: 'file'  // 'file' or 'server'
+        pageOrientation: 'landscape',
+        destinationType: 'file'
       }, () => {
-        // ========================================
-        // 4. 내보내기 완료 콜백
-        // ========================================
         console.log("✅ Excel 내보내기 완료");
         
         Swal.fire({
@@ -378,9 +403,6 @@ const PromotionSettlePivot = () => {
           showConfirmButton: false
         });
       }, (error) => {
-        // ========================================
-        // 5. 내보내기 실패 처리
-        // ========================================
         console.error('❌ Excel 내보내기 실패:', error);
         
         Swal.fire({
@@ -402,16 +424,8 @@ const PromotionSettlePivot = () => {
   };
 
   // ============================================
-  // PDF 내보내기 함수 (추가 기능)
+  // PDF 내보내기 함수
   // ============================================
-  
-  /**
-   * PDF 내보내기 처리
-   * 
-   * @description
-   * Flexmonster의 PDF 내보내기 기능
-   * - 보고서 형태로 인쇄 및 배포에 적합
-   */
   const handleExportPDF = () => {
     if (!rawData || rawData.length === 0) {
       Swal.fire({
@@ -427,11 +441,11 @@ const PromotionSettlePivot = () => {
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const fileName = `판촉정산피벗__${today}`;
+    const fileName = `판촉정산피벗_${today}`;
 
     pivotRef.current.flexmonster.exportTo('pdf', {
       filename: fileName,
-      header: '판촉정산피벗_',
+      header: '판촉정산피벗',
       footer: `작성일: ${today}`,
       pageOrientation: 'landscape'
     });
@@ -440,33 +454,18 @@ const PromotionSettlePivot = () => {
   // ============================================
   // Flexmonster 이벤트 핸들러
   // ============================================
-  
-  /**
-   * Flexmonster 준비 완료 이벤트
-   * 
-   * @description
-   * 피벗 테이블이 완전히 로드되고 사용 가능한 상태가 되면 호출
-   */
   const onReportComplete = () => {
     console.log("✅ Flexmonster 리포트 로드 완료");
     
-    // 초기 설정이나 커스터마이징이 필요한 경우 여기서 처리
     if (pivotRef.current && pivotRef.current.flexmonster) {
-      // 예: 특정 필드에 색상 적용, 조건부 서식 등
       console.log("📊 Flexmonster 인스턴스 준비 완료");
     }
   };
 
-  /**
-   * 데이터 로드 완료 이벤트
-   */
   const onDataLoaded = () => {
     console.log("✅ 데이터 로드 완료");
   };
 
-  /**
-   * 데이터 변경 이벤트
-   */
   const onUpdate = (params) => {
     console.log("🔄 피벗 테이블 업데이트:", params);
   };
@@ -474,12 +473,9 @@ const PromotionSettlePivot = () => {
   // ============================================
   // 렌더링
   // ============================================
-  
   return (
     <Container fluid className="mt-1">
-      {/* ========================================
-          제목 영역
-      ======================================== */}
+      {/* 제목 영역 */}
       <Row className="mb-1">
         <Col>
           <h5>
@@ -490,9 +486,7 @@ const PromotionSettlePivot = () => {
         </Col>
       </Row>
 
-      {/* ========================================
-          상단 Card - 검색 및 버튼 영역
-      ======================================== */}
+      {/* 상단 Card - 검색 및 버튼 영역 */}
       <Card className="mb-2">
         <Card.Body className="py-2">
           <Row className="align-items-center">
@@ -522,6 +516,34 @@ const PromotionSettlePivot = () => {
               </Form.Group>
             </Col>
 
+            {/* ✅ 전월 버튼 */}
+            <Col md={1} style={{ minWidth: '80px', maxWidth: '80px' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={handlePreviousMonth}
+                disabled={isLoading}
+                title="전월 1주차 시작일 ~ 마지막 주차 종료일"
+              >
+                전월
+              </Button>
+            </Col>
+
+            {/* ✅ 당월 버튼 */}
+            <Col md={1} style={{ minWidth: '80px', maxWidth: '80px' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={handleCurrentMonth}
+                disabled={isLoading}
+                title="당월 1주차 시작일 ~ 마지막 주차 종료일"
+              >
+                당월
+              </Button>
+            </Col>
+
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button
@@ -547,31 +569,14 @@ const PromotionSettlePivot = () => {
                 <RiFileExcel2Line /> 엑셀 다운로드
               </Button>
             </Col>
-
-            {/* PDF 다운로드 버튼 (선택사항) */}
-            {/* <Col md={1} style={{ minWidth: '150px', maxWidth: '150px' }}>
-              <Button
-                variant="danger"
-                size="sm"
-                className="w-100 d-flex align-items-center justify-content-center gap-1"
-                onClick={handleExportPDF}
-                disabled={!rawData || rawData.length === 0}
-              >
-                📄 PDF 다운로드
-              </Button>
-            </Col> */}
           </Row>
         </Card.Body>
       </Card>
       
-      {/* ========================================
-          하단 Card - 피벗 테이블 영역
-      ======================================== */}
+      {/* 하단 Card - 피벗 테이블 영역 */}
       <Card style={{ height: 'calc(100vh - 270px)' }}>
         <Card.Body className="p-2" style={{ height: '100%', overflow: 'auto', position: 'relative' }}>
-          {/* ========================================
-              로딩 표시
-          ======================================== */}
+          {/* 로딩 표시 */}
           {isLoading && (
             <div style={{
               position: 'absolute',
@@ -594,27 +599,22 @@ const PromotionSettlePivot = () => {
             </div>
           )}
 
-          {/* ========================================
-              Flexmonster Pivot 컴포넌트
-          ======================================== */}
+          {/* Flexmonster Pivot 컴포넌트 */}
           {!isLoading && rawData && rawData.length > 0 && (
             <FlexmonsterReact.Pivot
               ref={pivotRef}
-              toolbar={true}  // 툴바 표시 (저장, 열기, 내보내기 등)
+              toolbar={true}
               width="100%"
               height="100%"
               report={getInitialReport(rawData)}
-              licenseKey=""  // ⚠️ 라이센스 키 필요 (개발용은 빈 문자열)
-              // 이벤트 핸들러
+              licenseKey="Z7HJ-XIHH45-5F4W41-6L414O-2F395B-2H6K5G-1Z665L-24012U-675R0L-4Y3L19-2K"
               reportcomplete={onReportComplete}
               datachanged={onDataLoaded}
               update={onUpdate}
             />
           )}
 
-          {/* ========================================
-              데이터 없음 메시지
-          ======================================== */}
+          {/* 데이터 없음 메시지 */}
           {!isLoading && (!rawData || rawData.length === 0) && (
             <div style={{
               display: 'flex',

@@ -5,6 +5,12 @@
   
 <mapper namespace="com.yonseidairy.promo.mapper.SettingMapper">
 
+	<update id="updateTeamPersonPassword" parameterType="TeamPersonDao">
+	    UPDATE YSC.TC_TEAMPERSON
+	    SET LOGINPW = #{loginPw}
+	    WHERE TEAMPERSONCD = #{teamPersonCd}
+	</update>
+
 	<insert id="insertTeamPerson" parameterType="TeamPersonDao">
 		INSERT INTO YSC.TC_TEAMPERSON (
 			TEAMPERSONCD
@@ -18,7 +24,7 @@
 		) VALUES (
 			(SELECT NVL(MAX(TEAMPERSONCD), 0) + 1 FROM YSC.TC_TEAMPERSON)
 			, #{loginId, jdbcType=VARCHAR}
-			, 'AOZRCURBNOARpiIvQ1lINA=='
+			, 'Tu4iwg33xUo6RdPajC5JlFL3pjKJdMyXPr09iaOrU/s='
 			, #{teamPersonNm, jdbcType=VARCHAR}
 			, #{teamPersonType, jdbcType=VARCHAR}
 			, #{managerYn, jdbcType=VARCHAR}
@@ -30,7 +36,6 @@
 	<update id="updateTeamPerson" parameterType="TeamPersonDao">
 	    UPDATE YSC.TC_TEAMPERSON
 	    SET LOGINID = #{loginId, jdbcType=VARCHAR}
-	    	, LOGINPW = #{loginPw, jdbcType=VARCHAR}
 	    	, TEAMPERSONNM = #{teamPersonNm, jdbcType=VARCHAR}
 	    	, TEAMPERSONTYPE = #{teamPersonType, jdbcType=VARCHAR}
 	    	, MANAGERYN = #{managerYn, jdbcType=VARCHAR}

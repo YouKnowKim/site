@@ -12,7 +12,7 @@ import 'tabulator-tables/dist/css/tabulator.min.css';
 import 'tabulator-tables/dist/css/tabulator_bootstrap4.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap CSS import (npm 설치 시)
 import { CiViewList} from "react-icons/ci";
-import { FaSearch, FaSave, FaPlus} from "react-icons/fa";
+import { FaSearch, FaSave, FaPlus, FaKey } from "react-icons/fa";
 import { RiFileExcel2Line } from "react-icons/ri";
 import axios from 'axios';  // axios import 추가
 import Swal from 'sweetalert2';
@@ -252,6 +252,119 @@ const TeamPersonMng = () => {
     setCurrentRowIndex(null);
   };
 
+  /**
+   * ✅ 비밀번호 초기화 함수
+   * - 선택된 행의 비밀번호를 '1234'로 초기화
+   */
+  const handleResetPassword = async () => {
+    if (!tabulatorInstance?.current) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '테이블이 준비되지 않았습니다.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ✅ 선택된 행 가져오기
+    const selectedRows = tabulatorInstance.current.getSelectedRows();
+
+    if (selectedRows.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '알림',
+        text: '비밀번호를 초기화할 사원을 선택해주세요.',
+        confirmButtonText: '확인'
+      });
+      return;
+    }
+
+    // ✅ 선택된 사원 정보 추출
+    const selectedData = selectedRows.map(row => row.getData());
+    const selectedNames = selectedData.map(data => data.teamPersonNm || '(이름없음)').join(', ');
+
+    // ✅ 확인 메시지
+    const result = await Swal.fire({
+      title: '비밀번호 초기화',
+      html: `
+        <div style="text-align: left;">
+          <p>선택된 <strong>${selectedRows.length}명</strong>의 비밀번호를 초기화하시겠습니까?</p>
+          <p style="color: #6c757d; font-size: 14px;">대상: ${selectedNames}</p>
+          <p style="color: #dc3545; font-weight: bold;">초기화 비밀번호: 1234</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '초기화',
+      cancelButtonText: '취소',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      // ✅ 로딩 표시
+      Swal.fire({
+        title: '처리 중...',
+        html: '비밀번호를 초기화하고 있습니다.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      // ✅ 초기화할 사원코드 목록
+      const teamPersonCdList = selectedData
+        .filter(data => data.teamPersonCd)  // 신규 행 제외 (사원코드 있는 것만)
+        .map(data => data.teamPersonCd);
+
+      if (teamPersonCdList.length === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: '알림',
+          text: '저장되지 않은 신규 사원은 비밀번호 초기화가 불가능합니다.',
+          confirmButtonText: '확인'
+        });
+        return;
+      }
+
+      // ✅ API 호출 (비밀번호 초기화)
+      const response = await axios.post('/api/setting/resetTeamPersonPassword', {
+        teamPersonCdList: teamPersonCdList
+      });
+
+      // ✅ 성공 처리
+      Swal.fire({
+        icon: 'success',
+        title: '초기화 완료',
+        text: `${teamPersonCdList.length}명의 비밀번호가 '1234'로 초기화되었습니다.`,
+        confirmButtonText: '확인'
+      });
+
+      // ✅ 선택 해제
+      tabulatorInstance.current.deselectRow();
+
+    } catch (error) {
+      console.error('비밀번호 초기화 실패:', error);
+
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.error ||
+                          '비밀번호 초기화에 실패했습니다.';
+
+      Swal.fire({
+        icon: 'error',
+        title: '초기화 실패',
+        text: errorMessage,
+        confirmButtonText: '확인'
+      });
+    }
+  };
+
   // ✅ 담당자 선택 팝업의 컬럼 정의
   const teamPersonColumns = [
     {
@@ -356,6 +469,29 @@ const TeamPersonMng = () => {
   // 테이블 컬럼 정의
   const columns = [
     {
+      formatter: "rowSelection",
+      titleFormatter: "rowSelection",
+      hozAlign: "center",
+      width: 50,
+      download: false,  // ✅ 엑셀 다운로드 시 제외
+      // ✅ 셀 클릭 시 체크박스 토글
+      cellClick: function(e, cell) {
+        // 이미 체크박스를 직접 클릭한 경우는 제외
+        if (e.target.type === 'checkbox') {
+          return;
+        }
+        
+        const row = cell.getRow();
+        
+        // 현재 선택 상태 확인
+        if (row.isSelected()) {
+          row.deselect();
+        } else {
+          row.select();
+        }
+      }
+    },
+    {
       title: 'No',
       field: 'no',
       width: 80,
@@ -400,7 +536,8 @@ const TeamPersonMng = () => {
       width: 150,
       hozAlign: 'center',
       headerHozAlign: 'center',
-      editor: 'input'
+      editor: 'input',
+      visible: false
     },
     {
       title: 'MIS 코드',
@@ -892,6 +1029,19 @@ const TeamPersonMng = () => {
               </Button>
             </Col>
 
+            {/* ✅ 비밀번호 초기화 버튼 */}
+            <Col md={2} style={{ minWidth: '170px', maxWidth: '170px' }}>
+              <Button
+                variant="warning"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center gap-1"
+                onClick={handleResetPassword}
+                disabled={isLoading}
+              >
+                <FaKey /> 비밀번호 초기화
+              </Button>
+            </Col>
+
             {/* 엑셀 버튼 */}
             <Col md={2} style={{ minWidth: '160px', maxWidth: '160px' }}>
               <Button
@@ -916,7 +1066,7 @@ const TeamPersonMng = () => {
             <Col xs="auto">
               <span style={{ fontSize: '16px', fontWeight: 'bold' }}>사원 관리</span>
             </Col>
-            <Col>
+            <Col className="d-flex align-items-center gap-2">
               <Button
                 variant="success"
                 size="sm"
@@ -925,6 +1075,17 @@ const TeamPersonMng = () => {
               >
                 <FaPlus size={12} /> 행추가
               </Button>
+              {/* ✅ 초기비밀번호 안내 문구 */}
+              <span 
+                className="text-muted" 
+                style={{ 
+                  fontSize: '13px', 
+                  fontStyle: 'italic',
+                  color: '#6c757d'
+                }}
+              >
+                (초기비밀번호: 1234)
+              </span>
             </Col>
           </Row>
           

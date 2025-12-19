@@ -21,6 +21,8 @@ public interface SettingMapper {
 	List<TeamDao> selectTeamList(TeamDao inTeamDao);
 	
 	List<TeamPersonDao> selectTeamPersonList(TeamPersonDao inTeamPersonDao);
+	
+	int updateTeamPersonPassword(TeamPersonDao inTeamPersonDao);
 
 	/**
 	 * 대리점 목록 조회

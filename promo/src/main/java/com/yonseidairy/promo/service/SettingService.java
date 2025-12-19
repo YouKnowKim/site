@@ -11,7 +11,7 @@ import com.yonseidairy.promo.dao.GoodsDao;
 import com.yonseidairy.promo.dao.TeamDao;
 import com.yonseidairy.promo.dao.TeamPersonDao;
 import com.yonseidairy.promo.mapper.SettingMapper;
-import com.yonseidairy.promo.util.AESEncryptUtil;
+import com.yonseidairy.promo.util.PasswordHashUtil;
 
 @Service
 public class SettingService {
@@ -27,10 +27,6 @@ public class SettingService {
 	public List<TeamPersonDao> getTeamPersonList(TeamPersonDao inTeamPersonDao) {
 		
 		List<TeamPersonDao> arrList = settingMapper.selectTeamPersonList(inTeamPersonDao);
-		
-		for(TeamPersonDao dao : arrList ) {
-			dao.setLoginPw(AESEncryptUtil.decrypt(dao.getLoginPw()));
-		}
 
 		return arrList;
 	}
@@ -58,6 +54,37 @@ public class SettingService {
 	public int updateAllAgencyName(AgencyDao inAgencyDao) {
 
 		return settingMapper.updateAllAgencyName(inAgencyDao);
+	}
+	
+	/**
+	 * 사원 비밀번호 초기화 (1234로 설정)
+	 * - 선택된 사원들의 비밀번호를 초기 비밀번호로 일괄 초기화
+	 * 
+	 * @param teamPersonCdList 초기화할 사원코드 목록
+	 * @return int 업데이트된 총 건수
+	 */
+	@Transactional
+	public int resetTeamPersonPassword(List<String> teamPersonCdList) {
+	    
+	    int updatedCount = 0;
+	    
+	    // ✅ 초기 비밀번호 '1234' 해시 처리
+	    String hashedPassword = PasswordHashUtil.hash("1234");
+	    
+	    // ✅ 각 사원코드에 대해 비밀번호 초기화 수행
+	    for (String teamPersonCd : teamPersonCdList) {
+	        
+	        TeamPersonDao dao = new TeamPersonDao();
+	        dao.setTeamPersonCd(teamPersonCd);
+	        dao.setLoginPw(hashedPassword);
+	        
+	        int result = settingMapper.updateTeamPersonPassword(dao);
+	        updatedCount += result;
+	        
+	        System.out.println("비밀번호 초기화 - 사원코드: " + teamPersonCd);
+	    }
+	    
+	    return updatedCount;
 	}
 
 	/**
@@ -95,7 +122,7 @@ public class SettingService {
 				// ✅ 수정
 				System.out.println("UPDATE - 사원코드: " + data.getTeamPersonCd());
 				
-				data.setLoginPw(AESEncryptUtil.encrypt(data.getLoginPw()));
+				data.setLoginPw(PasswordHashUtil.hash(data.getLoginPw()));
 
 				// ✅ UPDATE 실행
 				int updateResult = settingMapper.updateTeamPerson(data);

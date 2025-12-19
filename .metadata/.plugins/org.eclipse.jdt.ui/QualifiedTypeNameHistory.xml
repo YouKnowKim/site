@@ -31,5 +31,7 @@
     <fullyQualifiedTypeName name="com.yonseidairy.promo.mapper.ExtPromoMapper"/>
     <fullyQualifiedTypeName name="com.yonseidairy.promo.dao.ExtPromoDao"/>
     <fullyQualifiedTypeName name="java.lang.System"/>
+    <fullyQualifiedTypeName name="com.yonseidairy.promo.util.BCryptPasswordUtil"/>
     <fullyQualifiedTypeName name="com.yonseidairy.promo.util.AESEncryptUtil"/>
+    <fullyQualifiedTypeName name="com.yonseidairy.promo.util.PasswordHashUtil"/>
 </qualifiedTypeNameHistroy>

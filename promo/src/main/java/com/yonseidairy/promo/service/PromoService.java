@@ -700,7 +700,6 @@ public class PromoService {
 					if (promoMapper.countPromoTeamUpdateTarget(data) > 0) {
 						promoMapper.updatePromoTeam(data);
 					}
-					;
 				}
 
 				if (updateResult == 0) {

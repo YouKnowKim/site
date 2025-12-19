@@ -251,6 +251,7 @@ const Login = () => {
    */
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     const { newPassword, confirmPassword } = passwordData;
 

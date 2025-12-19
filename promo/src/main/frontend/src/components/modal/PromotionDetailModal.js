@@ -25,6 +25,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
   const [selectedPromoTeamCd, setSelectedPromoTeamCd] = useState('');
   const [selectedPromoPersonNm, setSelectedPromoPersonNm] = useState('');
   const [selectedOrderCellPhone, setSelectedOrderCellPhone] = useState('');
+  const [selectedSaveRemark, setSelectedSaveRemark] = useState('');
 
   // 컴포넌트 마운트 시 대리점 목록 조회
   useEffect(() => {
@@ -777,19 +778,19 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
             <i className="bi bi-box-seam me-2"></i>
             제품 정보
           </h6>
-          <div className="table-responsive">
+          <div className="table-responsive" style={{ fontSize: '14px'}}>
             <Table bordered hover size="sm" className="mb-0">
               <thead className="table-light">
                 <tr className="text-center align-middle small">
-                  <th style={{ width: '200px' }}>상품</th>
+                  <th style={{ width: '150px' }}>상품</th>
                   <th style={{ width: '50px' }}>1회투입<br/>수량</th>
-                  <th style={{ width: '80px' }}>배송요일</th>
-                  <th style={{ width: '50px' }}>주간<br/>총수량</th>
-                  <th style={{ width: '70px' }}>음용기간</th>
+                  <th style={{ width: '60px' }}>배송요일</th>
+                  <th style={{ width: '45px' }}>주간<br/>총수량</th>
+                  <th style={{ width: '50px' }}>음용기간</th>
                   <th style={{ width: '60px' }}>계약구분</th>
-                  <th style={{ width: '140px' }}>판촉물 / 중단일<br/>(중단사유)</th>
-                  <th style={{ width: '80px' }}>마감홉수</th>
-                  
+                  <th style={{ width: '130px' }}>판촉물 / 중단일<br/>(중단사유)</th>
+                  <th style={{ width: '50px' }}>마감홉수</th>
+                  <th style={{ width: '140px' }}>기타의견</th>
                 </tr>
               </thead>
               <tbody class="align-middle">
@@ -851,6 +852,19 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                         // ✅ MozAppearance 제거 - Firefox에서도 스피너 표시
                         WebkitAppearance: 'auto',  // Chrome/Safari 스피너 표시
                         appearance: 'auto'          // 표준 속성
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <Form.Control
+                      size="sm"
+                      type="text"
+                      value={editableData[index]?.saveRemark || ''}
+                      onChange={(e) => handleInputChange(index, 'saveRemark', e.target.value)}
+                      onFocus={(e) => e.target.select()}  // ✅ 포커스 시 전체 선택
+                      placeholder="의견 입력"
+                      style={{ 
+                        fontSize: '13px'
                       }}
                     />
                   </td>

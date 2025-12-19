@@ -92,6 +92,140 @@ const PromotionTeamSettlePivot = () => {
       setPromoTeamList([]);
     }
   };
+
+  // ============================================
+  // 날짜 관련 함수
+  // ============================================
+
+  /**
+   * ✅ ISO 8601 기준 주차 계산 (수요일 기준)
+   * @param {number|string} year - 년도
+   * @param {number|string} month - 월
+   * @returns {Array} 주차 정보 배열
+   */
+  const getWeeksInMonth = (year, month) => {
+    const weeks = [];
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    // 해당 월의 1일
+    const firstDate = new Date(yearNum, monthNum - 1, 1);
+    
+    // 해당 월 1일이 속한 주의 월요일 찾기
+    const firstDayOfWeek = firstDate.getDay();
+    let daysToMonday = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    
+    const firstMonday = new Date(firstDate);
+    firstMonday.setDate(firstDate.getDate() - daysToMonday);
+    
+    let weekCount = 0;
+    let currentMonday = new Date(firstMonday);
+    
+    // 최대 6주까지 확인
+    for (let i = 0; i < 6; i++) {
+      const currentSunday = new Date(currentMonday);
+      currentSunday.setDate(currentMonday.getDate() + 6);
+      
+      // 해당 주의 수요일 계산
+      const wednesday = new Date(currentMonday);
+      wednesday.setDate(currentMonday.getDate() + 2);
+      
+      // 수요일이 해당 월에 속하는지 확인
+      if (wednesday.getMonth() + 1 === monthNum && wednesday.getFullYear() === yearNum) {
+        weekCount++;
+        
+        const startYear = currentMonday.getFullYear();
+        const startMonth = currentMonday.getMonth() + 1;
+        const startDay = currentMonday.getDate();
+        const endYear = currentSunday.getFullYear();
+        const endMonth = currentSunday.getMonth() + 1;
+        const endDay = currentSunday.getDate();
+        
+        const startDateStr = `${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+        const endDateStr = `${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+
+        // value용 전체 날짜 형식 (YYYY-MM-DD)
+        const startDateFull = `${startYear}-${String(startMonth).padStart(2, '0')}-${String(startDay).padStart(2, '0')}`;
+        const endDateFull = `${endYear}-${String(endMonth).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+        const dateRangeValue = `${startDateFull}|${endDateFull}`;
+        
+        weeks.push({
+          weekNum: weekCount,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          startDateFull: startDateFull,  // ✅ 전체 날짜 형식 추가
+          endDateFull: endDateFull,      // ✅ 전체 날짜 형식 추가
+          dateRange: dateRangeValue,
+          label: `${weekCount}주차: ${startDateStr} ~ ${endDateStr}`
+        });
+      }
+      
+      // 다음 주 월요일로 이동
+      currentMonday.setDate(currentMonday.getDate() + 7);
+      
+      // 조기 종료 조건: 수요일이 다음 월을 넘어가면
+      const nextWednesday = new Date(currentMonday);
+      nextWednesday.setDate(currentMonday.getDate() + 2);
+      if (nextWednesday.getFullYear() > yearNum || 
+          (nextWednesday.getFullYear() === yearNum && nextWednesday.getMonth() + 1 > monthNum)) {
+        break;
+      }
+    }
+    
+    return weeks;
+  };
+
+  /**
+   * ✅ 전월 날짜 범위 설정
+   * 전월 1주차 시작일 ~ 마지막 주차 종료일
+   */
+  const handlePreviousMonth = () => {
+    const today = new Date();
+    // 전월 계산
+    const prevMonth = today.getMonth();  // 0-based, 현재 달 -1 = 전월
+    const year = prevMonth === 0 ? today.getFullYear() - 1 : today.getFullYear();
+    const month = prevMonth === 0 ? 12 : prevMonth;
+    
+    // 전월의 주차 정보 가져오기
+    const weeks = getWeeksInMonth(year, String(month).padStart(2, '0'));
+    
+    if (weeks.length > 0) {
+      // 1주차 시작일
+      const firstWeekStart = weeks[0].startDateFull;
+      // 마지막 주차 종료일
+      const lastWeekEnd = weeks[weeks.length - 1].endDateFull;
+      
+      setStartDate(firstWeekStart);
+      setEndDate(lastWeekEnd);
+      
+      console.log(`📅 전월 설정: ${firstWeekStart} ~ ${lastWeekEnd}`);
+    }
+  };
+
+  /**
+   * ✅ 당월 날짜 범위 설정
+   * 당월 1주차 시작일 ~ 마지막 주차 종료일
+   */
+  const handleCurrentMonth = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;  // 1-based
+    
+    // 당월의 주차 정보 가져오기
+    const weeks = getWeeksInMonth(year, String(month).padStart(2, '0'));
+    
+    if (weeks.length > 0) {
+      // 1주차 시작일
+      const firstWeekStart = weeks[0].startDateFull;
+      // 마지막 주차 종료일
+      const lastWeekEnd = weeks[weeks.length - 1].endDateFull;
+      
+      setStartDate(firstWeekStart);
+      setEndDate(lastWeekEnd);
+      
+      console.log(`📅 당월 설정: ${firstWeekStart} ~ ${lastWeekEnd}`);
+    }
+  };
   
   /**
    * Flexmonster 인스턴스 참조
@@ -556,6 +690,34 @@ const PromotionTeamSettlePivot = () => {
               </Form.Group>
             </Col>
 
+            {/* ✅ 전월 버튼 */}
+            <Col md={1} style={{ minWidth: '80px', maxWidth: '80px' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={handlePreviousMonth}
+                disabled={isLoading}
+                title="전월 1주차 시작일 ~ 마지막 주차 종료일"
+              >
+                전월
+              </Button>
+            </Col>
+
+            {/* ✅ 당월 버튼 */}
+            <Col md={1} style={{ minWidth: '80px', maxWidth: '80px' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="w-100 d-flex align-items-center justify-content-center"
+                onClick={handleCurrentMonth}
+                disabled={isLoading}
+                title="당월 1주차 시작일 ~ 마지막 주차 종료일"
+              >
+                당월
+              </Button>
+            </Col>
+
             {/* 조회 버튼 */}
             <Col md={1} style={{ minWidth: '100px', maxWidth: '100px' }}>
               <Button
@@ -625,7 +787,7 @@ const PromotionTeamSettlePivot = () => {
               width="100%"
               height="100%"
               report={getInitialReport(rawData)}
-              licenseKey=""  // ⚠️ 라이센스 키 필요 (개발용은 빈 문자열)
+              licenseKey="Z7HJ-XIHH45-5F4W41-6L414O-2F395B-2H6K5G-1Z665L-24012U-675R0L-4Y3L19-2K"  // ⚠️ 라이센스 키 필요 (개발용은 빈 문자열)
               // 이벤트 핸들러
               reportcomplete={onReportComplete}
               datachanged={onDataLoaded}

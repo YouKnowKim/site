@@ -20,6 +20,7 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';  // 이 줄 추가
 import PromotionDetailModal from '../components/modal/PromotionDetailModal.js';
 import PromotionDuplModal from '../components/modal/PromotionDuplModal.js';
+import Select from 'react-select';
 
 // window.XLSX에 할당 (Tabulator가 사용할 수 있도록)
 window.XLSX = XLSX;
@@ -1057,7 +1058,7 @@ const PromotionSettle = () => {
     },
     {
       title: '수정사유',
-      field: 'SaveRemark',
+      field: 'saveRemark',
       width: 100,
       hozAlign: 'center',
       headerHozAlign: 'center'
@@ -2190,27 +2191,118 @@ const PromotionSettle = () => {
             </Col>
 
             {/* 대리점 선택 */}
-            <Col md={3} style={{ minWidth: '200px', maxWidth: '250px' }}>
+            <Col md={3} style={{ minWidth: '230px', maxWidth: '230px' }}>
               <Form.Group>
                 <div className="d-flex align-items-center gap-2">
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '50px' }}>
                     대리점 :
                   </Form.Label>
-                  <Form.Select
-                    size="sm"
-                    value={selectedAgency}
-                    onChange={(e) => {
-                      setSelectedAgency(e.target.value);
+                  <Select
+                    value={
+                      selectedAgency
+                        ? {
+                            value: selectedAgency,
+                            label: agencyList.find(a => a.agencyCd === selectedAgency)?.agencyNm || selectedAgency
+                          }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      setSelectedAgency(selected ? selected.value : '');
                     }}
-                    style={{ width: '150px' }}  // 고정 크기
-                  >
-                    <option value="">= 전체 =</option>
-                    {agencyList.map((agency) => (
-                      <option key={agency.agencyCd} value={agency.agencyCd}>
-                        {agency.agencyNm}
-                      </option>
-                    ))}
-                  </Form.Select>
+                    options={[
+                      { value: '', label: '= 전체 =' },
+                      ...agencyList.map(agency => ({
+                        value: agency.agencyCd,
+                        label: agency.agencyNm
+                      }))
+                    ]}
+                    placeholder="대리점 검색"
+                    isClearable
+                    isSearchable
+                    noOptionsMessage={() => "검색 결과가 없습니다"}
+                    styles={{
+                      // ✅ 컨테이너 전체 너비
+                      container: (base) => ({
+                        ...base,
+                        width: '180px'
+                      }),
+                      // ✅ 컨트롤 (입력 영역)
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: '31px',
+                        height: '31px',
+                        fontSize: '14px',
+                        borderColor: state.isFocused ? '#86b7fe' : '#ced4da',
+                        boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(13, 110, 253, 0.25)' : 'none',
+                        '&:hover': {
+                          borderColor: state.isFocused ? '#86b7fe' : '#ced4da'
+                        }
+                      }),
+                      // ✅ 값 컨테이너
+                      valueContainer: (base) => ({
+                        ...base,
+                        height: '29px',
+                        padding: '0 8px'
+                      }),
+                      // ✅ 입력 필드
+                      input: (base) => ({
+                        ...base,
+                        margin: '0',
+                        padding: '0'
+                      }),
+                      // ✅ 인디케이터 (화살표, X 버튼)
+                      indicatorsContainer: (base) => ({
+                        ...base,
+                        height: '29px'
+                      }),
+                      // ✅ 드롭다운 인디케이터 (화살표)
+                      dropdownIndicator: (base) => ({
+                        ...base,
+                        padding: '4px'
+                      }),
+                      // ✅ 클리어 인디케이터 (X 버튼)
+                      clearIndicator: (base) => ({
+                        ...base,
+                        padding: '4px'
+                      }),
+                      // ✅ 옵션 (드롭다운 항목)
+                      option: (base, state) => ({
+                        ...base,
+                        fontSize: '14px',
+                        padding: '8px 12px',
+                        backgroundColor: state.isSelected 
+                          ? '#0d6efd' 
+                          : state.isFocused ? '#e9ecef' : 'white',
+                        color: state.isSelected ? 'white' : '#212529',
+                        cursor: 'pointer',
+                        '&:active': {
+                          backgroundColor: '#0d6efd'
+                        }
+                      }),
+                      // ✅ 메뉴 (드롭다운 전체)
+                      menu: (base) => ({
+                        ...base,
+                        zIndex: 9999,
+                        marginTop: '2px'
+                      }),
+                      // ✅ 메뉴 리스트 (스크롤 영역)
+                      menuList: (base) => ({
+                        ...base,
+                        maxHeight: '400px'
+                      }),
+                      // ✅ 선택된 값 표시
+                      singleValue: (base) => ({
+                        ...base,
+                        fontSize: '14px'
+                      }),
+                      // ✅ 플레이스홀더
+                      placeholder: (base) => ({
+                        ...base,
+                        fontSize: '14px',
+                        color: '#6c757d'
+                      })
+                    }}
+                  />
                 </div>
               </Form.Group>
             </Col>
@@ -2234,6 +2326,7 @@ const PromotionSettle = () => {
                     <option value="04">전화번호없음</option>
                     <option value="05">주간수량미달</option>
                     <option value="06">한가구혼합</option>
+                    <option value="07">재계약</option>
                   </Form.Select>
                 </div>
               </Form.Group>

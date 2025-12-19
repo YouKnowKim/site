@@ -14,21 +14,21 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="updateTeamPerson"/>
-			<item value="insertTeamPerson"/>
-			<item value="saveTeamPersonList"/>
-			<item value="selectTeamPersonList"/>
-			<item value="getTeamPersonList"/>
-			<item value="getLoginInfo"/>
-			<item value="ALGORITHM"/>
-			<item value="AND f.TEAMPERSONCD = #{teamPersonCd}"/>
-			<item value="b.teampersoncd ="/>
-			<item value="selecthappymilkbangdetail"/>
-			<item value="selectclose"/>
-			<item value="close"/>
-			<item value="AND b.TEAMPERSONCD"/>
-			<item value="AND b.TEAMPERSONCD = #{teamPersonCd}"/>
 			<item value="selectMilkbangDetailList"/>
+			<item value="getMilkbangDetailList"/>
+			<item value="mergepromo"/>
+			<item value="selectMilkbangDetail"/>
+			<item value="UPDATE ysc.TC_MILKBANG"/>
+			<item value="getMilkbangDetail"/>
+			<item value="mergePromo"/>
+			<item value="savePromoDetail"/>
+			<item value="update ysc.tc_milkbanggoods"/>
+			<item value="mergePromoDetail"/>
+			<item value="mergePromoMaster"/>
+			<item value="updatePromoTeam"/>
+			<item value="savere"/>
+			<item value="insert"/>
+			<item value="insertTeamPerson"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>

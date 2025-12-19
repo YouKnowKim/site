@@ -356,6 +356,7 @@
 	        <if test="orderKindCd != null and orderKindCd != ''">
 	            ORDERKINDCD = #{orderKindCd},
 	        </if>
+	        SAVEREMARK = #{saveRemark},
 	        SAVEYN = 1,
 	        SAVEDT = SYSDATE
 	    </set>
@@ -694,6 +695,9 @@
 		  			</when>
 		  			<when test="issueStatus.equalsIgnoreCase('06')">
 		  				AND (SELECT count(*) FROM ysc.TC_MILKBANGGOODS WHERE ordercd = a.ordercd) > 1
+		  			</when>
+		  			<when test="issueStatus.equalsIgnoreCase('07')">
+		  				AND b.ORDERKINDCD = 2
 		  			</when>
 		  		</choose> 
 		    </if>

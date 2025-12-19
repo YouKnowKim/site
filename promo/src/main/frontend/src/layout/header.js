@@ -191,6 +191,7 @@ const Header = () => {
    */
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     // 필수 입력 항목 검사
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {

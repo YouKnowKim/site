@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -49,6 +50,47 @@ public class SettingController {
 	public List<AgencyDao> getAgencyList(@ModelAttribute AgencyDao inAgencyDao) {
 
 		return settingService.getAgencyList(inAgencyDao);
+	}
+	
+	/**
+	 * 사원 비밀번호 초기화 API
+	 * - 선택된 사원들의 비밀번호를 '1234'로 초기화
+	 * 
+	 * @param request 초기화할 사원코드 목록 (teamPersonCdList)
+	 * @return ResponseEntity 처리 결과
+	 */
+	@PostMapping("/resetTeamPersonPassword")
+	public ResponseEntity<?> resetTeamPersonPassword(@RequestBody Map<String, List<String>> request) {
+	    try {
+	        // ✅ 요청에서 사원코드 목록 추출
+	        List<String> teamPersonCdList = request.get("teamPersonCdList");
+
+	        // ✅ 유효성 검사
+	        if (teamPersonCdList == null || teamPersonCdList.isEmpty()) {
+	            Map<String, Object> errorResponse = new HashMap<>();
+	            errorResponse.put("message", "초기화할 사원이 없습니다.");
+	            return ResponseEntity.badRequest().body(errorResponse);
+	        }
+
+	        // ✅ 서비스 호출
+	        int updatedCount = settingService.resetTeamPersonPassword(teamPersonCdList);
+
+	        // ✅ 성공 응답
+	        Map<String, Object> successResponse = new HashMap<>();
+	        successResponse.put("success", true);
+	        successResponse.put("updatedCount", updatedCount);
+	        successResponse.put("message", updatedCount + "명의 비밀번호가 초기화되었습니다.");
+	        return ResponseEntity.ok(successResponse);
+
+	    } catch (Exception e) {
+	        // ✅ 에러 처리
+	        System.err.println("비밀번호 초기화 실패: " + e.getMessage());
+	        e.printStackTrace();
+
+	        Map<String, Object> errorResponse = new HashMap<>();
+	        errorResponse.put("message", "비밀번호 초기화에 실패했습니다.");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	    }
 	}
 
 	/**

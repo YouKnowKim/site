@@ -199,16 +199,16 @@ public class BatchMainController {
                             clsMilkbangGoods.OrderKindCD = 1;  // 신규계약
                         }
                         
+                        BigDecimal weekQty = new BigDecimal(String.valueOf(clsMilkbangGoods.WeekQty));
+                        BigDecimal one = new BigDecimal("1");
+                        BigDecimal two = new BigDecimal("2");
+                        BigDecimal three = new BigDecimal("3");
+                        BigDecimal four = new BigDecimal("4");
+                        BigDecimal five = new BigDecimal("5");
+                        BigDecimal six = new BigDecimal("6");
+                        
                         // 본사 홉 자동 설정
                         if(clsMilkbangGoods.OrderKindCD == 1) {
-                        	
-                        	BigDecimal weekQty = new BigDecimal(String.valueOf(clsMilkbangGoods.WeekQty));
-                            BigDecimal one = new BigDecimal("1");
-                            BigDecimal two = new BigDecimal("2");
-                            BigDecimal three = new BigDecimal("3");
-                            BigDecimal four = new BigDecimal("4");
-                            BigDecimal five = new BigDecimal("5");
-                            BigDecimal six = new BigDecimal("6");
                             
                         	if(weekQty.compareTo(one) == 0) {
                         		clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day1;
@@ -225,8 +225,36 @@ public class BatchMainController {
                         	} else {
                         		clsMilkbangGoods.ActualHob = new BigDecimal("0");
                         	}
+                        	
                         } else if (clsMilkbangGoods.OrderKindCD == 2) {
-                        	clsMilkbangGoods.ActualHob = new BigDecimal("1");
+                        	if (weekQty.compareTo(one) == 0) {
+                                // weekQty가 1인 경우: Day1이 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day1.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else if (weekQty.compareTo(two) == 0) {
+                                // weekQty가 2인 경우: Day2가 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day2.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else if (weekQty.compareTo(three) == 0) {
+                                // weekQty가 3인 경우: Day3가 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day3.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else if (weekQty.compareTo(four) == 0) {
+                                // weekQty가 4인 경우: Day4가 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day4.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else if (weekQty.compareTo(five) == 0) {
+                                // weekQty가 5인 경우: Day5가 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day5.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else if (weekQty.compareTo(six) >= 0) {
+                                // weekQty가 6 이상인 경우: Day6가 0보다 크면 1, 아니면 0
+                                clsMilkbangGoods.ActualHob = clsMilkbangGoods.Day6.compareTo(BigDecimal.ZERO) > 0 
+                                    ? one : BigDecimal.ZERO;
+                            } else {
+                                // weekQty가 1 미만인 경우: ActualHob = 0
+                                clsMilkbangGoods.ActualHob = BigDecimal.ZERO;
+                            }
                         } else if (clsMilkbangGoods.OrderKindCD == 3) {
                         	clsMilkbangGoods.ActualHob = new BigDecimal("0");
                         } else {
