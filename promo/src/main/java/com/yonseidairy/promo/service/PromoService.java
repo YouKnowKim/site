@@ -57,6 +57,11 @@ public class PromoService {
 
 		return promoMapper.selectAllTeamPerson();
 	}
+	
+	public List<TeamPersonDao> getMyTeamPerson(TeamPersonDao inTeamPersonDao) {
+
+		return promoMapper.selectMyTeamPerson(inTeamPersonDao);
+	}
 
 	public List<MilkbangFileDao> getMilkNotSubmitFileList(MilkbangFileDao inMilkbangFileDao) {
 

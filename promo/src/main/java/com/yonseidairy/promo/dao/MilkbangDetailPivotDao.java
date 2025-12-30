@@ -8,7 +8,7 @@ public class MilkbangDetailPivotDao {
 	private String agencyCdMis;
 	private String promoPersonNm;
 	private String goodsOptionNm;
-//	private String weekQty;
+	private String weekQty;
 	private String contractPeriod;
 	private String actualHob;
 	private String teamPersonNm;
@@ -19,4 +19,7 @@ public class MilkbangDetailPivotDao {
 	private String orderKindCdNm;
 	private String promoYyMm;
 	private String weekCnt;
+	private String weekRemark;
+	private String unitPrice;
+	private String promoGiftNm;
 }

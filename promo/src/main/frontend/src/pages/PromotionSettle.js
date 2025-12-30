@@ -491,17 +491,29 @@ const PromotionSettle = () => {
   // 담당자 목록 조회 함수
   const fetchTeamPersonList = async () => {
     try {
-      const response = await axios.get('/api/promo/getAllTeamPerson');  // API 엔드포인트 수정 필요
-      
+
+      let response = null;
+
+      if (sessionStorage.getItem("managerYn") === "1"){
+        response = await axios.get('/api/promo/getAllTeamPerson');  // API 엔드포인트 수정 필요
+      } else {
+        response = await axios.get('/api/promo/getMyTeamPerson', {
+          params : {
+            loginId : sessionStorage.getItem('loginId'),
+            managerYn : sessionStorage.getItem("managerYn")
+          }
+        });
+      }
+
       // API 응답 구조에 따라 수정
       // 예: response.data 또는 response.data.data
       setTeamPersonList(response.data);
 
       // 매니저가 아니면 담당자 변경 불가
       // 매니저 여부 확인
-        const managerYn = sessionStorage.getItem("managerYn");
-        const isManagerUser = managerYn === "1";
-        setIsManager(isManagerUser);
+      const managerYn = sessionStorage.getItem("managerYn");
+      const isManagerUser = managerYn === "1";
+      setIsManager(isManagerUser);
 
     // sessionStorage에서 teamPersonCd 가져오기
     const teamPersonCd = sessionStorage.getItem("teamPersonCd");
@@ -2176,10 +2188,9 @@ const PromotionSettle = () => {
                     onChange={(e) => {
                       setSelectedTeamPersonCd(e.target.value);
                     }}
-                    disabled={!isManager}  // 매니저가 아니면 비활성화
                     style={{ width: '150px' }}  // 고정 크기
                   >
-                    <option value="">= 전체 =</option>
+                    {isManager && <option value="">= 전체 =</option>}
                     {teamPersonList.map((teamPerson) => (
                       <option key={teamPerson.teamPersonCd} value={teamPerson.teamPersonCd}>
                         {teamPerson.teamPersonNm}

@@ -198,6 +198,20 @@
 		ORDER BY TEAMPERSONCD 
     </select>
     
+    <select id="selectMyTeamPerson" resultType="TeamPersonDao">
+    	SELECT 
+		 a.TEAMPERSONCD AS teamPersonCd
+		 , a.TEAMPERSONNM AS teamPersonNm
+		 , a.LOGINID AS loginId
+		FROM ysc.tc_teamperson a
+		LEFT JOIN insa.papedtl b ON a.LOGINID = b.EMPY_ID
+		WHERE TEAMPERSONTYPE = '1'
+		<if test='managerYn != "1" and loginId != null and loginId != ""'>
+			AND b.DEPT_CDE = (SELECT DEPT_CDE FROM insa.papedtl WHERE EMPY_ID = #{loginId})
+		</if>
+		ORDER BY TEAMPERSONCD 
+    </select>
+    
     <select id="selectMilkbangFileList" resultType="MilkbangFileDao">
 	    SELECT
 			ROW_NUMBER() OVER (ORDER BY a.AGENCYCD, a.DOWNLOADDT DESC) AS no
@@ -418,6 +432,9 @@
 		    to_char(TRUNC(b.promodt, 'IW') + 2, 'yyyy-mm') as promoYyMm,
 		    to_char(TRUNC(b.promodt, 'IW') + 2, 'W') AS weekCnt,
 		    b.ACTUALHOB AS actualHob,  
+		    b.WEEKREMARK AS weekRemark,
+		    b.UNITPRICE AS unitPrice,
+		    b.PROMOGIFTNM AS promoGiftNm,
 		    d.TEAMPERSONNM AS teamPersonNm,
 		    nvl(e.PROMOTEAMNM, '배치X') AS promoTeamNm,
 		    c.AGENCYNM AS agencyNm,

@@ -76,8 +76,11 @@ public interface PromoMapper {
 	// 조건에 맞는 우유방 파일 목록을 조회합니다. (년도, 주차, 대리점 등 필터링)
 	List<MilkbangFileDao> selectMilkbangFileList(MilkbangFileDao inMilkbangFileDao);
 
-	// 전체 팀원(배달기사) 목록을 조회합니다.
+	// 전체 팀원 목록을 조회합니다.
 	List<TeamPersonDao> selectAllTeamPerson();
+	
+	// 나의 팀원 목록을 조회합니다.
+	List<TeamPersonDao> selectMyTeamPerson(TeamPersonDao inTeamPersonDao);
 
 	// 미제출된 우유방 파일 목록을 조회합니다. (해당 주차에 파일 업로드 안된 대리점)
 	List<MilkbangFileDao> selectMilkNotSubmitFile(MilkbangFileDao inMilkbangFileDao);

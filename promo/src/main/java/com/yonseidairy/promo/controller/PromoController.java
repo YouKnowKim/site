@@ -80,6 +80,13 @@ public class PromoController {
 
 		return promoService.getAllTeamPerson();
 	}
+	
+	@GetMapping("/getMyTeamPerson")
+	public List<TeamPersonDao> getMyTeamPerson(TeamPersonDao inTeamPersonDao) {
+
+		return promoService.getMyTeamPerson(inTeamPersonDao);
+	}
+
 
 	@GetMapping("/getMilkNotSubmitFileList")
 	public List<MilkbangFileDao> getMilkNotSubmitFileList(@ModelAttribute MilkbangFileDao inMilkbangFileDao) {

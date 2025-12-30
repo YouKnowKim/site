@@ -46,7 +46,11 @@ const PromotionSettlePivot = () => {
     { uniqueName: 'actualHob', caption: '실적홉수', type: 'number' },
     { uniqueName: 'orderKindCdNm', caption: '계약구분', type: 'string' },
     { uniqueName: 'promoYyMm', caption: '판촉년월', type: 'string' },
-    { uniqueName: 'weekCnt', caption: '주차', type: 'number' }
+    { uniqueName: 'weekCnt', caption: '주차', type: 'number' },
+    { uniqueName: 'weekQty', caption: '주간수량', type: 'number' },
+    { uniqueName: 'weekRemark', caption: '배송요일', type: 'string' },
+    { uniqueName: 'unitPrice', caption: '단가', type: 'number' },
+    { uniqueName: 'promoGiftNm', caption: '계약선물', type: 'string' }
   ];
 
   // ============================================
