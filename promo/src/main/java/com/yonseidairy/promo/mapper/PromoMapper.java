@@ -120,6 +120,8 @@ public interface PromoMapper {
 	// 프로모션 정보를 병합(Merge) 처리합니다. (존재하면 수정, 없으면 신규 등록)
 	Integer mergePromo(MilkbangDetailDao inMilkbangDetailDao);
 	
+	Integer mergePromoList(MilkbangDetailDao inMilkbangDetailDao);
+	
 	// 해피콜 상세 정보를 수정 합니다.
 	Integer updateHappyDetail(MilkbangDetailDao inMilkbangDetailDao);
 	

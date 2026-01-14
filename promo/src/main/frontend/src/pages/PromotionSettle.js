@@ -923,7 +923,7 @@ const PromotionSettle = () => {
       editorParams: {
         min: 0,
         max: 999.9,
-        step: 0.1,  // ✅ 0.1 단위로만 입력 가능
+        step: 0.5,  // ✅ 0.1 단위로만 입력 가능
         selectContents: true,
         elementAttributes: {
           maxlength: "5"  // 최대 5자리 (999.9)
@@ -2407,7 +2407,7 @@ const PromotionSettle = () => {
                 <div className="d-flex align-items-center gap-2">
                   {/* 마감여부 */}
                   <Form.Label className="fw-bold small mb-0" style={{ minWidth: '20px'}}>
-                    마감 : 
+                    상태 : 
                   </Form.Label>
                    <Form.Select
                     size="sm"
@@ -2416,7 +2416,9 @@ const PromotionSettle = () => {
                     style={{ width: '130px' }}
                   >
                     <option value="">전체</option>
-                    <option value="1">마감</option>
+                    <option value="02">미저장</option>
+                    <option value="03">저장</option>
+                    <option value="01">마감</option>
                   </Form.Select>
                 </div>
               </Form.Group>

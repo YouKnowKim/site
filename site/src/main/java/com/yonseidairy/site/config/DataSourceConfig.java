@@ -18,7 +18,7 @@ public class DataSourceConfig {
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("oracle.jdbc.OracleDriver");
-        config.setJdbcUrl("jdbc:oracle:thin:@192.168.135.34:1521:YSMT"); // Oracle 주소
+        config.setJdbcUrl("jdbc:oracle:thin:@165.132.200.104:1521:YSMT"); // Oracle 주소
         config.setUsername("apps");
         config.setPassword("apps21");
 

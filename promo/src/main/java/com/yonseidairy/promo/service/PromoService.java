@@ -469,7 +469,7 @@ public class PromoService {
 
 		for (MilkbangDetailDao data : dataList) {
 			try {
-				int updateResult = promoMapper.mergePromo(data);
+				int updateResult = promoMapper.mergePromoList(data);
 				promoMapper.mergePromoMaster(data);
 
 				if (updateResult == 0) {

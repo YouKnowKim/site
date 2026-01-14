@@ -161,7 +161,13 @@
 		WHERE a.AGENCYTYPE = '1'
 		AND a.DELETEYN != '1'
 		<if test='managerYn != "1" and teamPersonCd != null and teamPersonCd != ""'>
-	      AND a.TEAMPERSONCD = #{teamPersonCd}
+	      AND a.TEAMPERSONCD IN (SELECT a.TEAMPERSONCD 
+								   FROM ysc.TC_TEAMPERSON a
+								   LEFT JOIN insa.PAPEDTL b ON a.LOGINID = b.EMPY_ID 
+								   WHERE b.DEPT_CDE = (SELECT b.DEPT_CDE 
+													     FROM ysc.TC_TEAMPERSON a
+													     LEFT JOIN insa.PAPEDTL b ON a.LOGINID = b.EMPY_ID 
+												   	    WHERE a.TEAMPERSONCD = #{teamPersonCd}))
 	    </if>
 		ORDER BY a.AGENCYNM 
     </select>
@@ -323,15 +329,19 @@
 	</select>
 	
 	<select id="countPromoTeamUpdateTarget" parameterType="MilkbangDetailDao" resultType="int">
-	    SELECT COUNT(a.ORDERCD)
-	    FROM ysc.TC_MILKBANGGOODS a
-	    INNER JOIN ysc.tc_milkbang b 
-	        ON a.ordercd = b.ordercd
-	    WHERE b.promopersonnm = #{promoPersonNm, jdbcType=VARCHAR}
-	    AND b.orderdt &gt;= ADD_MONTHS(b.orderdt, -1)
-	    AND b.orderdt &lt;= ADD_MONTHS(b.orderdt, 1)
-	    AND a.MASTERCLOSEYN != 1
-	    AND a.PROMOTEAMCD != #{promoTeamCd, jdbcType=VARCHAR}
+		SELECT COUNT(*)
+		  FROM (
+				    SELECT *
+				    FROM ysc.TC_MILKBANGGOODS a
+				    INNER JOIN ysc.tc_milkbang b 
+				        ON a.ordercd = b.ordercd
+				    WHERE b.promopersonnm = #{promoPersonNm, jdbcType=VARCHAR}
+				    AND b.orderdt &gt;= ADD_MONTHS(b.orderdt, -1)
+				    AND b.orderdt &lt;= ADD_MONTHS(b.orderdt, 1)
+				    AND a.MASTERCLOSEYN != 1
+				    AND (a.PROMOTEAMCD IS NULL OR a.PROMOTEAMCD != #{promoTeamCd, jdbcType=VARCHAR})
+		    	)
+	    WHERE ROWNUM &lt;= 1
 	</select>
 	
 	<update id="updatePromoTeam" parameterType="MilkbangDetailDao">
@@ -370,7 +380,25 @@
 	        <if test="orderKindCd != null and orderKindCd != ''">
 	            ORDERKINDCD = #{orderKindCd},
 	        </if>
-	        SAVEREMARK = #{saveRemark},
+	        SAVEREMARK = #{saveRemark, jdbcType=VARCHAR},
+	        SAVEYN = 1,
+	        SAVEDT = SYSDATE
+	    </set>
+	    WHERE ORDERCD = #{orderCd}
+	    AND ORDERSEQ = #{orderSeq}
+	    AND (MASTERCLOSEYN IS NULL OR MASTERCLOSEYN != 1)
+	</update>
+	
+	<update id="mergePromoList" parameterType="MilkbangDetailDao">
+	    UPDATE ysc.TC_MILKBANGGOODS
+	    <set>
+	        ACTUALHOB = #{actualHob},
+	        <if test="promoTeamCd != null and promoTeamCd != ''">
+	            PROMOTEAMCD = #{promoTeamCd},
+	        </if>
+	        <if test="orderKindCd != null and orderKindCd != ''">
+	            ORDERKINDCD = #{orderKindCd},
+	        </if>
 	        SAVEYN = 1,
 	        SAVEDT = SYSDATE
 	    </set>
@@ -691,7 +719,17 @@
 		    	AND b.HCACTIONSTATUS = #{hcActionStatus}
 		    </if>
 		    <if test="masterCloseYn != null and masterCloseYn != ''">
-		    	AND b.MASTERCLOSEYN = #{masterCloseYn}
+		    	<choose>
+		    		<when test="masterCloseYn.equalsIgnoreCase('01')">
+		  				AND b.MASTERCLOSEYN = #{masterCloseYn}
+		  			</when>
+		  			<when test="masterCloseYn.equalsIgnoreCase('02')">
+		  				AND b.SAVEYN != 1
+		  			</when>
+		  			<when test="masterCloseYn.equalsIgnoreCase('03')">
+		  				AND b.SAVEYN = 1
+		  			</when>
+		    	</choose>
 		    </if>
 		    <if test="issueStatus != null and issueStatus != ''">
 		    	<choose>

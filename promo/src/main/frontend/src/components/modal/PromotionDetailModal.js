@@ -497,19 +497,30 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
       await axios.post('/api/promo/savePromoDetail', saveData);
 
       // ✅ 성공 메시지
+      // ✅ 다음 건 존재 여부 확인
+      const hasNextItem = currentIndex < orderCdList.length - 1;
+
       Swal.fire({
         icon: 'success',
         title: '저장 완료',
-        text: '판촉실적이 성공적으로 저장되었습니다.',
-        confirmButtonText: '확인',
-        timer: 2000,  // ✅ 0.5초 후 자동 종료 (밀리초 단위)
-        timerProgressBar: true  // ✅ 타이머 진행 바 표시 (선택사항)
-      }).then(() => {
-        //onSave(); // 목록 재조회
-        // ✅ 모달을 닫지 않고 현재 데이터만 다시 조회
-        const currentRowData = originalData.find(item => item.orderCd === currentOrderCd);
-        if (currentRowData) {
-          fetchDetailData(currentRowData);
+        text: hasNextItem 
+          ? '판촉실적이 저장되었습니다. 다음 건으로 이동하시겠습니까?' 
+          : '판촉실적이 성공적으로 저장되었습니다. (마지막 건)',
+        confirmButtonText: hasNextItem ? '다음으로 이동' : '확인',
+        showCancelButton: hasNextItem,  // ✅ 다음 건이 있을 때만 취소 버튼 표시
+        cancelButtonText: '현재 건 유지',
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d'
+      }).then((result) => {
+        if (result.isConfirmed && hasNextItem) {
+          // ✅ 확인 버튼 클릭 & 다음 건 존재 시 → 다음 건으로 이동
+          handleNext();
+        } else {
+          // ✅ 취소 버튼 클릭 또는 마지막 건 → 현재 데이터 재조회
+          const currentRowData = originalData.find(item => item.orderCd === currentOrderCd);
+          if (currentRowData) {
+            fetchDetailData(currentRowData);
+          }
         }
       });
 
@@ -842,7 +853,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [] }) => {
                       onChange={(e) => handleInputChange(index, 'actualHob', e.target.value)}
                       onFocus={(e) => e.target.select()}  // ✅ 포커스 시 전체 선택
                       type="number"
-                      step="0.1"      // ✅ 0.1 단위로 증감
+                      step="0.5"      // ✅ 0.1 단위로 증감
                       min="0"         // ✅ 최소값 0
                       max="999.9"     // ✅ 최대값 999.9
                       className="text-center"

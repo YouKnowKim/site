@@ -615,7 +615,7 @@ const PromotionDetailModal = ({ show, onHide, rowData, originalData = [], onSave
                       onChange={(e) => handleInputChange(index, 'hcHob', e.target.value)}
                       onFocus={(e) => e.target.select()}  // ✅ 포커스 시 전체 선택
                       type="number"
-                      step="0.1"      // ✅ 0.1 단위로 증감
+                      step="0.5"      // ✅ 0.1 단위로 증감
                       min="0"         // ✅ 최소값 0
                       max="999.9"     // ✅ 최대값 999.9
                       className="text-center"
