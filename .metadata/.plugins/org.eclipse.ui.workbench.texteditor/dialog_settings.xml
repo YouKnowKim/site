@@ -14,6 +14,8 @@
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="java"/>
+			<item value="war"/>
 			<item value="updatePromoTeam"/>
 			<item value="countPromoTeamUpdateTarget"/>
 			<item value="savepromo"/>
@@ -27,8 +29,6 @@
 			<item value="getMyAgencyList"/>
 			<item value="selectMilkbang"/>
 			<item value="select"/>
-			<item value="savePromodetail"/>
-			<item value="handleSave"/>
 		</list>
 		<list key="replacehistory">
 			<item value="#{promoTeamCd}"/>
